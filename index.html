@@ -7,191 +7,148 @@
 
 <style>
 :root{
-  --bg:#f4f7f8; --card:#fff; --text:#1f2d3d;
-  --p:#0b5f6a; --s:#2fa4b6; --b:#d9e2e6;
-}
-.dark{
-  --bg:#0f1b1f; --card:#16292f; --text:#e6f1f3;
+  --p:#0b5f6a; --s:#2fa4b6; --bg:#f4f7f8; --c:#fff; --b:#d9e2e6;
 }
 *{box-sizing:border-box;font-family:Segoe UI,Arial}
-body{margin:0;background:var(--bg);color:var(--text)}
-header{background:linear-gradient(90deg,var(--p),var(--s));color:#fff;padding:14px}
-.container{padding:14px}
+body{margin:0;background:var(--bg)}
+header{background:linear-gradient(90deg,var(--p),var(--s));color:#fff;padding:16px}
+.container{padding:16px}
+h2{font-size:16px;border-left:4px solid var(--s);padding-left:8px}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.kpi{background:var(--card);padding:10px;border-radius:8px}
-.kpi span{font-size:22px;font-weight:700;color:var(--s)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--c);padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.kpi span{font-size:22px;font-weight:700;color:var(--p)}
 
-.section{background:var(--card);margin-top:14px;padding:12px;border-radius:8px}
-h2{font-size:15px;border-left:4px solid var(--s);padding-left:6px}
+.section{background:var(--c);padding:14px;margin-top:18px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
 
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{border:1px solid var(--b);padding:5px;text-align:center}
 th{background:#eef6f8}
 
-input,select,button{padding:4px;font-size:12px}
-button{background:var(--s);color:#fff;border:0;border-radius:4px;cursor:pointer}
+input,select{width:100%;padding:4px;font-size:12px}
+button{padding:6px 12px;background:var(--s);border:0;color:#fff;border-radius:4px;cursor:pointer}
 
-canvas{width:100%;height:260px;margin-top:10px}
-.topbar{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+canvas{width:100%;max-width:600px;height:250px}
+.filter{margin:10px 0}
 </style>
 </head>
 
 <body>
+
 <header>
-<h1>Maintenance KPI Dashboard</h1>
+  <h1>Maintenance KPI Dashboard</h1>
+  <p>Preventive & Breakdown Maintenance</p>
 </header>
 
 <div class="container">
 
-<div class="topbar">
-Role:
-<select id="role" onchange="applyRole()">
-<option value="supervisor">Supervisor</option>
-<option value="manager">Manager</option>
-</select>
-
+<div class="filter">
 Month:
-<select id="month" onchange="renderAll()">
+<select id="monthFilter" onchange="renderAll()">
 <option value="">All</option>
-<script>
-for(let i=0;i<12;i++)document.write(`<option value="${i}">${new Date(0,i).toLocaleString('en',{month:'short'})}</option>`);
-</script>
+<option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+<option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+<option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+<option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
 </select>
-
-<button onclick="toggleDark()">🌙 Dark Mode</button>
-<button onclick="exportCSV()">⬇ Export Excel</button>
 </div>
 
 <!-- KPIs -->
 <div class="kpis">
-<div class="kpi">Breakdown Hrs<br><span id="bdh">0</span></div>
-<div class="kpi">PM %<br><span id="pmc">0%</span></div>
+<div class="kpi">Breakdown Hours<br><span id="bdh">0</span></div>
+<div class="kpi">PM Completion %<br><span id="pmc">0%</span></div>
 <div class="kpi">MTTR<br><span id="mttr">0</span></div>
 <div class="kpi">MTBF<br><span id="mtbf">0</span></div>
-<div class="kpi">Cost<br><span id="cost">0</span></div>
 </div>
 
 <!-- RAW DATA -->
-<div class="section" id="raw">
-<h2>RAW_DATA</h2>
-<table id="tbl"></table>
-<button onclick="addRow()">Add Row</button>
-</div>
-
-<!-- COST -->
 <div class="section">
-<h2>Cost vs Budget</h2>
-Budget: <input id="budget" type="number" value="10000" onchange="renderAll()">
-<table>
-<tr><th>Actual</th><th>Budget</th><th>Variance</th></tr>
+<h2>RAW_DATA</h2>
+<table id="dataTable">
 <tr>
-<td id="ac">0</td>
-<td id="bg">0</td>
-<td id="vr">0</td>
+<th>Date</th><th>Line</th><th>Machine</th><th>Type</th><th>Duration</th>
 </tr>
 </table>
+<button onclick="addRow()">Add Row</button>
 </div>
 
 <!-- CHARTS -->
 <div class="section">
 <h2>Charts</h2>
-<canvas id="lineChart"></canvas>
-<canvas id="pmChart"></canvas>
+<canvas id="chart1"></canvas>
+<canvas id="chart2"></canvas>
 </div>
 
 </div>
 
 <script>
-let data=JSON.parse(localStorage.getItem("data")||"[]");
+let data = JSON.parse(localStorage.getItem("maintData")||"[]");
 
 function addRow(){
-data.push({d:"",l:1,t:"Breakdown",h:0,c:0});
-save();
+  data.push({date:"",line:1,machine:"Filler",type:"Breakdown",dur:0});
+  save(); renderTable();
 }
 
-function save(){
-localStorage.setItem("data",JSON.stringify(data));
-renderAll();
+function save(){ localStorage.setItem("maintData",JSON.stringify(data)); renderAll(); }
+
+function renderTable(){
+  let t=document.getElementById("dataTable");
+  t.innerHTML=`<tr><th>Date</th><th>Line</th><th>Machine</th><th>Type</th><th>Duration</th></tr>`;
+  data.forEach((r,i)=>{
+    t.innerHTML+=`
+    <tr>
+    <td><input type="date" value="${r.date}" onchange="data[${i}].date=this.value;save()"></td>
+    <td><input type="number" min="1" max="18" value="${r.line}" onchange="data[${i}].line=this.value;save()"></td>
+    <td><select onchange="data[${i}].machine=this.value;save()">
+      <option ${r.machine=="Filler"?"selected":""}>Filler</option>
+      <option ${r.machine=="Labeller"?"selected":""}>Labeller</option>
+      <option ${r.machine=="Packer"?"selected":""}>Packer</option>
+    </select></td>
+    <td><select onchange="data[${i}].type=this.value;save()">
+      <option ${r.type=="Breakdown"?"selected":""}>Breakdown</option>
+      <option ${r.type=="PM"?"selected":""}>PM</option>
+    </select></td>
+    <td><input type="number" step="0.1" value="${r.dur}" onchange="data[${i}].dur=this.value;save()"></td>
+    </tr>`;
+  });
 }
 
-function table(){
-let t=`<tr><th>Date</th><th>Line</th><th>Type</th><th>Hours</th><th>Cost</th></tr>`;
-data.forEach((r,i)=>{
-t+=`<tr>
-<td><input type="date" value="${r.d}" onchange="data[${i}].d=this.value;save()"></td>
-<td><input type="number" min="1" max="18" value="${r.l}" onchange="data[${i}].l=this.value;save()"></td>
-<td><select onchange="data[${i}].t=this.value;save()">
-<option ${r.t=="Breakdown"?"selected":""}>Breakdown</option>
-<option ${r.t=="PM"?"selected":""}>PM</option>
-</select></td>
-<td><input type="number" value="${r.h}" onchange="data[${i}].h=this.value;save()"></td>
-<td><input type="number" value="${r.c}" onchange="data[${i}].c=this.value;save()"></td>
-</tr>`;
-});
-document.getElementById("tbl").innerHTML=t;
+function renderKPIs(){
+  let m=document.getElementById("monthFilter").value;
+  let f=data.filter(r=>!m||new Date(r.date).getMonth()==m);
+  let bd=f.filter(r=>r.type=="Breakdown");
+  let pm=f.filter(r=>r.type=="PM");
+  let bdh=bd.reduce((a,b)=>a+Number(b.dur),0);
+  document.getElementById("bdh").innerText=bdh.toFixed(1);
+  document.getElementById("pmc").innerText=(pm.length/(pm.length+bd.length||1)*100).toFixed(0)+"%";
+  document.getElementById("mttr").innerText=(bdh/(bd.length||1)).toFixed(2);
+  document.getElementById("mtbf").innerText=((720-bdh)/(bd.length||1)).toFixed(1);
 }
 
-function kpis(){
-let m=document.getElementById("month").value;
-let f=data.filter(r=>!m||new Date(r.d).getMonth()==m);
-let bd=f.filter(r=>r.t=="Breakdown");
-let pm=f.filter(r=>r.t=="PM");
-let bh=bd.reduce((a,b)=>a+ +b.h,0);
-let ct=f.reduce((a,b)=>a+ +b.c,0);
-document.getElementById("bdh").innerText=bh.toFixed(1);
-document.getElementById("pmc").innerText=((pm.length/(pm.length+bd.length||1))*100).toFixed(0)+"%";
-document.getElementById("mttr").innerText=(bh/(bd.length||1)).toFixed(2);
-document.getElementById("mtbf").innerText=((720-bh)/(bd.length||1)).toFixed(1);
-document.getElementById("cost").innerText=ct.toFixed(0);
-document.getElementById("ac").innerText=ct;
-document.getElementById("bg").innerText=budget.value;
-document.getElementById("vr").innerText=(budget.value-ct);
+function drawBar(canvas,dataArr,label){
+  let c=canvas.getContext("2d");
+  c.clearRect(0,0,canvas.width,canvas.height);
+  let max=Math.max(...dataArr,1);
+  dataArr.forEach((v,i)=>{
+    let h=(v/max)*200;
+    c.fillStyle="#2fa4b6";
+    c.fillRect(50+i*80,230-h,40,h);
+    c.fillText(label[i],50+i*80,245);
+  });
 }
 
-function bar(canvas,labels,values){
-let c=canvas.getContext("2d");
-c.clearRect(0,0,canvas.width,canvas.height);
-let max=Math.max(...values,1);
-values.forEach((v,i)=>{
-let h=(v/max)*200;
-c.fillStyle="#2fa4b6";
-c.fillRect(50+i*30,240-h,20,h);
-c.fillText(labels[i],50+i*30,255);
-});
+function renderCharts(){
+  let m=document.getElementById("monthFilter").value;
+  let f=data.filter(r=>!m||new Date(r.date).getMonth()==m);
+  let bd=f.filter(r=>r.type=="Breakdown").reduce((a,b)=>a+Number(b.dur),0);
+  let pm=f.filter(r=>r.type=="PM").reduce((a,b)=>a+Number(b.dur),0);
+  drawBar(document.getElementById("chart1"),[bd],["Breakdown"]);
+  drawBar(document.getElementById("chart2"),[pm,bd],["PM","BD"]);
 }
 
-function charts(){
-let perLine=Array(18).fill(0);
-data.forEach(r=>{if(r.t=="Breakdown")perLine[r.l-1]+= +r.h});
-bar(lineChart,[...Array(18).keys()].map(i=>i+1),perLine);
+function renderAll(){ renderKPIs(); renderCharts(); }
 
-let pm=data.filter(r=>r.t=="PM").reduce((a,b)=>a+ +b.h,0);
-let bd=data.filter(r=>r.t=="Breakdown").reduce((a,b)=>a+ +b.h,0);
-bar(pmChart,["PM","BD"],[pm,bd]);
-}
-
-function exportCSV(){
-let csv="Date,Line,Type,Hours,Cost\n"+data.map(r=>`${r.d},${r.l},${r.t},${r.h},${r.c}`).join("\n");
-let a=document.createElement("a");
-a.href="data:text/csv,"+encodeURIComponent(csv);
-a.download="maintenance_kpi.csv";
-a.click();
-}
-
-function applyRole(){
-let m=document.getElementById("role").value=="manager";
-document.querySelectorAll("input,select").forEach(e=>e.disabled=m);
-}
-
-function toggleDark(){
-document.body.classList.toggle("dark");
-localStorage.setItem("dark",document.body.classList.contains("dark"));
-}
-
-function renderAll(){table();kpis();charts();applyRole();}
-if(localStorage.getItem("dark")=="true")document.body.classList.add("dark");
-renderAll();
+renderTable(); renderAll();
 </script>
 
 </body>
