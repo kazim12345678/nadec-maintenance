@@ -3,457 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Maintenance KPI Dashboard - 2026</title>
-    <!-- Chart.js for Animated Graphs -->
+    <title>Bottling Maintenance Command Center - 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #007bbf;
-            --primary-dark: #005a8d;
-            --accent: #00d4ff;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --bg: #f4f7f9;
-            --card: #ffffff;
+            --nadec-blue: #007bbf;
+            --nadec-dark: #004a73;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
             --text: #2c3e50;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
             --border: #dcdde1;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: 260px;
+            background: var(--nadec-dark);
+            color: white;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- HEADER & TOOLBAR --- */
-        header {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            color: white;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 20px;
-        }
-
-        .dot {
-            height: 10px;
-            width: 10px;
-            background-color: #2ecc71;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
-        }
-
-        .action-bar {
-            background: white;
-            padding: 12px 25px;
-            display: flex;
-            gap: 15px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            align-items: center;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn-save { background: var(--success); color: white; box-shadow: 0 4px 0 #1e8449; }
-        .btn-save:hover { background: #219150; transform: translateY(-2px); }
-        .btn-save:active { transform: translateY(0); box-shadow: 0 2px 0 #1e8449; }
-
-        .btn-reset { background: #95a5a6; color: white; }
-        .btn-reset:hover { background: var(--danger); }
-
-        /* --- KPI CARDS --- */
-        .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
             padding: 20px;
+            flex-shrink: 0;
         }
+        nav h2 { font-size: 1.2rem; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        nav a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 6px; margin-bottom: 5px; transition: 0.3s; cursor: pointer; }
+        nav a:hover, nav a.active { background: var(--nadec-blue); color: white; }
+        .sidebar-footer { margin-top: auto; font-size: 0.8rem; opacity: 0.5; }
 
-        .kpi-card {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            text-align: center;
-            transition: transform 0.3s ease;
-            border-bottom: 4px solid var(--primary);
+        /* --- MAIN CONTENT --- */
+        main { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        header { 
+            background: white; padding: 15px 30px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
         }
+        .btn-save { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-reset { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
 
-        .kpi-card:hover { transform: translateY(-5px); }
-        .kpi-card h3 { margin: 0; font-size: 0.85rem; color: #7f8c8d; text-transform: uppercase; }
-        .kpi-card .value { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 10px 0; }
-
-        /* --- GRAPHS SECTION --- */
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 0 20px 20px 20px;
+        /* --- KPI SUMMARY --- */
+        .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; padding: 20px 30px; }
+        .kpi-box { 
+            background: white; padding: 20px; border-radius: 8px; border-left: 5px solid var(--nadec-blue); 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;
         }
+        .kpi-box h4 { margin: 0; font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; }
+        .kpi-box .val { font-size: 1.5rem; font-weight: bold; color: var(--nadec-dark); margin-top: 5px; }
 
-        @media (max-width: 1200px) { .charts-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .charts-container { grid-template-columns: 1fr; } }
+        /* --- CHART GRID --- */
+        .dashboard-view { padding: 0 30px 30px 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .chart-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); min-height: 350px; }
+        .chart-card h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--nadec-dark); border-bottom: 1px solid #eee; padding-bottom: 8px; }
 
-        .chart-wrapper {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid #edf2f7;
-            min-height: 350px;
-        }
+        /* --- DATA TABLES --- */
+        .data-view { padding: 30px; display: none; } /* Hidden by default */
+        .table-section { background: white; border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; }
+        .table-section h3 { margin-top: 0; }
+        .table-container { overflow-x: auto; max-height: 500px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f1f3f5; padding: 12px; border: 1px solid #dee2e6; text-align: left; position: sticky; top: 0; }
+        td { padding: 10px; border: 1px solid #dee2e6; outline: none; }
+        td[contenteditable="true"]:focus { background: #fff9c4; border: 2px solid var(--nadec-blue); }
+        .calc-field { background: #f8f9fa; font-weight: bold; color: #636e72; }
 
-        .chart-wrapper h4 { margin: 0 0 15px 0; font-size: 1rem; color: var(--primary-dark); }
+        /* --- UTILS --- */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-danger { background: #ffeaa7; color: #d63031; }
 
-        /* --- EDITABLE TABLES --- */
-        .tables-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 25px;
-            padding: 20px;
-            background: #ebeef2;
-        }
-
-        .table-box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .table-box h4 { margin-top: 0; margin-bottom: 15px; border-left: 5px solid var(--primary); padding-left: 10px; }
-
-        .scrollable-table { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; padding: 12px; text-align: left; border-bottom: 2px solid var(--border); }
-        td { padding: 10px; border-bottom: 1px solid #eee; outline: none; }
-        
-        /* Excel behavior styles */
-        td[contenteditable="true"]:focus { background: #fff9c4; border: 2px solid var(--primary); }
-        tr:hover { background: #f1f8ff; }
-        .calc-cell { background: #f9f9f9; color: #7f8c8d; font-weight: bold; }
-        .edited { animation: highlight 1s ease; }
-        @keyframes highlight { from { background: #fff9c4; } to { background: transparent; } }
-
+        @media (max-width: 1400px) { .dashboard-view { grid-template-columns: repeat(2, 1fr); } .kpi-row { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
 <body>
 
-<header>
-    <div>
-        <h1 style="margin:0">Maintenance KPI Dashboard</h1>
-        <div class="live-indicator"><span class="dot"></span> 2026 Drinkable Line - System Live</div>
+<nav>
+    <h2>NADEC Bottling</h2>
+    <a onclick="showView('dashboard')" id="nav-dash" class="active">📊 Live Dashboard</a>
+    <a onclick="showView('data')" id="nav-data">✏️ Maintenance Logs</a>
+    <a onclick="window.print()">🖨️ Export Report</a>
+    
+    <div class="sidebar-footer">
+        <p>Asset Management System</p>
+        <p>Version 2.4 - 2026</p>
     </div>
-    <div style="text-align: right">
-        <div id="last-updated" style="font-size: 12px; opacity: 0.8;">Last updated: Just now</div>
+</nav>
+
+<main>
+    <header>
+        <h1 id="view-title">Maintenance Executive Summary</h1>
+        <div>
+            <button class="btn-reset" onclick="resetData()">Clear Data</button>
+            <button class="btn-save" onclick="saveToStorage()">💾 Save All Changes</button>
+        </div>
+    </header>
+
+    <!-- TOP KPI CARDS -->
+    <div class="kpi-row">
+        <div class="kpi-box"><h4>Avg MTBF</h4><div class="val" id="kpi-mtbf">0h</div><small>Reliability</small></div>
+        <div class="kpi-box"><h4>Avg MTTR</h4><div class="val" id="kpi-mttr">0m</div><small>Repair Speed</small></div>
+        <div class="kpi-box"><h4>Bottles Lost</h4><div class="val" id="kpi-loss">0k</div><small>OEE Impact</small></div>
+        <div class="kpi-box"><h4>PM Compliance</h4><div class="val" id="kpi-pm">0%</div><small>Preventive</small></div>
+        <div class="kpi-box"><h4>Total Maint Cost</h4><div class="val" id="kpi-cost">$0</div><small>YTD Actual</small></div>
+        <div class="kpi-box"><h4>Bad Actor</h4><div class="val" id="kpi-actor">-</div><small>Line Priority</small></div>
     </div>
-</header>
 
-<div class="action-bar">
-    <button class="btn-save" onclick="saveData()">💾 SAVE ALL DATA</button>
-    <button class="btn-reset" onclick="resetSystem()">🔄 RESET TO DEFAULTS</button>
-    <div style="flex-grow: 1"></div>
-    <span style="font-size: 13px; color: #666;">📝 <b>Tip:</b> You can copy-paste directly from Excel into the tables.</span>
-</div>
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="dashboard-view">
+        <div class="chart-card"><h3>Breakdown Pareto (Top 20 Lines)</h3><canvas id="chart-pareto"></canvas></div>
+        <div class="chart-card"><h3>Line Health Radar (MTBF vs MTTR)</h3><canvas id="chart-radar"></canvas></div>
+        <div class="chart-card"><h3>Loss Impact (Bottles Lost x1000)</h3><canvas id="chart-bottles"></canvas></div>
+        <div class="chart-card"><h3>Maintenance Cost (Actual vs Budget)</h3><canvas id="chart-cost"></canvas></div>
+        <div class="chart-card"><h3>Root Cause Distribution</h3><canvas id="chart-causes"></canvas></div>
+        <div class="chart-card"><h3>Maintenance Manhours (PM vs BM)</h3><canvas id="chart-manhours"></canvas></div>
+        <div class="chart-card"><h3>PM Completion Status</h3><canvas id="chart-pm"></canvas></div>
+        <div class="chart-card"><h3>Spare Parts Spend Trend</h3><canvas id="chart-spares"></canvas></div>
+        <div class="chart-card"><h3>Monthly Failure Trend</h3><canvas id="chart-failure-trend"></canvas></div>
+    </div>
 
-<!-- KPI Cards -->
-<div class="kpi-row">
-    <div class="kpi-card"><h3>Breakdown Hours</h3><div class="value" id="kpi-hrs">0</div></div>
-    <div class="kpi-card"><h3>Maint. Cost YTD</h3><div class="value" id="kpi-cost">$0</div></div>
-    <div class="kpi-card"><h3>PM Efficiency</h3><div class="value" id="kpi-pm">0%</div></div>
-    <div class="kpi-card"><h3>MTBF (Monthly)</h3><div class="value" id="kpi-mtbf">0</div></div>
-    <div class="kpi-card"><h3>Compliance</h3><div class="value" id="kpi-comp">0%</div></div>
-    <div class="kpi-card"><h3>Top Issue</h3><div class="value" id="kpi-issue">-</div></div>
-</div>
+    <!-- DATA ENTRY VIEW -->
+    <div id="view-data" class="data-view">
+        <div class="table-section">
+            <h3>1. Bottling Line Master Log (20 Lines)</h3>
+            <p><small>Note: Enter Line Speed (Bottles/Hr) to calculate OEE Loss Impact.</small></p>
+            <div class="table-container">
+                <table id="tbl-main">
+                    <thead>
+                        <tr>
+                            <th>Production Line</th>
+                            <th>Status</th>
+                            <th>Line Speed (BPH)</th>
+                            <th>Downtime (Hrs)</th>
+                            <th>Failure Count</th>
+                            <th>PM Manhours</th>
+                            <th>BM Manhours</th>
+                            <th class="calc-field">MTBF (Hrs)</th>
+                            <th class="calc-field">MTTR (Min)</th>
+                            <th class="calc-field">Loss (k-Bottles)</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- Generates 20 Lines --></tbody>
+                </table>
+            </div>
+            <button class="btn-save" style="margin-top:15px; background: #34495e;" onclick="addRow('tbl-main')">+ Add Extra Line</button>
+        </div>
 
-<!-- Graphs Grid -->
-<div class="charts-container">
-    <div class="chart-wrapper"><h4>Breakdown Hours per Line (1-18)</h4><canvas id="chart-breakdown"></canvas></div>
-    <div class="chart-wrapper"><h4>Maintenance Cost vs Budget</h4><canvas id="chart-cost"></canvas></div>
-    <div class="chart-wrapper"><h4>Work Order Status</h4><canvas id="chart-status"></canvas></div>
-    <div class="chart-wrapper"><h4>PM vs BM Manhours</h4><canvas id="chart-pmbm"></canvas></div>
-    <div class="chart-wrapper"><h4>Downtime Cause Analysis</h4><canvas id="chart-causes"></canvas></div>
-    <div class="chart-wrapper"><h4>Failure Trend</h4><canvas id="chart-failures"></canvas></div>
-    <div class="chart-wrapper"><h4>Duration Distribution</h4><canvas id="chart-duration"></canvas></div>
-    <div class="chart-wrapper"><h4>Scheduled vs Completed</h4><canvas id="chart-frequency"></canvas></div>
-    <div class="chart-wrapper"><h4>Power Consumption ($)</h4><canvas id="chart-power"></canvas></div>
-</div>
-
-<!-- Tables Section -->
-<div class="tables-grid">
-    <!-- 1. Breakdown 18 Lines -->
-    <div class="table-box">
-        <h4>1. Production Lines Breakdown (Hrs)</h4>
-        <div class="scrollable-table">
-            <table id="tbl-lines">
-                <thead><tr><th>Line Name</th><th>Breakdown Hrs</th><th>% Contrib</th></tr></thead>
+        <div class="table-section">
+            <h3>2. Monthly Finance & Spares</h3>
+            <table id="tbl-finance">
+                <thead><tr><th>Month</th><th>Maint. Actual ($)</th><th>Budget ($)</th><th>Spare Parts ($)</th><th>Power Cost ($)</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>
-        <button style="margin-top:10px; background:#eee; color:#333;" onclick="addRow('tbl-lines', ['New Line', 0, '0%'])">+ Add Line</button>
-    </div>
 
-    <!-- 2. Monthly Data -->
-    <div class="table-box">
-        <h4>2. Monthly Cost & Reliability Data</h4>
-        <div class="scrollable-table">
-            <table id="tbl-monthly">
-                <thead><tr><th>Month</th><th>Actual Cost</th><th>Budget</th><th>Failures</th><th>Power Cost</th></tr></thead>
-                <tbody></tbody>
-            </table>
+        <div class="table-section">
+            <h3>3. Root Cause Analysis & PM Status</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <table id="tbl-causes">
+                    <thead><tr><th>Category</th><th>Incidents</th></tr></thead>
+                    <tbody>
+                        <tr><td>Mechanical</td><td contenteditable="true">45</td></tr>
+                        <tr><td>Electrical/Automation</td><td contenteditable="true">32</td></tr>
+                        <tr><td>Pneumatic</td><td contenteditable="true">18</td></tr>
+                        <tr><td>Operator Error</td><td contenteditable="true">12</td></tr>
+                        <tr><td>Lubrication Issue</td><td contenteditable="true">8</td></tr>
+                    </tbody>
+                </table>
+                <table id="tbl-pm-status">
+                    <thead><tr><th>PM Status</th><th>Work Orders</th></tr></thead>
+                    <tbody>
+                        <tr><td>Completed</td><td contenteditable="true">85</td></tr>
+                        <tr><td>Scheduled</td><td contenteditable="true">100</td></tr>
+                        <tr><td>Overdue</td><td contenteditable="true">15</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <!-- 3. PM/BM & Status -->
-    <div class="table-box">
-        <h4>3. Manhours & Order Status</h4>
-        <div style="display:flex; gap:15px;">
-            <table id="tbl-status" style="width:40%">
-                <thead><tr><th>Status</th><th>Qty</th></tr></thead>
-                <tbody>
-                    <tr><td>Scheduled</td><td contenteditable="true">45</td></tr>
-                    <tr><td>Completed</td><td contenteditable="true">135</td></tr>
-                    <tr><td>Overdue</td><td contenteditable="true">15</td></tr>
-                </tbody>
-            </table>
-            <table id="tbl-pmbm" style="width:60%">
-                <thead><tr><th>Category</th><th>Hours</th></tr></thead>
-                <tbody>
-                    <tr><td>PM Hours</td><td contenteditable="true">450</td></tr>
-                    <tr><td>BM Hours</td><td contenteditable="true">210</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 4. Causes & Freq -->
-    <div class="table-box">
-        <h4>4. Root Causes & Frequencies</h4>
-        <div style="display:flex; gap:15px;">
-            <table id="tbl-causes" style="width:50%">
-                <thead><tr><th>Root Cause</th><th>Value</th></tr></thead>
-                <tbody>
-                    <tr><td contenteditable="true">Mechanical</td><td contenteditable="true">40</td></tr>
-                    <tr><td contenteditable="true">Electrical</td><td contenteditable="true">25</td></tr>
-                    <tr><td contenteditable="true">Sensors</td><td contenteditable="true">15</td></tr>
-                </tbody>
-            </table>
-            <table id="tbl-freq" style="width:50%">
-                <thead><tr><th>Freq</th><th>Sched</th><th>Comp</th></tr></thead>
-                <tbody>
-                    <tr><td>Weekly</td><td contenteditable="true">100</td><td contenteditable="true">92</td></tr>
-                    <tr><td>Monthly</td><td contenteditable="true">24</td><td contenteditable="true">24</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+</main>
 
 <script>
     const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     let charts = {};
 
-    window.onload = function() {
-        if (localStorage.getItem('nadec_dashboard_v2')) {
-            loadData();
-        } else {
+    window.onload = () => {
+        if (!localStorage.getItem('nadec_bottling_v3')) {
             initDefaults();
+        } else {
+            loadFromStorage();
         }
-        createCharts();
-        refresh();
-        setupExcelEvents();
+        initCharts();
+        calculateEverything();
+        setupExcelInteractivity();
     };
 
     function initDefaults() {
-        // Line Table (18 lines)
-        const lineBody = document.querySelector('#tbl-lines tbody');
-        for(let i=1; i<=18; i++) {
-            lineBody.innerHTML += `<tr><td contenteditable="true">Drinkable Line ${i}</td><td contenteditable="true">${Math.floor(Math.random()*40 + 10)}</td><td class="calc-cell">0%</td></tr>`;
+        // Build 20 Bottling Lines
+        const tbody = document.querySelector('#tbl-main tbody');
+        for(let i=1; i<=20; i++) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td contenteditable="true">Bottling Line ${i}</td>
+                <td><span class="badge badge-danger">Active</span></td>
+                <td contenteditable="true">${18000 + (i*500)}</td>
+                <td contenteditable="true">${Math.floor(Math.random()*40) + 5}</td>
+                <td contenteditable="true">${Math.floor(Math.random()*10) + 2}</td>
+                <td contenteditable="true">${120}</td>
+                <td contenteditable="true">${80}</td>
+                <td class="calc-field">0</td>
+                <td class="calc-field">0</td>
+                <td class="calc-field">0</td>
+            `;
+            tbody.appendChild(tr);
         }
 
-        // Monthly Table
-        const monthlyBody = document.querySelector('#tbl-monthly tbody');
+        const finBody = document.querySelector('#tbl-finance tbody');
         MONTHS.forEach(m => {
-            monthlyBody.innerHTML += `<tr><td>${m}</td><td contenteditable="true">${5000 + Math.floor(Math.random()*2000)}</td><td contenteditable="true">6000</td><td contenteditable="true">${Math.floor(Math.random()*15)}</td><td contenteditable="true">${12000 + Math.floor(Math.random()*2000)}</td></tr>`;
+            finBody.innerHTML += `<tr><td>${m}</td><td contenteditable="true">${5000 + Math.random()*2000}</td><td contenteditable="true">6000</td><td contenteditable="true">${2000}</td><td contenteditable="true">${15000}</td></tr>`;
         });
     }
 
-    function createCharts() {
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 1000, easing: 'easeOutQuart' },
-            plugins: { legend: { position: 'bottom' } }
-        };
+    function initCharts() {
+        const ctx = (id) => document.getElementById(id).getContext('2d');
+        const cfg = (type, label, color) => ({
+            type: type,
+            data: { labels: [], datasets: [{ label: label, data: [], backgroundColor: color, borderColor: color, fill: false }] },
+            options: { responsive: true, maintainAspectRatio: false, animation: { duration: 800 } }
+        });
 
-        charts.breakdown = new Chart(document.getElementById('chart-breakdown'), {
+        charts.pareto = new Chart(ctx('chart-pareto'), cfg('bar', 'Downtime Hours', '#007bbf'));
+        charts.radar = new Chart(ctx('chart-radar'), cfg('radar', 'Line Health', 'rgba(0, 123, 191, 0.2)'));
+        charts.bottles = new Chart(ctx('chart-bottles'), cfg('bar', 'k-Bottles Lost', '#e74c3c'));
+        charts.cost = new Chart(ctx('chart-cost'), {
             type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Hours', backgroundColor: '#007bbf', data: [] }] },
-            options: commonOptions
+            data: { labels: MONTHS, datasets: [{label: 'Actual', backgroundColor: '#004a73'}, {label: 'Budget', backgroundColor: '#ccc'}] },
+            options: { responsive: true, maintainAspectRatio: false }
         });
-
-        charts.cost = new Chart(document.getElementById('chart-cost'), {
-            type: 'line',
-            data: { labels: MONTHS, datasets: [{ label: 'Actual', borderColor: '#007bbf', data: [] }, { label: 'Budget', borderColor: '#ccc', borderDash: [5, 5], data: [] }] },
-            options: commonOptions
-        });
-
-        charts.status = new Chart(document.getElementById('chart-status'), {
-            type: 'doughnut',
-            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#f1c40f', '#2ecc71', '#e74c3c'] }] },
-            options: commonOptions
-        });
-
-        charts.pmbm = new Chart(document.getElementById('chart-pmbm'), {
-            type: 'pie',
-            data: { labels: ['PM', 'BM'], datasets: [{ data: [], backgroundColor: ['#2ecc71', '#e74c3c'] }] },
-            options: commonOptions
-        });
-
-        charts.causes = new Chart(document.getElementById('chart-causes'), {
-            type: 'polarArea',
-            data: { labels: [], datasets: [{ data: [], backgroundColor: ['#3498db', '#9b59b6', '#f1c40f', '#e67e22'] }] },
-            options: commonOptions
-        });
-
-        charts.failures = new Chart(document.getElementById('chart-failures'), {
-            type: 'bar',
-            data: { labels: MONTHS, datasets: [{ label: 'Failures', backgroundColor: '#e74c3c', data: [] }] },
-            options: commonOptions
-        });
-
-        charts.power = new Chart(document.getElementById('chart-power'), {
-            type: 'bar',
-            data: { labels: MONTHS, datasets: [{ label: 'Power Cost', backgroundColor: '#f39c12', data: [] }] },
-            options: commonOptions
-        });
-
-        // Additional simple chart placeholders to hit your 9-chart grid
-        charts.frequency = new Chart(document.getElementById('chart-frequency'), {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Sched', backgroundColor: '#34495e', data: [] }, { label: 'Comp', backgroundColor: '#2ecc71', data: [] }] },
-            options: commonOptions
-        });
-
-        charts.duration = new Chart(document.getElementById('chart-duration'), {
-            type: 'bar',
-            data: { labels: ['<1h', '1-2h', '>2h'], datasets: [{ label: 'Incidents', backgroundColor: '#007bbf', data: [15, 10, 5] }] },
-            options: commonOptions
-        });
+        charts.causes = new Chart(ctx('chart-causes'), cfg('pie', 'Causes', ['#3498db','#9b59b6','#f1c40f','#e67e22','#1abc9c']));
+        charts.manhours = new Chart(ctx('chart-manhours'), cfg('doughnut', 'Hrs', ['#27ae60','#e74c3c']));
+        charts.pm = new Chart(ctx('chart-pm'), cfg('polarArea', 'Work Orders', ['#27ae60','#3498db','#e74c3c']));
+        charts.spares = new Chart(ctx('chart-spares'), cfg('line', 'Spare Parts $', '#8e44ad'));
+        charts.failures = new Chart(ctx('chart-failure-trend'), cfg('line', 'Failures', '#c0392b'));
     }
 
-    function refresh() {
-        const lineData = parseTable('tbl-lines');
-        const monthlyData = parseTable('tbl-monthly');
-        const statusData = parseTable('tbl-status');
-        const pmbmData = parseTable('tbl-pmbm');
-        const causeData = parseTable('tbl-causes');
-        const freqData = parseTable('tbl-freq');
+    function calculateEverything() {
+        const mainData = getTableData('tbl-main');
+        const finData = getTableData('tbl-finance');
+        const causeData = getTableData('tbl-causes');
+        const pmData = getTableData('tbl-pm-status');
 
-        // Calculations
-        const totalHrs = lineData.reduce((s, r) => s + (parseFloat(r[1]) || 0), 0);
-        const totalCost = monthlyData.reduce((s, r) => s + (parseFloat(r[1]) || 0), 0);
-        const pmHrs = parseFloat(pmbmData[0][1]) || 0;
-        const bmHrs = parseFloat(pmbmData[1][1]) || 0;
-        const totalFails = monthlyData.reduce((s, r) => s + (parseFloat(r[3]) || 0), 0);
+        let totalDowntime = 0;
+        let totalFails = 0;
+        let totalLoss = 0;
+        let totalCost = 0;
+        let pmTotal = 0;
+        let bmTotal = 0;
 
-        // Update KPIs
-        document.getElementById('kpi-hrs').innerText = totalHrs.toFixed(1);
+        // 1. Process Master Table
+        const rows = document.querySelectorAll('#tbl-main tbody tr');
+        rows.forEach((tr, i) => {
+            const bph = parseFloat(tr.cells[2].innerText) || 0;
+            const hrs = parseFloat(tr.cells[3].innerText) || 0;
+            const fails = parseFloat(tr.cells[4].innerText) || 0;
+            const pmH = parseFloat(tr.cells[5].innerText) || 0;
+            const bmH = parseFloat(tr.cells[6].innerText) || 0;
+
+            const mtbf = fails > 0 ? (168 / fails).toFixed(1) : 168; // Based on 1 week
+            const mttr = fails > 0 ? ((hrs * 60) / fails).toFixed(0) : 0;
+            const loss = (hrs * bph) / 1000;
+
+            tr.cells[7].innerText = mtbf;
+            tr.cells[8].innerText = mttr;
+            tr.cells[9].innerText = loss.toFixed(0);
+
+            totalDowntime += hrs;
+            totalFails += fails;
+            totalLoss += loss;
+            pmTotal += pmH;
+            bmTotal += bmH;
+        });
+
+        // 2. Process Finance
+        finData.forEach(r => totalCost += parseFloat(r[1]) || 0);
+
+        // 3. Update KPI Cards
+        document.getElementById('kpi-mtbf').innerText = totalFails > 0 ? (totalDowntime/totalFails).toFixed(1) + 'h' : '0h';
+        document.getElementById('kpi-mttr').innerText = totalFails > 0 ? ((totalDowntime*60)/totalFails).toFixed(0) + 'm' : '0m';
+        document.getElementById('kpi-loss').innerText = (totalLoss / 1000).toFixed(1) + 'M';
         document.getElementById('kpi-cost').innerText = '$' + totalCost.toLocaleString();
-        document.getElementById('kpi-pm').innerText = (pmHrs+bmHrs) > 0 ? ((pmHrs/(pmHrs+bmHrs))*100).toFixed(0) + '%' : '0%';
-        document.getElementById('kpi-mtbf').innerText = totalFails > 0 ? (totalHrs/totalFails).toFixed(1) : totalHrs;
         
-        // Update Chart 1: Breakdown
-        charts.breakdown.data.labels = lineData.map(r => r[0]);
-        charts.breakdown.data.datasets[0].data = lineData.map(r => r[1]);
-        charts.breakdown.update();
+        const comp = parseFloat(pmData[0][1]) || 0;
+        const totalPMs = (parseFloat(pmData[0][1])||0) + (parseFloat(pmData[1][1])||0) + (parseFloat(pmData[2][1])||0);
+        document.getElementById('kpi-pm').innerText = totalPMs > 0 ? ((comp/totalPMs)*100).toFixed(0) + '%' : '0%';
 
-        // Update Chart 2: Cost
-        charts.cost.data.datasets[0].data = monthlyData.map(r => r[1]);
-        charts.cost.data.datasets[1].data = monthlyData.map(r => r[2]);
+        // 4. Update Charts
+        charts.pareto.data.labels = mainData.map(r => r[0]);
+        charts.pareto.data.datasets[0].data = mainData.map(r => r[3]);
+        charts.pareto.update();
+
+        charts.bottles.data.labels = mainData.map(r => r[0]);
+        charts.bottles.data.datasets[0].data = mainData.map(r => r[9]);
+        charts.bottles.update();
+
+        charts.cost.data.datasets[0].data = finData.map(r => r[1]);
+        charts.cost.data.datasets[1].data = finData.map(r => r[2]);
         charts.cost.update();
 
-        // Update Chart 3: Status
-        charts.status.data.labels = statusData.map(r => r[0]);
-        charts.status.data.datasets[0].data = statusData.map(r => r[1]);
-        charts.status.update();
-
-        // Update Chart 4: PMBM
-        charts.pmbm.data.datasets[0].data = [pmHrs, bmHrs];
-        charts.pmbm.update();
-
-        // Update Chart 5: Causes
         charts.causes.data.labels = causeData.map(r => r[0]);
         charts.causes.data.datasets[0].data = causeData.map(r => r[1]);
         charts.causes.update();
 
-        // Update Chart 6: Failures
-        charts.failures.data.datasets[0].data = monthlyData.map(r => r[3]);
-        charts.failures.update();
+        charts.manhours.data.labels = ['PM', 'BM'];
+        charts.manhours.data.datasets[0].data = [pmTotal, bmTotal];
+        charts.manhours.update();
 
-        // Update Chart 9: Power
-        charts.power.data.datasets[0].data = monthlyData.map(r => r[4]);
-        charts.power.update();
+        charts.pm.data.labels = pmData.map(r => r[0]);
+        charts.pm.data.datasets[0].data = pmData.map(r => r[1]);
+        charts.pm.update();
 
-        // Update Table Contribution %
-        document.querySelectorAll('#tbl-lines tbody tr').forEach(tr => {
-            const v = parseFloat(tr.cells[1].innerText) || 0;
-            tr.cells[2].innerText = totalHrs > 0 ? ((v/totalHrs)*100).toFixed(1) + '%' : '0%';
-        });
-
-        document.getElementById('last-updated').innerText = "Last updated: " + new Date().toLocaleTimeString();
+        charts.spares.data.labels = MONTHS;
+        charts.spares.data.datasets[0].data = finData.map(r => r[3]);
+        charts.spares.update();
     }
 
-    function parseTable(id) {
+    function getTableData(id) {
         return Array.from(document.querySelectorAll(`#${id} tbody tr`)).map(tr => 
             Array.from(tr.cells).map(td => td.innerText)
         );
     }
 
-    function setupExcelEvents() {
+    function showView(view) {
+        document.getElementById('view-dashboard').style.display = view === 'dashboard' ? 'grid' : 'none';
+        document.getElementById('view-data').style.display = view === 'data' ? 'block' : 'none';
+        document.getElementById('view-title').innerText = view === 'dashboard' ? 'Maintenance Executive Summary' : 'Maintenance & Breakdown Logs';
+        document.getElementById('nav-dash').classList.toggle('active', view === 'dashboard');
+        document.getElementById('nav-data').classList.toggle('active', view === 'data');
+    }
+
+    function setupExcelInteractivity() {
         document.body.addEventListener('input', (e) => {
-            if (e.target.contentEditable) {
-                e.target.classList.add('edited');
-                refresh();
-            }
+            if (e.target.contentEditable) calculateEverything();
         });
 
         document.body.addEventListener('paste', (e) => {
@@ -463,9 +354,8 @@
                 const rows = text.split('\n');
                 let curTr = e.target.parentElement;
                 const startCol = e.target.cellIndex;
-
-                rows.forEach((rowStr) => {
-                    if (!rowStr.trim()) return;
+                rows.forEach(rowStr => {
+                    if(!rowStr.trim()) return;
                     const cols = rowStr.split('\t');
                     cols.forEach((val, j) => {
                         const cell = curTr.cells[startCol + j];
@@ -473,63 +363,54 @@
                     });
                     curTr = curTr.nextElementSibling;
                 });
-                refresh();
+                calculateEverything();
             }
         });
     }
 
-    function saveData() {
-        const ids = ['tbl-lines', 'tbl-monthly', 'tbl-status', 'tbl-pmbm', 'tbl-causes', 'tbl-freq'];
-        const data = {};
-        ids.forEach(id => data[id] = parseTable(id));
-        localStorage.setItem('nadec_dashboard_v2', JSON.stringify(data));
-        alert('✅ Data saved successfully to browser storage.');
+    function saveToStorage() {
+        const data = {
+            main: getTableData('tbl-main'),
+            fin: getTableData('tbl-finance'),
+            cause: getTableData('tbl-causes'),
+            pm: getTableData('tbl-pm-status')
+        };
+        localStorage.setItem('nadec_bottling_v3', JSON.stringify(data));
+        alert('Data Saved to Local Browser Storage!');
     }
 
-    function loadData() {
-        const data = JSON.parse(localStorage.getItem('nadec_dashboard_v2'));
-        Object.keys(data).forEach(id => {
+    function loadFromStorage() {
+        const data = JSON.parse(localStorage.getItem('nadec_bottling_v3'));
+        
+        const fill = (id, d) => {
             const tbody = document.querySelector(`#${id} tbody`);
             tbody.innerHTML = "";
-            data[id].forEach(rowVals => {
+            d.forEach(rowData => {
                 const tr = document.createElement('tr');
-                rowVals.forEach((v, i) => {
+                rowData.forEach((val, i) => {
                     const td = document.createElement('td');
-                    td.innerText = v;
-                    if ((id==='tbl-lines' && i===2) || ((id==='tbl-monthly') && i===0)) {
-                        td.contentEditable = false;
-                        if(i===2) td.className = 'calc-cell';
-                    } else {
-                        td.contentEditable = true;
-                    }
+                    td.innerText = val;
+                    if (id === 'tbl-main' && i >= 7) td.className = 'calc-field';
+                    else if (id === 'tbl-finance' && i === 0) td.contentEditable = false;
+                    else td.contentEditable = true;
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
             });
-        });
+        };
+
+        fill('tbl-main', data.main);
+        fill('tbl-finance', data.fin);
+        fill('tbl-causes', data.cause);
+        fill('tbl-pm-status', data.pm);
     }
 
-    function resetSystem() {
-        if (confirm("Reset everything? All your manual changes will be lost.")) {
-            localStorage.removeItem('nadec_dashboard_v2');
+    function resetData() {
+        if(confirm("Erase all logs?")) {
+            localStorage.removeItem('nadec_bottling_v3');
             location.reload();
         }
     }
-
-    function addRow(tableId, values) {
-        const tbody = document.querySelector(`#${tableId} tbody`);
-        const tr = document.createElement('tr');
-        values.forEach((v, i) => {
-            const td = document.createElement('td');
-            td.innerText = v;
-            td.contentEditable = (tableId === 'tbl-lines' && i === 2) ? "false" : "true";
-            if (i===2) td.className = 'calc-cell';
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-        refresh();
-    }
 </script>
-
 </body>
 </html>
