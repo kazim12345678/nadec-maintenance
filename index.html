@@ -1,246 +1,989 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Maintenance Job Request Log Sheet – 2026 Drinkable Line</title>
-
-<!-- CDN Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<link rel="icon" href="data:," />
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 15px; background: #f5f7fa; }
-  h1 { text-align: center; margin-bottom: 10px; }
-  .header-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-bottom: 15px;
+  :root{
+    --blue:#007bbf;
+    --muted:#6b7280;
+    --bg:#f6f8fa;
+    --td-border:#e2e8f0;
+    --danger:#ffecec;
+    --lightred:#fdecea;
+    --lightgreen:#edf7ec;
+    --lightyellow:#fff9e6;
+    --table-header-bg:#fafafa;
+    --shadow: 0 2px 6px rgba(0,0,0,0.06);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   }
-  label { font-size: 12px; font-weight: bold; }
-  input, select {
-    width: 100%;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#ffffff 0%, #f6f8fa 100%);
+    color:#0f172a;
+    padding:18px;
+    box-sizing:border-box;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
   }
-  button {
-    background: #007bbf;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin: 4px;
+  .container{
+    max-width:1200px;
+    margin:0 auto;
   }
-  button:hover { opacity: 0.9; }
-  .actions { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:14px;
+  }
+  h1{
+    font-size:18px;
+    margin:0;
+    color:#062240;
+    line-height:1.2;
+  }
+  .top-right {
+    text-align:right;
+  }
+  .header-form{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+    margin-top:10px;
+  }
+  label{
+    font-size:12px;
+    color:var(--muted);
+    display:block;
+    margin-bottom:4px;
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+  }
+  input[type="text"], input[type="date"], input[type="time"], select{
+    padding:8px 10px;
+    border:1px solid #d1d5db;
+    border-radius:6px;
+    font-size:14px;
+    background:white;
+    outline:none;
+  }
+  .controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-top:6px;
+  }
+  button,
+  .btn{
+    background:var(--blue);
+    color:white;
+    border:0;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow:var(--shadow);
+    transition:transform .08s ease, box-shadow .12s;
+  }
+  button:hover,
+  .btn:hover{ transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.09);}
+  .btn.ghost{
+    background:transparent;
+    color:var(--blue);
+    border:1px solid rgba(0,123,191,0.12);
+  }
+  .panel{
+    background:white;
+    border-radius:10px;
+    padding:12px;
+    box-shadow:var(--shadow);
+    margin-bottom:12px;
+  }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    font-size: 12px;
+  /* Summary */
+  .summary{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:12px;
   }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 6px;
-    text-align: center;
+  .summary .card{
+    background:linear-gradient(180deg, #fff, #fbfeff);
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid #f1f5f9;
+    min-width:120px;
   }
-  th {
-    background: #007bbf;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-  tr:nth-child(even) { background: #f2f2f2; }
-  td[contenteditable="true"] { background: #fff; }
+  .summary .card b{ display:block; font-size:18px; color:#062240; }
+  .summary .card small{ color:var(--muted); }
 
-  /* Signature Modal */
-  .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    align-items: center;
-    justify-content: center;
+  /* Table */
+  .table-wrap{
+    overflow:auto;
+    background:white;
+    border-radius:8px;
+    border:1px solid #e6eef6;
   }
-  .modal-content {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 400px;
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1200px;
   }
-  canvas { border: 1px solid #ccc; width: 100%; height: 150px; }
+  thead th{
+    position:sticky;
+    top:0;
+    background:var(--table-header-bg);
+    z-index:3;
+    padding:10px 8px;
+    border-bottom:2px solid #e6eef6;
+    font-size:13px;
+    text-align:left;
+  }
+  tbody td{
+    padding:8px 6px;
+    border-bottom:1px solid var(--td-border);
+    vertical-align:top;
+    font-size:13px;
+  }
+  tbody tr:nth-child(odd){ background: #ffffff; }
+  tbody tr:nth-child(even){ background: #fbfdff; }
+
+  input.cell-input, select.cell-input, textarea.cell-input{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid transparent;
+    background:transparent;
+    padding:4px 6px;
+    font-size:13px;
+    outline:none;
+  }
+  textarea.cell-input{ resize:vertical; min-height:36px; }
+
+  .small{ font-size:12px; color:var(--muted); }
+
+  /* Conditional row coloring */
+  tr.job-bd { background: linear-gradient(90deg, #fff6f6, #fff8f8); }
+  tr.job-preventive { background: linear-gradient(90deg, #f6fff4, #f9fff7); }
+  tr.status-waiting { background: linear-gradient(90deg,#fffdf2,#fffdf6); }
+
+  /* signature image */
+  td.signature-cell img{ max-height:56px; display:block; border-radius:4px; border:1px solid #e6eef6; }
+
+  /* Responsive header form */
+  @media (max-width:900px){
+    .header-form{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:560px){
+    header.top{ flex-direction:column; align-items:stretch; gap:8px; }
+    .header-form{ grid-template-columns:1fr; }
+    .top-right{ text-align:left; }
+  }
+
+  .muted-small{ color:var(--muted); font-size:12px; }
+
+  /* delete icon */
+  .btn-del { background:#f43f5e; padding:6px 8px; border-radius:6px; }
+  .btn-del:hover{ opacity:0.95; transform:none; }
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(2,6,23,0.45);
+    z-index:9999;
+  }
+  .modal{
+    background:white;
+    border-radius:10px;
+    padding:14px;
+    width:90%;
+    max-width:720px;
+    box-shadow:0 12px 40px rgba(2,6,23,0.25);
+  }
+  .canvas-wrap{
+    border:1px solid #e6eef6;
+    border-radius:6px;
+    background:white;
+    overflow:hidden;
+  }
+  .footer-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+  .kbd { background:#f3f4f6; padding:4px 8px; border-radius:6px; font-size:12px; color:#111827; }
+
+  /* tiny icons */
+  .icon { display:inline-block; width:16px; height:16px; vertical-align:middle; margin-right:6px; opacity:0.9; }
+
 </style>
 </head>
-
 <body>
+<div class="container">
+  <header class="top">
+    <div>
+      <h1>Maintenance Job Request Log Sheet – 2026 Drinkable Line</h1>
+      <div class="muted-small">Compact header — fill and click "Add Row" to append from these defaults</div>
+    </div>
+    <div class="top-right">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
+        <button id="addRowBtn" class="btn">Add Row</button>
+        <button id="signBtn" class="btn ghost" title="Add signature to selected row">Add Signature</button>
+        <div style="position:relative;">
+          <button id="exportXlsx" class="btn">Export to Excel</button>
+        </div>
+        <button id="exportPdf" class="btn">Export to PDF</button>
+        <button id="downloadHtml" class="btn ghost">Download This App (HTML)</button>
+      </div>
+    </div>
+  </header>
 
-<h1>Maintenance Job Request Log Sheet – 2026 Drinkable Line</h1>
+  <section class="panel">
+    <form id="headerForm" class="header-form" onsubmit="return false;">
+      <div class="field">
+        <label for="hdrDate">Date</label>
+        <input id="hdrDate" type="date" />
+      </div>
+      <div class="field">
+        <label for="hdrMachineName">Machine Name</label>
+        <input id="hdrMachineName" type="text" placeholder="e.g., Bottle Filler A" />
+      </div>
+      <div class="field">
+        <label for="hdrMachineNo">Machine No</label>
+        <input id="hdrMachineNo" type="text" placeholder="M-001" />
+      </div>
+      <div class="field">
+        <label for="hdrNotificationNo">Notification No</label>
+        <input id="hdrNotificationNo" type="text" placeholder="Not-0001" />
+      </div>
 
-<div class="header-grid">
-  <div><label>Date</label><input type="date"></div>
-  <div><label>Machine Name</label><input type="text"></div>
-  <div><label>Machine No</label><input type="text"></div>
-  <div><label>Notification No</label><input type="text"></div>
-  <div><label>Machine Classification</label><input type="text"></div>
-  <div>
-    <label>Job Type</label>
-    <select>
-      <option>BD</option>
-      <option>Corrective</option>
-      <option>Preventive</option>
-      <option>Improvement</option>
-    </select>
-  </div>
-  <div>
-    <label>Responsibility</label>
-    <select>
-      <option>Mechanical</option>
-      <option>Electrical</option>
-      <option>Instrumentation</option>
-      <option>Automation</option>
-      <option>Production</option>
-    </select>
-  </div>
-  <div><label>Requested Time</label><input type="time"></div>
+      <div class="field">
+        <label for="hdrClassification">Machine Classification</label>
+        <input id="hdrClassification" type="text" placeholder="Filler, Conveyor, Compressor" />
+      </div>
+      <div class="field">
+        <label for="hdrJobType">Job Type</label>
+        <select id="hdrJobType">
+          <option value="BD">BD</option>
+          <option value="Corrective">Corrective</option>
+          <option value="Preventive">Preventive</option>
+          <option value="Improvement">Improvement</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="hdrResponsibility">Responsibility</label>
+        <select id="hdrResponsibility">
+          <option>Mechanical</option>
+          <option>Electrical</option>
+          <option>Instrumentation</option>
+          <option>Automation</option>
+          <option>Production</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="hdrRequestedTime">Requested Time</label>
+        <input id="hdrRequestedTime" type="time" />
+      </div>
+
+      <div class="field">
+        <label for="hdrPriority">Priority</label>
+        <select id="hdrPriority">
+          <option value="P1 Emergency">P1 Emergency</option>
+          <option value="P2 Urgent">P2 Urgent</option>
+          <option value="P3 Routine">P3 Routine</option>
+          <option value="P4 Planned">P4 Planned</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="hdrArea">Area / Location</label>
+        <input id="hdrArea" type="text" placeholder="Line A / Zone 3" />
+      </div>
+      <div class="field">
+        <label for="hdrMachineNo2">(Alternative) Machine No</label>
+        <input id="hdrMachineNo2" type="text" placeholder="optional" />
+      </div>
+      <div class="field">
+        <label class="small">&nbsp;</label>
+        <div class="controls">
+          <button id="clearHeader" class="btn ghost" type="button">Clear Header</button>
+          <div class="muted-small" style="align-self:center;">Select a row then click "Add Signature"</div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section class="summary panel" aria-hidden="false">
+    <div class="card"><small>Total jobs</small><b id="sumTotal">0</b></div>
+    <div class="card"><small>Total downtime (min)</small><b id="sumDowntime">0</b></div>
+    <div class="card"><small>BD</small><b id="sumBD">0</b></div>
+    <div class="card"><small>Corrective</small><b id="sumCorrective">0</b></div>
+    <div class="card"><small>Preventive</small><b id="sumPreventive">0</b></div>
+    <div class="card"><small>Improvement</small><b id="sumImprovement">0</b></div>
+  </section>
+
+  <section class="panel">
+    <div class="table-wrap" id="tableWrap">
+      <table id="logTable" aria-label="Maintenance Job Request Log">
+        <thead>
+          <tr>
+            <th style="width:38px">No</th>
+            <th style="width:110px">Date</th>
+            <th style="width:100px">Machine No</th>
+            <th style="min-width:120px">Machine Classification</th>
+            <th style="width:110px">Job Type</th>
+            <th style="width:100px">Priority</th>
+            <th style="width:120px">Responsibility</th>
+            <th style="width:120px">Area / Location</th>
+            <th style="width:120px">Notification No</th>
+            <th style="min-width:160px">Reported Problem</th>
+            <th style="min-width:160px">Description of Work</th>
+            <th style="width:140px">Failure Category</th>
+            <th style="width:96px">Start Time</th>
+            <th style="width:96px">End Time</th>
+            <th style="width:110px">Time Consumed</th>
+            <th style="width:110px">Downtime Minutes</th>
+            <th style="width:140px">Status</th>
+            <th style="min-width:120px">Spare Parts Used</th>
+            <th style="min-width:120px">Performed By</th>
+            <th style="min-width:140px">Technician Comments</th>
+            <th style="min-width:140px">Supervisor Approval</th>
+            <th style="width:120px">Signature</th>
+            <th style="width:64px">Del</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <!-- rows inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
 
-<div class="actions">
-  <button onclick="addRow()">Add Row</button>
-  <button onclick="openSignature()">Add Signature</button>
-  <button onclick="exportCSV()">Export to Excel</button>
-  <button onclick="exportPDF()">Export to PDF</button>
-  <button onclick="downloadHTML()">Download This App (HTML)</button>
-</div>
-
-<table id="logTable">
-  <thead>
-    <tr>
-      <th>No</th>
-      <th>Machine No</th>
-      <th>Machine Classification</th>
-      <th>Job Type</th>
-      <th>Reported Problem</th>
-      <th>Description of Work</th>
-      <th>Start Time</th>
-      <th>End Time</th>
-      <th>Time Consumed</th>
-      <th>Performed By</th>
-      <th>Signature</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<!-- Signature Modal -->
-<div class="modal" id="sigModal">
-  <div class="modal-content">
-    <h3>Draw Signature</h3>
-    <canvas id="sigCanvas"></canvas>
-    <div style="text-align:right;margin-top:8px;">
-      <button onclick="clearSig()">Clear</button>
-      <button onclick="saveSig()">Save</button>
-      <button onclick="closeSig()">Close</button>
+<!-- Signature modal -->
+<div id="sigModal" style="display:none;">
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Signature Pad">
+      <h3 style="margin:0 0 8px 0;">Draw Signature</h3>
+      <div class="canvas-wrap" style="padding:8px;">
+        <canvas id="sigCanvas" width="800" height="260" style="width:100%;height:160px;background:white;border-radius:6px;touch-action:none;"></canvas>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;">
+        <div class="small muted-small">Tip: sign with mouse or touch. Use Clear to start over.</div>
+        <div class="footer-actions">
+          <button id="clearSig" class="btn ghost">Clear</button>
+          <button id="cancelSig" class="btn ghost">Cancel</button>
+          <button id="saveSig" class="btn">Save Signature</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- External libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script>
-let selectedRow = null;
-const tableBody = document.querySelector("#logTable tbody");
+(function(){
+  // Simple DOM helpers
+  const $ = (s, ctx=document) => ctx.querySelector(s);
+  const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
 
-/* Add Row */
-function addRow() {
-  const row = tableBody.insertRow();
-  row.onclick = () => selectedRow = row;
-  row.insertCell().innerText = tableBody.rows.length;
-  for (let i = 1; i <= 10; i++) {
-    const cell = row.insertCell();
-    if (i === 6 || i === 7) {
-      cell.innerHTML = '<input type="time" onchange="calcTime(this)">';
-    } else if (i === 8) {
-      cell.innerText = "";
-    } else {
-      cell.contentEditable = true;
+  // Elements
+  const tbody = $('#tbody');
+  const addRowBtn = $('#addRowBtn');
+  const signBtn = $('#signBtn');
+  const exportXlsxBtn = $('#exportXlsx');
+  const exportPdfBtn = $('#exportPdf');
+  const downloadHtmlBtn = $('#downloadHtml');
+  const clearHeaderBtn = $('#clearHeader');
+
+  // Header form fields
+  const hdrDate = $('#hdrDate');
+  const hdrMachineName = $('#hdrMachineName');
+  const hdrMachineNo = $('#hdrMachineNo');
+  const hdrMachineNo2 = $('#hdrMachineNo2');
+  const hdrNotificationNo = $('#hdrNotificationNo');
+  const hdrClassification = $('#hdrClassification');
+  const hdrJobType = $('#hdrJobType');
+  const hdrResponsibility = $('#hdrResponsibility');
+  const hdrRequestedTime = $('#hdrRequestedTime');
+  const hdrPriority = $('#hdrPriority');
+  const hdrArea = $('#hdrArea');
+
+  // Summary fields
+  const sumTotal = $('#sumTotal');
+  const sumDowntime = $('#sumDowntime');
+  const sumBD = $('#sumBD');
+  const sumCorrective = $('#sumCorrective');
+  const sumPreventive = $('#sumPreventive');
+  const sumImprovement = $('#sumImprovement');
+
+  // Signature modal elements
+  const sigModal = $('#sigModal');
+  const modalBackdrop = $('#modalBackdrop');
+  const sigCanvas = $('#sigCanvas');
+  const clearSigBtn = $('#clearSig');
+  const cancelSigBtn = $('#cancelSig');
+  const saveSigBtn = $('#saveSig');
+
+  // State
+  let selectedRow = null; // tr element
+  let drawing = false;
+  let ctx, lastX=0, lastY=0;
+  let devicePixelRatio_ = window.devicePixelRatio || 1;
+
+  // Initial setup
+  function init(){
+    // set default date to today
+    hdrDate.valueAsDate = new Date();
+
+    // canvas init
+    ctx = sigCanvas.getContext('2d');
+    setupCanvas();
+
+    // events
+    addRowBtn.addEventListener('click', () => addRow());
+    clearHeaderBtn.addEventListener('click', clearHeader);
+    signBtn.addEventListener('click', openSignatureModal);
+    cancelSigBtn.addEventListener('click', closeSignatureModal);
+    clearSigBtn.addEventListener('click', clearCanvas);
+    saveSigBtn.addEventListener('click', saveSignatureToRow);
+    exportXlsxBtn.addEventListener('click', exportXlsx);
+    exportPdfBtn.addEventListener('click', exportPdf);
+    downloadHtmlBtn.addEventListener('click', downloadThisHTML);
+
+    // canvas pointer events
+    sigCanvas.addEventListener('pointerdown', onPointerDown);
+    sigCanvas.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('resize', setupCanvas);
+
+    // allow clicking rows to select
+    tbody.addEventListener('click', (e) => {
+      const tr = e.target.closest('tr');
+      if(tr && tbody.contains(tr)){
+        selectRow(tr);
+      }
+    });
+
+    // seed one empty row for convenience
+    addRow();
+  }
+
+  // Utilities to create cell content
+  function createInput(value='', type='text', cls='cell-input'){
+    const input = document.createElement('input');
+    input.type = type;
+    input.className = cls;
+    input.value = value ?? '';
+    input.addEventListener('change', onCellChange);
+    input.addEventListener('input', onCellChange);
+    return input;
+  }
+  function createSelect(options=[], selected='', cls='cell-input'){
+    const sel = document.createElement('select');
+    sel.className = cls;
+    options.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt;
+      o.textContent = opt;
+      sel.appendChild(o);
+    });
+    if(selected) sel.value = selected;
+    sel.addEventListener('change', onCellChange);
+    return sel;
+  }
+  function createTextarea(value='', cls='cell-input'){
+    const ta = document.createElement('textarea');
+    ta.className = cls;
+    ta.value = value ?? '';
+    ta.addEventListener('change', onCellChange);
+    ta.addEventListener('input', onCellChange);
+    return ta;
+  }
+
+  // Add row
+  function addRow(){
+    const tr = document.createElement('tr');
+
+    // No (auto)
+    const tdNo = document.createElement('td');
+    tdNo.className = 'no-cell small';
+    tdNo.textContent = ''; // will be updated
+    tr.appendChild(tdNo);
+
+    // Date
+    const tdDate = document.createElement('td');
+    const inputDate = createInput('', 'date');
+    if(hdrDate.value) inputDate.value = hdrDate.value;
+    tdDate.appendChild(inputDate);
+    tr.appendChild(tdDate);
+
+    // Machine No
+    const tdMachineNo = document.createElement('td');
+    const minVal = hdrMachineNo2.value || hdrMachineNo.value || '';
+    const inputMNo = createInput(minVal, 'text');
+    tdMachineNo.appendChild(inputMNo);
+    tr.appendChild(tdMachineNo);
+
+    // Machine Classification
+    const tdClass = document.createElement('td');
+    const inputClass = createInput(hdrClassification.value || '', 'text');
+    tdClass.appendChild(inputClass);
+    tr.appendChild(tdClass);
+
+    // Job Type
+    const tdJobType = document.createElement('td');
+    const jobSel = createSelect(['BD','Corrective','Preventive','Improvement'], hdrJobType.value || 'Corrective');
+    tdJobType.appendChild(jobSel);
+    tr.appendChild(tdJobType);
+
+    // Priority
+    const tdPriority = document.createElement('td');
+    const pri = createSelect(['P1 Emergency','P2 Urgent','P3 Routine','P4 Planned'], hdrPriority.value || 'P3 Routine');
+    tdPriority.appendChild(pri);
+    tr.appendChild(tdPriority);
+
+    // Responsibility
+    const tdResp = document.createElement('td');
+    const resp = createSelect(['Mechanical','Electrical','Instrumentation','Automation','Production'], hdrResponsibility.value || 'Mechanical');
+    tdResp.appendChild(resp);
+    tr.appendChild(tdResp);
+
+    // Area / Location
+    const tdArea = document.createElement('td');
+    const area = createInput(hdrArea.value || '', 'text');
+    tdArea.appendChild(area);
+    tr.appendChild(tdArea);
+
+    // Notification No
+    const tdNotif = document.createElement('td');
+    const notif = createInput(hdrNotificationNo.value || '', 'text');
+    tdNotif.appendChild(notif);
+    tr.appendChild(tdNotif);
+
+    // Reported Problem
+    const tdReported = document.createElement('td');
+    const reported = createTextarea('', 'cell-input');
+    tdReported.appendChild(reported);
+    tr.appendChild(tdReported);
+
+    // Description of Work
+    const tdDesc = document.createElement('td');
+    const desc = createTextarea('', 'cell-input');
+    tdDesc.appendChild(desc);
+    tr.appendChild(tdDesc);
+
+    // Failure Category
+    const tdFail = document.createElement('td');
+    const failSel = createSelect(['Mechanical','Electrical','Pneumatic','Hydraulic','PLC/Automation','Sensor','Operator Error','Lubrication','Wear & Tear','Other'],'Mechanical');
+    tdFail.appendChild(failSel);
+    tr.appendChild(tdFail);
+
+    // Start Time
+    const tdStart = document.createElement('td');
+    const start = createInput(hdrRequestedTime.value || '', 'time');
+    start.addEventListener('change', () => recalcRowTimes(tr));
+    tdStart.appendChild(start);
+    tr.appendChild(tdStart);
+
+    // End Time
+    const tdEnd = document.createElement('td');
+    const end = createInput('', 'time');
+    end.addEventListener('change', () => recalcRowTimes(tr));
+    tdEnd.appendChild(end);
+    tr.appendChild(tdEnd);
+
+    // Time Consumed
+    const tdTimeConsumed = document.createElement('td');
+    tdTimeConsumed.className = 'small';
+    tdTimeConsumed.textContent = '';
+    tr.appendChild(tdTimeConsumed);
+
+    // Downtime Minutes
+    const tdDownMin = document.createElement('td');
+    tdDownMin.className = 'small';
+    tdDownMin.textContent = '';
+    tr.appendChild(tdDownMin);
+
+    // Status
+    const tdStatus = document.createElement('td');
+    const statusSel = createSelect(['Completed','Pending','Waiting for Parts','Follow-up Required','Escalated'],'Pending');
+    statusSel.addEventListener('change', () => updateRowClass(tr));
+    tdStatus.appendChild(statusSel);
+    tr.appendChild(tdStatus);
+
+    // Spare Parts Used
+    const tdParts = document.createElement('td');
+    const parts = createInput('', 'text');
+    tdParts.appendChild(parts);
+    tr.appendChild(tdParts);
+
+    // Performed By
+    const tdPerf = document.createElement('td');
+    const perf = createInput('', 'text');
+    tdPerf.appendChild(perf);
+    tr.appendChild(tdPerf);
+
+    // Technician Comments
+    const tdTech = document.createElement('td');
+    const tech = createTextarea('', 'cell-input');
+    tdTech.appendChild(tech);
+    tr.appendChild(tdTech);
+
+    // Supervisor Approval
+    const tdSup = document.createElement('td');
+    const sup = createInput('', 'text');
+    tdSup.appendChild(sup);
+    tr.appendChild(tdSup);
+
+    // Signature
+    const tdSig = document.createElement('td');
+    tdSig.className = 'signature-cell';
+    tdSig.style.minWidth = '140px';
+    tdSig.style.maxWidth = '140px';
+    tdSig.style.textAlign = 'center';
+    tdSig.innerHTML = '<div class="small muted-small">No signature</div>';
+    tr.appendChild(tdSig);
+
+    // Delete
+    const tdDel = document.createElement('td');
+    const btnDel = document.createElement('button');
+    btnDel.type = 'button';
+    btnDel.className = 'btn btn-del';
+    btnDel.textContent = 'Del';
+    btnDel.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      tr.remove();
+      updateNumbers();
+      updateSummary();
+    });
+    tdDel.appendChild(btnDel);
+    tr.appendChild(tdDel);
+
+    // append
+    tbody.appendChild(tr);
+    updateNumbers();
+    updateRowClass(tr);
+    selectRow(tr);
+    updateSummary();
+  }
+
+  // Update No column
+  function updateNumbers(){
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.forEach((tr,i)=>{
+      const noCell = tr.querySelector('.no-cell');
+      if(noCell) noCell.textContent = (i+1);
+    });
+  }
+
+  // Recalculate time consumed and downtime (in minutes)
+  function recalcRowTimes(tr){
+    const startInput = tr.querySelector('input[type="time"]');
+    // start is first time input; end second one
+    const timeInputs = Array.from(tr.querySelectorAll('input[type="time"]'));
+    const startEl = timeInputs[0];
+    const endEl = timeInputs[1] || timeInputs[0];
+
+    const startVal = startEl.value;
+    const endVal = endEl.value;
+
+    const tdTimeConsumed = tr.children[14];
+    const tdDowntime = tr.children[15];
+
+    if(!startVal || !endVal){
+      tdTimeConsumed.textContent = '';
+      tdDowntime.textContent = '';
+      updateSummary();
+      return;
     }
+
+    // parse HH:MM
+    function parseHM(v){ const [h,m] = v.split(':').map(x=>parseInt(x,10)); return h*60 + m; }
+    let s = parseHM(startVal);
+    let e = parseHM(endVal);
+    // if end < start, assume next day
+    if(e < s) e += 24*60;
+    const diff = e - s;
+    const hh = Math.floor(diff / 60);
+    const mm = diff % 60;
+    tdTimeConsumed.textContent = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+    tdDowntime.textContent = diff.toString();
+    updateSummary();
   }
-}
 
-/* Time Calculation */
-function calcTime(el) {
-  const row = el.closest("tr");
-  const start = row.cells[6].querySelector("input").value;
-  const end = row.cells[7].querySelector("input").value;
-  if (start && end) {
-    const s = new Date(`1970-01-01T${start}`);
-    const e = new Date(`1970-01-01T${end}`);
-    let diff = (e - s) / 60000;
-    if (diff < 0) diff += 1440;
-    const h = String(Math.floor(diff / 60)).padStart(2, "0");
-    const m = String(diff % 60).padStart(2, "0");
-    row.cells[8].innerText = `${h}:${m}`;
+  // update row class based on job type and status
+  function updateRowClass(tr){
+    // remove old classes
+    tr.classList.remove('job-bd','job-preventive','status-waiting');
+    const jobType = (tr.children[4].querySelector('select')?.value || '').toLowerCase();
+    const status = (tr.children[16].querySelector('select')?.value || '').toLowerCase();
+    if(jobType === 'bd') tr.classList.add('job-bd');
+    if(jobType === 'preventive') tr.classList.add('job-preventive');
+    if(status.includes('waiting')) tr.classList.add('status-waiting');
   }
-}
 
-/* Signature */
-const canvas = document.getElementById("sigCanvas");
-const ctx = canvas.getContext("2d");
-let drawing = false;
+  // On cell change generic
+  function onCellChange(e){
+    const tr = e.target.closest('tr');
+    if(!tr) return;
+    // if time fields changed, recalc
+    const isTime = e.target.type === 'time';
+    if(isTime) recalcRowTimes(tr);
+    if(e.target.tagName === 'SELECT' && e.target.parentElement.cellIndex === 4) updateRowClass(tr);
+    updateSummary();
+  }
 
-canvas.addEventListener("mousedown", e => { drawing = true; ctx.moveTo(e.offsetX, e.offsetY); });
-canvas.addEventListener("mousemove", e => { if (drawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); }});
-canvas.addEventListener("mouseup", () => drawing = false);
-canvas.addEventListener("touchstart", e => { drawing = true; const t = e.touches[0]; ctx.moveTo(t.clientX, t.clientY); });
-canvas.addEventListener("touchmove", e => { if (drawing) { const t = e.touches[0]; ctx.lineTo(t.clientX, t.clientY); ctx.stroke(); }});
-canvas.addEventListener("touchend", () => drawing = false);
+  // Select a row (visual indicator)
+  function selectRow(tr){
+    if(selectedRow) selectedRow.style.outline = '';
+    selectedRow = tr;
+    if(selectedRow) selectedRow.style.outline = '3px solid rgba(0,123,191,0.12)';
+  }
 
-function openSignature() {
-  if (!selectedRow) return alert("Select a row first");
-  document.getElementById("sigModal").style.display = "flex";
-}
-function closeSig() { document.getElementById("sigModal").style.display = "none"; }
-function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
-function saveSig() {
-  const img = new Image();
-  img.src = canvas.toDataURL();
-  img.style.maxWidth = "80px";
-  selectedRow.cells[10].innerHTML = "";
-  selectedRow.cells[10].appendChild(img);
-  closeSig();
-}
+  // Signature modal functions
+  function setupCanvas(){
+    const ratio = devicePixelRatio_ = window.devicePixelRatio || 1;
+    const w = sigCanvas.clientWidth;
+    const h = sigCanvas.clientHeight;
+    sigCanvas.width = Math.round(w * ratio);
+    sigCanvas.height = Math.round(h * ratio);
+    sigCanvas.style.width = w + 'px';
+    sigCanvas.style.height = h + 'px';
+    ctx = sigCanvas.getContext('2d');
+    ctx.scale(ratio, ratio);
+    clearCanvas();
+  }
+  function clearCanvas(){
+    ctx.clearRect(0,0,sigCanvas.width/devicePixelRatio_, sigCanvas.height/devicePixelRatio_);
+    // draw a faint guideline
+    ctx.beginPath();
+    ctx.strokeStyle = '#f3f4f6';
+    ctx.lineWidth = 1;
+    const y = (sigCanvas.height/devicePixelRatio_) - 36;
+    ctx.moveTo(8, y);
+    ctx.lineTo((sigCanvas.width/devicePixelRatio_) - 8, y);
+    ctx.stroke();
+  }
 
-/* Export CSV */
-function exportCSV() {
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.table_to_sheet(document.getElementById("logTable"));
-  XLSX.utils.book_append_sheet(wb, ws, "Log");
-  XLSX.writeFile(wb, "maintenance_log.xlsx");
-}
+  function onPointerDown(e){
+    drawing = true;
+    sigCanvas.setPointerCapture(e.pointerId);
+    const rect = sigCanvas.getBoundingClientRect();
+    lastX = (e.clientX - rect.left);
+    lastY = (e.clientY - rect.top);
+  }
+  function onPointerMove(e){
+    if(!drawing) return;
+    const rect = sigCanvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left);
+    const y = (e.clientY - rect.top);
+    ctx.beginPath();
+    ctx.strokeStyle = '#062240';
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    lastX = x; lastY = y;
+  }
+  function onPointerUp(e){
+    drawing = false;
+    try{ sigCanvas.releasePointerCapture && sigCanvas.releasePointerCapture(e.pointerId); } catch(_) {}
+  }
 
-/* Export PDF */
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("l","pt","a4");
-  doc.text("Maintenance Job Request Log", 40, 40);
-  doc.html(document.getElementById("logTable"), {
-    x: 40, y: 60, callback: () => doc.save("maintenance_log.pdf")
-  });
-}
+  function openSignatureModal(){
+    if(!selectedRow){
+      // select last row if none
+      const rows = tbody.querySelectorAll('tr');
+      if(rows.length) selectRow(rows[rows.length-1]);
+      else { addRow(); }
+    }
+    sigModal.style.display = 'block';
+    document.getElementById('sigModal').style.display = 'block';
+    setupCanvas();
+  }
+  function closeSignatureModal(){
+    document.getElementById('sigModal').style.display = 'none';
+  }
 
-/* Download HTML with data */
-function downloadHTML() {
-  const blob = new Blob([document.documentElement.outerHTML], {type:"text/html"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "maintenance_log_app.html";
-  a.click();
-}
+  function saveSignatureToRow(){
+    if(!selectedRow){
+      alert('No row selected. Click a row to select then sign.');
+      return;
+    }
+    // get dataURL
+    const dataUrl = sigCanvas.toDataURL('image/png');
+    // insert into signature cell
+    const sigCell = selectedRow.querySelector('.signature-cell');
+    if(sigCell){
+      sigCell.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = 'signature';
+      sigCell.appendChild(img);
+    }
+    closeSignatureModal();
+  }
+
+  // Export to XLSX (SheetJS)
+  function exportXlsx(){
+    const wb = XLSX.utils.book_new();
+    const ws_data = [];
+    // header row
+    const headers = Array.from(document.querySelectorAll('#logTable thead th')).map(th => th.textContent.trim());
+    ws_data.push(headers);
+    // rows
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.forEach(tr => {
+      const cells = Array.from(tr.children);
+      const rowData = cells.slice(0, headers.length-1).map((td, idx) => {
+        // signature cell: if img present use [Signature]
+        if(td.classList.contains('signature-cell')){
+          const img = td.querySelector('img');
+          return img ? '[Signature]' : '';
+        }
+        // for select/input/textarea
+        const input = td.querySelector('input,select,textarea');
+        if(input) return input.value;
+        return td.textContent.trim();
+      });
+      // include delete button column indicator as last cell; but better to extract all including signature and drop delete label
+      // add status cell
+      const statusCell = tr.children[16];
+      const statusVal = statusCell.querySelector('select')?.value || '';
+      rowData[16] = statusVal; // ensure status included
+      ws_data.push(rowData);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, "MaintenanceLog");
+    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const blob = new Blob([wbout], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'maintenance_log.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Export to PDF using jsPDF & autotable
+  async function exportPdf(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const headers = Array.from(document.querySelectorAll('#logTable thead th')).map(th => th.textContent.trim());
+    const body = [];
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+      const row = [];
+      const tds = Array.from(tr.children);
+      for(let i=0;i < tds.length - 1; i++){ // skip delete column
+        const td = tds[i];
+        if(td.classList.contains('signature-cell')){
+          // display placeholder
+          const img = td.querySelector('img');
+          row.push(img ? '[Signature]' : '');
+          continue;
+        }
+        const input = td.querySelector('input,select,textarea');
+        row.push(input ? input.value : td.textContent.trim());
+      }
+      body.push(row);
+    });
+
+    doc.setFontSize(10);
+    doc.text("Maintenance Job Request Log Sheet – 2026 Drinkable Line", 40, 30);
+    doc.autoTable({
+      startY: 42,
+      head: [headers.slice(0, headers.length - 1)],
+      body: body,
+      styles: { fontSize: 9, cellPadding: 4 },
+      headStyles: { fillColor: [2,58,86] },
+      theme: 'grid',
+      margin: { left: 20, right: 20, top: 10 },
+      didDrawCell: function(data) {}
+    });
+
+    doc.save('maintenance_log.pdf');
+  }
+
+  // Download current HTML (serialize document)
+  function downloadThisHTML(){
+    // Serialize current document including dynamic table content.
+    // Use document.documentElement.outerHTML
+    let html = '<!doctype html>\n' + document.documentElement.outerHTML;
+    // Offer as download
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'maintenance_job_request_log.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function clearHeader(){
+    hdrDate.value = '';
+    hdrMachineName.value = '';
+    hdrMachineNo.value = '';
+    hdrMachineNo2.value = '';
+    hdrNotificationNo.value = '';
+    hdrClassification.value = '';
+    hdrJobType.selectedIndex = 0;
+    hdrResponsibility.selectedIndex = 0;
+    hdrRequestedTime.value = '';
+    hdrPriority.selectedIndex = 0;
+    hdrArea.value = '';
+  }
+
+  // summary calculations
+  function updateSummary(){
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    sumTotal.textContent = rows.length;
+    let totalDow = 0;
+    let bd=0,corr=0,prev=0,imp=0;
+    rows.forEach(tr=>{
+      const downtimeCell = tr.children[15];
+      const d = parseInt(downtimeCell.textContent || '0', 10);
+      if(!isNaN(d)) totalDow += d;
+      const job = (tr.children[4].querySelector('select')?.value || '');
+      if(job === 'BD') bd++;
+      if(job === 'Corrective') corr++;
+      if(job === 'Preventive') prev++;
+      if(job === 'Improvement') imp++;
+    });
+    sumDowntime.textContent = totalDow;
+    sumBD.textContent = bd;
+    sumCorrective.textContent = corr;
+    sumPreventive.textContent = prev;
+    sumImprovement.textContent = imp;
+  }
+
+  // expose small helpers for future
+  window.MaintLog = {
+    addRow,
+    exportXlsx,
+    exportPdf
+  };
+
+  // init
+  init();
+
+})();
 </script>
-
 </body>
 </html>
