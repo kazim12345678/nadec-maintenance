@@ -1,20 +1,246 @@
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Maintenance Job Request Log Sheet – 2026 Drinkable Line</title>
 
-  var data = JSON.parse(e.postData.contents);
+<!-- CDN Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  sheet.appendRow([
-    data.date,
-    data.line,
-    data.machine,
-    data.type,
-    data.duration,
-    data.technician,
-    data.remarks,
-    new Date()
-  ]);
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 15px; background: #f5f7fa; }
+  h1 { text-align: center; margin-bottom: 10px; }
+  .header-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  label { font-size: 12px; font-weight: bold; }
+  input, select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #007bbf;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 4px;
+  }
+  button:hover { opacity: 0.9; }
+  .actions { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
 
-  return ContentService
-    .createTextOutput(JSON.stringify({status: "success"}))
-    .setMimeType(ContentService.MimeType.JSON);
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 12px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+  }
+  th {
+    background: #007bbf;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  tr:nth-child(even) { background: #f2f2f2; }
+  td[contenteditable="true"] { background: #fff; }
+
+  /* Signature Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-content {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+  }
+  canvas { border: 1px solid #ccc; width: 100%; height: 150px; }
+</style>
+</head>
+
+<body>
+
+<h1>Maintenance Job Request Log Sheet – 2026 Drinkable Line</h1>
+
+<div class="header-grid">
+  <div><label>Date</label><input type="date"></div>
+  <div><label>Machine Name</label><input type="text"></div>
+  <div><label>Machine No</label><input type="text"></div>
+  <div><label>Notification No</label><input type="text"></div>
+  <div><label>Machine Classification</label><input type="text"></div>
+  <div>
+    <label>Job Type</label>
+    <select>
+      <option>BD</option>
+      <option>Corrective</option>
+      <option>Preventive</option>
+      <option>Improvement</option>
+    </select>
+  </div>
+  <div>
+    <label>Responsibility</label>
+    <select>
+      <option>Mechanical</option>
+      <option>Electrical</option>
+      <option>Instrumentation</option>
+      <option>Automation</option>
+      <option>Production</option>
+    </select>
+  </div>
+  <div><label>Requested Time</label><input type="time"></div>
+</div>
+
+<div class="actions">
+  <button onclick="addRow()">Add Row</button>
+  <button onclick="openSignature()">Add Signature</button>
+  <button onclick="exportCSV()">Export to Excel</button>
+  <button onclick="exportPDF()">Export to PDF</button>
+  <button onclick="downloadHTML()">Download This App (HTML)</button>
+</div>
+
+<table id="logTable">
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Machine No</th>
+      <th>Machine Classification</th>
+      <th>Job Type</th>
+      <th>Reported Problem</th>
+      <th>Description of Work</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th>Time Consumed</th>
+      <th>Performed By</th>
+      <th>Signature</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- Signature Modal -->
+<div class="modal" id="sigModal">
+  <div class="modal-content">
+    <h3>Draw Signature</h3>
+    <canvas id="sigCanvas"></canvas>
+    <div style="text-align:right;margin-top:8px;">
+      <button onclick="clearSig()">Clear</button>
+      <button onclick="saveSig()">Save</button>
+      <button onclick="closeSig()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedRow = null;
+const tableBody = document.querySelector("#logTable tbody");
+
+/* Add Row */
+function addRow() {
+  const row = tableBody.insertRow();
+  row.onclick = () => selectedRow = row;
+  row.insertCell().innerText = tableBody.rows.length;
+  for (let i = 1; i <= 10; i++) {
+    const cell = row.insertCell();
+    if (i === 6 || i === 7) {
+      cell.innerHTML = '<input type="time" onchange="calcTime(this)">';
+    } else if (i === 8) {
+      cell.innerText = "";
+    } else {
+      cell.contentEditable = true;
+    }
+  }
 }
+
+/* Time Calculation */
+function calcTime(el) {
+  const row = el.closest("tr");
+  const start = row.cells[6].querySelector("input").value;
+  const end = row.cells[7].querySelector("input").value;
+  if (start && end) {
+    const s = new Date(`1970-01-01T${start}`);
+    const e = new Date(`1970-01-01T${end}`);
+    let diff = (e - s) / 60000;
+    if (diff < 0) diff += 1440;
+    const h = String(Math.floor(diff / 60)).padStart(2, "0");
+    const m = String(diff % 60).padStart(2, "0");
+    row.cells[8].innerText = `${h}:${m}`;
+  }
+}
+
+/* Signature */
+const canvas = document.getElementById("sigCanvas");
+const ctx = canvas.getContext("2d");
+let drawing = false;
+
+canvas.addEventListener("mousedown", e => { drawing = true; ctx.moveTo(e.offsetX, e.offsetY); });
+canvas.addEventListener("mousemove", e => { if (drawing) { ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke(); }});
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("touchstart", e => { drawing = true; const t = e.touches[0]; ctx.moveTo(t.clientX, t.clientY); });
+canvas.addEventListener("touchmove", e => { if (drawing) { const t = e.touches[0]; ctx.lineTo(t.clientX, t.clientY); ctx.stroke(); }});
+canvas.addEventListener("touchend", () => drawing = false);
+
+function openSignature() {
+  if (!selectedRow) return alert("Select a row first");
+  document.getElementById("sigModal").style.display = "flex";
+}
+function closeSig() { document.getElementById("sigModal").style.display = "none"; }
+function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+function saveSig() {
+  const img = new Image();
+  img.src = canvas.toDataURL();
+  img.style.maxWidth = "80px";
+  selectedRow.cells[10].innerHTML = "";
+  selectedRow.cells[10].appendChild(img);
+  closeSig();
+}
+
+/* Export CSV */
+function exportCSV() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(document.getElementById("logTable"));
+  XLSX.utils.book_append_sheet(wb, ws, "Log");
+  XLSX.writeFile(wb, "maintenance_log.xlsx");
+}
+
+/* Export PDF */
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("l","pt","a4");
+  doc.text("Maintenance Job Request Log", 40, 40);
+  doc.html(document.getElementById("logTable"), {
+    x: 40, y: 60, callback: () => doc.save("maintenance_log.pdf")
+  });
+}
+
+/* Download HTML with data */
+function downloadHTML() {
+  const blob = new Blob([document.documentElement.outerHTML], {type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "maintenance_log_app.html";
+  a.click();
+}
+</script>
+
+</body>
+</html>
