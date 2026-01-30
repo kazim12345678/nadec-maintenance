@@ -7,29 +7,77 @@
 
 <style>
 :root{
-  --p:#0b5f6a; --s:#2fa4b6; --bg:#f4f7f8; --c:#fff; --b:#d9e2e6;
+  --primary:#0b5f6a;
+  --secondary:#2fa4b6;
+  --bg:#f4f7f8;
+  --card:#ffffff;
+  --border:#d9e2e6;
+  --text:#1f2d3d;
 }
-*{box-sizing:border-box;font-family:Segoe UI,Arial}
-body{margin:0;background:var(--bg)}
-header{background:linear-gradient(90deg,var(--p),var(--s));color:#fff;padding:16px}
-.container{padding:16px}
-h2{font-size:16px;border-left:4px solid var(--s);padding-left:8px}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.kpi{background:var(--c);padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-.kpi span{font-size:22px;font-weight:700;color:var(--p)}
+*{box-sizing:border-box;font-family:Segoe UI,Arial,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
 
-.section{background:var(--c);padding:14px;margin-top:18px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+header{
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  color:#fff;padding:18px 24px;
+}
+header h1{margin:0;font-size:22px}
+header p{margin:4px 0 0;font-size:13px;opacity:.9}
 
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{border:1px solid var(--b);padding:5px;text-align:center}
-th{background:#eef6f8}
+.container{padding:20px}
 
-input,select{width:100%;padding:4px;font-size:12px}
-button{padding:6px 12px;background:var(--s);border:0;color:#fff;border-radius:4px;cursor:pointer}
+/* KPI CARDS */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:15px;margin-bottom:25px;
+}
+.kpi{
+  background:var(--card);
+  border-radius:8px;
+  padding:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+.kpi h3{margin:0;font-size:13px;color:#666}
+.kpi .value{font-size:26px;font-weight:700;margin-top:6px;color:var(--primary)}
 
-canvas{width:100%;max-width:600px;height:250px}
-.filter{margin:10px 0}
+/* SECTION */
+.section{
+  background:var(--card);
+  border-radius:8px;
+  padding:16px;
+  margin-bottom:22px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.section h2{
+  margin:0 0 12px;
+  font-size:16px;
+  border-left:4px solid var(--secondary);
+  padding-left:8px;
+}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{
+  border:1px solid var(--border);
+  padding:6px;
+  text-align:center;
+}
+th{background:#eef6f8;font-weight:600}
+input,select{
+  width:100%;
+  padding:4px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-size:12px;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  header h1{font-size:18px}
+  .kpi .value{font-size:22px}
+}
 </style>
 </head>
 
@@ -37,119 +85,126 @@ canvas{width:100%;max-width:600px;height:250px}
 
 <header>
   <h1>Maintenance KPI Dashboard</h1>
-  <p>Preventive & Breakdown Maintenance</p>
+  <p>Production & Utilities | Preventive & Breakdown Maintenance</p>
 </header>
 
 <div class="container">
 
-<div class="filter">
-Month:
-<select id="monthFilter" onchange="renderAll()">
-<option value="">All</option>
-<option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
-<option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
-<option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
-<option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
-</select>
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi"><h3>Total Breakdown Hours</h3><div class="value">0</div></div>
+    <div class="kpi"><h3>PM Completion %</h3><div class="value">0%</div></div>
+    <div class="kpi"><h3>MTTR (hrs)</h3><div class="value">0</div></div>
+    <div class="kpi"><h3>MTBF (hrs)</h3><div class="value">0</div></div>
+    <div class="kpi"><h3>Maintenance Cost</h3><div class="value">0</div></div>
+    <div class="kpi"><h3>Power Cost</h3><div class="value">0</div></div>
+  </div>
+
+  <!-- RAW DATA -->
+  <div class="section">
+    <h2>RAW_DATA (Editable)</h2>
+    <table>
+      <tr>
+        <th>Date</th>
+        <th>Line</th>
+        <th>Machine</th>
+        <th>Type</th>
+        <th>Category</th>
+        <th>Cause</th>
+        <th>Duration (hrs)</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td><input type="date"></td>
+        <td><input type="number" min="1" max="18" placeholder="1–18"></td>
+        <td>
+          <select>
+            <option>Filler</option>
+            <option>Labeller</option>
+            <option>Packer</option>
+            <option>Palletizer</option>
+            <option>Safety</option>
+            <option>Hygiene</option>
+          </select>
+        </td>
+        <td>
+          <select>
+            <option>Breakdown</option>
+            <option>PM</option>
+          </select>
+        </td>
+        <td>
+          <select>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Utility</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="Root cause"></td>
+        <td><input type="number" step="0.1"></td>
+        <td>
+          <select>
+            <option>Open</option>
+            <option>Closed</option>
+          </select>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- PM SCHEDULE -->
+  <div class="section">
+    <h2>PM_SCHEDULE</h2>
+    <table>
+      <tr>
+        <th>Line</th>
+        <th>Machine</th>
+        <th>PM Type</th>
+        <th>Frequency</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>Filler</td>
+        <td>Electrical</td>
+        <td>Monthly</td>
+        <td>Planned</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- KPI CALC -->
+  <div class="section">
+    <h2>KPI_CALC (Reference)</h2>
+    <table>
+      <tr><th>KPI</th><th>Formula</th></tr>
+      <tr><td>MTTR</td><td>Total Breakdown Hours / Number of Breakdowns</td></tr>
+      <tr><td>MTBF</td><td>Operating Time / Number of Breakdowns</td></tr>
+      <tr><td>PM %</td><td>Completed PM / Planned PM</td></tr>
+    </table>
+  </div>
+
+  <!-- DASHBOARD DETAILS -->
+  <div class="section">
+    <h2>DASHBOARD – Detailed Views</h2>
+
+    <h4>Monthly Breakdown Hours</h4>
+    <table><tr><th>Month</th><th>Hours</th></tr></table>
+
+    <h4>Breakdown Contribution by Line (1–18)</h4>
+    <table><tr><th>Line</th><th>Hours</th></tr></table>
+
+    <h4>PM vs Breakdown Manhours</h4>
+    <table><tr><th>Type</th><th>Manhours</th></tr></table>
+
+    <h4>Cost vs Budget</h4>
+    <table><tr><th>Month</th><th>Actual</th><th>Budget</th></tr></table>
+
+    <h4>PM Completion Summary</h4>
+    <table><tr><th>Planned</th><th>Completed</th><th>%</th></tr></table>
+  </div>
+
 </div>
-
-<!-- KPIs -->
-<div class="kpis">
-<div class="kpi">Breakdown Hours<br><span id="bdh">0</span></div>
-<div class="kpi">PM Completion %<br><span id="pmc">0%</span></div>
-<div class="kpi">MTTR<br><span id="mttr">0</span></div>
-<div class="kpi">MTBF<br><span id="mtbf">0</span></div>
-</div>
-
-<!-- RAW DATA -->
-<div class="section">
-<h2>RAW_DATA</h2>
-<table id="dataTable">
-<tr>
-<th>Date</th><th>Line</th><th>Machine</th><th>Type</th><th>Duration</th>
-</tr>
-</table>
-<button onclick="addRow()">Add Row</button>
-</div>
-
-<!-- CHARTS -->
-<div class="section">
-<h2>Charts</h2>
-<canvas id="chart1"></canvas>
-<canvas id="chart2"></canvas>
-</div>
-
-</div>
-
-<script>
-let data = JSON.parse(localStorage.getItem("maintData")||"[]");
-
-function addRow(){
-  data.push({date:"",line:1,machine:"Filler",type:"Breakdown",dur:0});
-  save(); renderTable();
-}
-
-function save(){ localStorage.setItem("maintData",JSON.stringify(data)); renderAll(); }
-
-function renderTable(){
-  let t=document.getElementById("dataTable");
-  t.innerHTML=`<tr><th>Date</th><th>Line</th><th>Machine</th><th>Type</th><th>Duration</th></tr>`;
-  data.forEach((r,i)=>{
-    t.innerHTML+=`
-    <tr>
-    <td><input type="date" value="${r.date}" onchange="data[${i}].date=this.value;save()"></td>
-    <td><input type="number" min="1" max="18" value="${r.line}" onchange="data[${i}].line=this.value;save()"></td>
-    <td><select onchange="data[${i}].machine=this.value;save()">
-      <option ${r.machine=="Filler"?"selected":""}>Filler</option>
-      <option ${r.machine=="Labeller"?"selected":""}>Labeller</option>
-      <option ${r.machine=="Packer"?"selected":""}>Packer</option>
-    </select></td>
-    <td><select onchange="data[${i}].type=this.value;save()">
-      <option ${r.type=="Breakdown"?"selected":""}>Breakdown</option>
-      <option ${r.type=="PM"?"selected":""}>PM</option>
-    </select></td>
-    <td><input type="number" step="0.1" value="${r.dur}" onchange="data[${i}].dur=this.value;save()"></td>
-    </tr>`;
-  });
-}
-
-function renderKPIs(){
-  let m=document.getElementById("monthFilter").value;
-  let f=data.filter(r=>!m||new Date(r.date).getMonth()==m);
-  let bd=f.filter(r=>r.type=="Breakdown");
-  let pm=f.filter(r=>r.type=="PM");
-  let bdh=bd.reduce((a,b)=>a+Number(b.dur),0);
-  document.getElementById("bdh").innerText=bdh.toFixed(1);
-  document.getElementById("pmc").innerText=(pm.length/(pm.length+bd.length||1)*100).toFixed(0)+"%";
-  document.getElementById("mttr").innerText=(bdh/(bd.length||1)).toFixed(2);
-  document.getElementById("mtbf").innerText=((720-bdh)/(bd.length||1)).toFixed(1);
-}
-
-function drawBar(canvas,dataArr,label){
-  let c=canvas.getContext("2d");
-  c.clearRect(0,0,canvas.width,canvas.height);
-  let max=Math.max(...dataArr,1);
-  dataArr.forEach((v,i)=>{
-    let h=(v/max)*200;
-    c.fillStyle="#2fa4b6";
-    c.fillRect(50+i*80,230-h,40,h);
-    c.fillText(label[i],50+i*80,245);
-  });
-}
-
-function renderCharts(){
-  let m=document.getElementById("monthFilter").value;
-  let f=data.filter(r=>!m||new Date(r.date).getMonth()==m);
-  let bd=f.filter(r=>r.type=="Breakdown").reduce((a,b)=>a+Number(b.dur),0);
-  let pm=f.filter(r=>r.type=="PM").reduce((a,b)=>a+Number(b.dur),0);
-  drawBar(document.getElementById("chart1"),[bd],["Breakdown"]);
-  drawBar(document.getElementById("chart2"),[pm,bd],["PM","BD"]);
-}
-
-function renderAll(){ renderKPIs(); renderCharts(); }
-
-renderTable(); renderAll();
-</script>
 
 </body>
 </html>
