@@ -1,341 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Maintenance KPI Dashboard – 2026 Drinkable Line</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance KPI Dashboard – 2026 Drinkable Line</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --nadec-blue: #007bbf;
+            --nadec-dark: #005a8d;
+            --bg-gray: #f5f5f5;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --border-color: #ddd;
+            --highlight: #fff9c4;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-gray); margin: 0; padding: 20px; color: #333; }
 
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    color: #333;
-  }
-  header {
-    background: #007bbf;
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .container {
-    padding: 15px;
-  }
-  .kpi-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .kpi-card {
-    background: white;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  .kpi-card h4 {
-    margin: 0;
-    font-size: 13px;
-    color: #666;
-  }
-  .kpi-card .value {
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 6px;
-    color: #007bbf;
-  }
-  .charts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-  .chart-box {
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  h3 {
-    margin-top: 0;
-    font-size: 15px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-    background: white;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 6px;
-    font-size: 12px;
-    text-align: center;
-  }
-  th {
-    background: #007bbf;
-    color: white;
-    position: sticky;
-    top: 0;
-  }
-  td[contenteditable="true"] {
-    background: #fff;
-  }
-  td.edited {
-    background: #fff9c4;
-  }
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  button {
-    background: #007bbf;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-  button:hover {
-    opacity: 0.9;
-  }
-  .controls {
-    margin-bottom: 15px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-</style>
+        header { 
+            background: var(--nadec-blue); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+        button { 
+            padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; 
+            font-weight: bold; transition: 0.3s;
+        }
+        .btn-save { background: #2ecc71; color: white; }
+        .btn-reset { background: #e74c3c; color: white; }
+        .btn-add { background: var(--nadec-blue); color: white; margin-top: 10px; }
+        button:hover { opacity: 0.8; }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border-left: 5px solid var(--nadec-blue);
+            text-align: center;
+        }
+        .kpi-card h3 { margin: 0; font-size: 0.9rem; color: #666; text-transform: uppercase; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: bold; margin: 10px 0; color: var(--nadec-blue); }
+
+        /* Chart Grid */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            min-height: 350px;
+        }
+        @media (max-width: 1100px) { .chart-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+
+        /* Tables */
+        .tables-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+        }
+        .table-wrapper {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow-x: auto;
+        }
+        .table-wrapper h3 { margin-top: 0; border-bottom: 2px solid var(--bg-gray); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: var(--bg-gray); position: sticky; top: 0; z-index: 10; }
+        th, td { border: 1px solid var(--border-color); padding: 8px; text-align: left; }
+        td[contenteditable="true"]:focus { background: var(--highlight); outline: 2px solid var(--nadec-blue); }
+        tr:nth-child(even) { background-color: #fafafa; }
+        .auto-calc { background: #f0f0f0; font-weight: bold; pointer-events: none; }
+    </style>
 </head>
-
 <body>
-<header>Maintenance KPI Dashboard – 2026 Drinkable Line</header>
 
-<div class="container">
+<header>
+    <div>
+        <h1 style="margin:0">Maintenance KPI Dashboard – 2026 Drinkable Line</h1>
+        <p style="margin:5px 0 0 0">Real-time Industrial Performance Monitoring</p>
+    </div>
+    <div class="btn-group">
+        <button class="btn-save" onclick="saveData()">💾 Save Data</button>
+        <button class="btn-reset" onclick="resetData()">🔄 Reset Defaults</button>
+    </div>
+</header>
 
-<div class="controls">
-  <button onclick="saveData()">Save Data</button>
-  <button onclick="resetData()">Reset Data</button>
+<div class="kpi-grid">
+    <div class="kpi-card" id="kpi-total-hours"><h3>Total Breakdown Hrs</h3><div class="value">0</div></div>
+    <div class="kpi-card" id="kpi-total-cost"><h3>Total Maint. Cost</h3><div class="value">$0</div></div>
+    <div class="kpi-card" id="kpi-pm-bm-ratio"><h3>PM vs BM Ratio</h3><div class="value">0%</div></div>
+    <div class="kpi-card" id="kpi-failures"><h3>Total Failures YTD</h3><div class="value">0</div></div>
+    <div class="kpi-card" id="kpi-completion"><h3>% Completed</h3><div class="value">0%</div></div>
+    <div class="kpi-card" id="kpi-top-cause"><h3>Top Downtime Cause</h3><div class="value">-</div></div>
 </div>
 
-<!-- KPI CARDS -->
-<div class="kpi-cards">
-  <div class="kpi-card"><h4>Total Breakdown Hours</h4><div class="value" id="kpiBreakdown">0</div></div>
-  <div class="kpi-card"><h4>Total Maintenance Cost (YTD)</h4><div class="value" id="kpiCost">0</div></div>
-  <div class="kpi-card"><h4>PM vs BM Ratio</h4><div class="value" id="kpiPMBM">0 / 0</div></div>
-  <div class="kpi-card"><h4>Total Failures YTD</h4><div class="value" id="kpiFailures">0</div></div>
-  <div class="kpi-card"><h4>% Completed Maintenance</h4><div class="value" id="kpiCompleted">0%</div></div>
-  <div class="kpi-card"><h4>Top Downtime Cause</h4><div class="value" id="kpiCause">-</div></div>
+<div class="chart-grid">
+    <div class="chart-container"><canvas id="chart-breakdown-lines"></canvas></div>
+    <div class="chart-container"><canvas id="chart-cost-trend"></canvas></div>
+    <div class="chart-container"><canvas id="chart-maint-status"></canvas></div>
+    <div class="chart-container"><canvas id="chart-pm-bm"></canvas></div>
+    <div class="chart-container"><canvas id="chart-downtime-causes"></canvas></div>
+    <div class="chart-container"><canvas id="chart-failure-trend"></canvas></div>
+    <div class="chart-container"><canvas id="chart-duration-dist"></canvas></div>
+    <div class="chart-container"><canvas id="chart-frequency"></canvas></div>
+    <div class="chart-container"><canvas id="chart-power-cost"></canvas></div>
 </div>
 
-<!-- CHARTS -->
-<div class="charts">
-  <div class="chart-box"><h3>Breakdown Contribution</h3><canvas id="chartBreakdown"></canvas></div>
-  <div class="chart-box"><h3>Maintenance Cost (Actual vs Budget)</h3><canvas id="chartCost"></canvas></div>
-  <div class="chart-box"><h3>Maintenance Status</h3><canvas id="chartStatus"></canvas></div>
-  <div class="chart-box"><h3>PM vs BM Manhours</h3><canvas id="chartPMBM"></canvas></div>
-  <div class="chart-box"><h3>Downtime Causes</h3><canvas id="chartCauses"></canvas></div>
-  <div class="chart-box"><h3>Failure Trend</h3><canvas id="chartFailures"></canvas></div>
-</div>
+<div class="tables-section">
+    <!-- 1. Breakdown Contribution (18 Lines) -->
+    <div class="table-wrapper">
+        <h3>1. Line Breakdown Contribution (Hrs)</h3>
+        <table id="tbl-breakdown">
+            <thead><tr><th>Production Line</th><th>Hours</th><th>Contrib %</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button class="btn-add" onclick="addRow('tbl-breakdown', ['New Line', 0, '0%'])">Add Line</button>
+    </div>
 
-<!-- TABLES -->
+    <!-- 2. Cost Actual vs Budget -->
+    <div class="table-wrapper">
+        <h3>2. Maintenance Cost (Actual vs Budget)</h3>
+        <table id="tbl-cost">
+            <thead><tr><th>Month</th><th>Actual ($)</th><th>Budget ($)</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<h3>Breakdown Contribution Table</h3>
-<table id="tblBreakdown">
-<thead><tr><th>Line</th><th>Breakdown Hours</th><th>Contribution %</th></tr></thead>
-<tbody>
-<tr><td contenteditable>Line 1</td><td contenteditable>20</td><td></td></tr>
-<tr><td contenteditable>Line 2</td><td contenteditable>15</td><td></td></tr>
-<tr><td contenteditable>Line 3</td><td contenteditable>10</td><td></td></tr>
-</tbody>
-</table>
+    <!-- 3. Maintenance Status -->
+    <div class="table-wrapper">
+        <h3>3. Maintenance Status (Orders)</h3>
+        <table id="tbl-status">
+            <thead><tr><th>Status</th><th>Count</th></tr></thead>
+            <tbody>
+                <tr><td>Scheduled</td><td contenteditable="true">45</td></tr>
+                <tr><td>Completed</td><td contenteditable="true">120</td></tr>
+                <tr><td>Overdue</td><td contenteditable="true">12</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-<h3>Maintenance Cost Table</h3>
-<table id="tblCost">
-<thead><tr><th>Month</th><th>Actual Cost</th><th>Budget Cost</th></tr></thead>
-<tbody>
-<tr><td contenteditable>Jan</td><td contenteditable>12000</td><td contenteditable>10000</td></tr>
-<tr><td contenteditable>Feb</td><td contenteditable>9000</td><td contenteditable>10000</td></tr>
-</tbody>
-</table>
+    <!-- 4. PM vs BM Manhours -->
+    <div class="table-wrapper">
+        <h3>4. PM vs BM Manhours</h3>
+        <table id="tbl-pmbm">
+            <thead><tr><th>Month</th><th>PM Hours</th><th>BM Hours</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<h3>Maintenance Status Table</h3>
-<table id="tblStatus">
-<thead><tr><th>Status</th><th>Count</th></tr></thead>
-<tbody>
-<tr><td contenteditable>Scheduled</td><td contenteditable>120</td></tr>
-<tr><td contenteditable>Completed</td><td contenteditable>100</td></tr>
-<tr><td contenteditable>Overdue</td><td contenteditable>20</td></tr>
-</tbody>
-</table>
+    <!-- 5. Downtime Causes -->
+    <div class="table-wrapper">
+        <h3>5. Downtime Causes</h3>
+        <table id="tbl-causes">
+            <thead><tr><th>Cause</th><th>% Contribution</th></tr></thead>
+            <tbody>
+                <tr><td contenteditable="true">Mechanical</td><td contenteditable="true">40</td></tr>
+                <tr><td contenteditable="true">Electrical</td><td contenteditable="true">25</td></tr>
+                <tr><td contenteditable="true">Operator Error</td><td contenteditable="true">15</td></tr>
+                <tr><td contenteditable="true">Utility</td><td contenteditable="true">10</td></tr>
+                <tr><td contenteditable="true">Other</td><td contenteditable="true">10</td></tr>
+            </tbody>
+        </table>
+        <button class="btn-add" onclick="addRow('tbl-causes', ['New Cause', 0])">Add Cause</button>
+    </div>
 
-<h3>PM vs BM Manhour Table</h3>
-<table id="tblPMBM">
-<thead><tr><th>Month</th><th>PM Manhours</th><th>BM Manhours</th></tr></thead>
-<tbody>
-<tr><td contenteditable>Jan</td><td contenteditable>300</td><td contenteditable>200</td></tr>
-<tr><td contenteditable>Feb</td><td contenteditable>280</td><td contenteditable>220</td></tr>
-</tbody>
-</table>
+    <!-- 6. Failure Trend -->
+    <div class="table-wrapper">
+        <h3>6. Failure Trend (Qty)</h3>
+        <table id="tbl-failures">
+            <thead><tr><th>Month</th><th>Failures</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<h3>Downtime Causes Table</h3>
-<table id="tblCauses">
-<thead><tr><th>Cause</th><th>Percentage</th></tr></thead>
-<tbody>
-<tr><td contenteditable>M/C Breakdown</td><td contenteditable>40</td></tr>
-<tr><td contenteditable>Missing Parts</td><td contenteditable>25</td></tr>
-<tr><td contenteditable>Manpower</td><td contenteditable>20</td></tr>
-<tr><td contenteditable>Other</td><td contenteditable>15</td></tr>
-</tbody>
-</table>
+    <!-- 7. Duration Categories -->
+    <div class="table-wrapper">
+        <h3>7. Breakdown Duration Analysis</h3>
+        <table id="tbl-duration">
+            <thead><tr><th>Duration Bracket</th><th>Actual</th><th>Target</th></tr></thead>
+            <tbody>
+                <tr><td>&lt; 1 hr</td><td contenteditable="true">50</td><td contenteditable="true">60</td></tr>
+                <tr><td>1-2 hr</td><td contenteditable="true">30</td><td contenteditable="true">25</td></tr>
+                <tr><td>&gt; 2 hr</td><td contenteditable="true">15</td><td contenteditable="true">10</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-<h3>Failure Status Trend Table</h3>
-<table id="tblFailures">
-<thead><tr><th>Month</th><th>Failures</th></tr></thead>
-<tbody>
-<tr><td contenteditable>Jan</td><td contenteditable>12</td></tr>
-<tr><td contenteditable>Feb</td><td contenteditable>9</td></tr>
-</tbody>
-</table>
+    <!-- 8. Frequency Completion -->
+    <div class="table-wrapper">
+        <h3>8. Completion by Frequency</h3>
+        <table id="tbl-freq">
+            <thead><tr><th>Frequency</th><th>Scheduled</th><th>Completed</th></tr></thead>
+            <tbody>
+                <tr><td>Weekly</td><td contenteditable="true">100</td><td contenteditable="true">95</td></tr>
+                <tr><td>Monthly</td><td contenteditable="true">40</td><td contenteditable="true">38</td></tr>
+                <tr><td>Quarterly</td><td contenteditable="true">10</td><td contenteditable="true">8</td></tr>
+                <tr><td>Yearly</td><td contenteditable="true">4</td><td contenteditable="true">4</td></tr>
+            </tbody>
+        </table>
+    </div>
 
+    <!-- 9. Power Consumption -->
+    <div class="table-wrapper">
+        <h3>9. Power Cost Analysis</h3>
+        <table id="tbl-power">
+            <thead><tr><th>Month</th><th>Actual ($)</th><th>Budget ($)</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-let charts = {};
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let charts = {};
 
-function parseTable(tableId) {
-  const rows = [...document.querySelectorAll(`#${tableId} tbody tr`)];
-  return rows.map(r => [...r.children].map(c => c.innerText.trim()));
-}
+    // Initialization
+    window.onload = () => {
+        if (!localStorage.getItem('nadec_dashboard_data')) {
+            loadDefaults();
+        } else {
+            loadFromStorage();
+        }
+        initCharts();
+        updateAll();
+        attachTableListeners();
+    };
 
-function updateKPIs() {
-  const breakdown = parseTable("tblBreakdown");
-  const totalBD = breakdown.reduce((s,r)=>s+(+r[1]||0),0);
-  breakdown.forEach((r,i)=>{
-    const pct = totalBD ? ((+r[1]/totalBD)*100).toFixed(1) : 0;
-    document.querySelectorAll("#tblBreakdown tbody tr")[i].children[2].innerText = pct;
-  });
-  document.getElementById("kpiBreakdown").innerText = totalBD;
+    function loadDefaults() {
+        // Line Breakdown 18 Lines
+        const tblBreakdown = document.querySelector('#tbl-breakdown tbody');
+        tblBreakdown.innerHTML = "";
+        for (let i = 1; i <= 18; i++) {
+            const val = Math.floor(Math.random() * 50) + 10;
+            addRow('tbl-breakdown', [`Line ${i}`, val, '0%']);
+        }
 
-  const cost = parseTable("tblCost").reduce((s,r)=>s+(+r[1]||0),0);
-  document.getElementById("kpiCost").innerText = cost;
-
-  const pmbm = parseTable("tblPMBM");
-  const pm = pmbm.reduce((s,r)=>s+(+r[1]||0),0);
-  const bm = pmbm.reduce((s,r)=>s+(+r[2]||0),0);
-  document.getElementById("kpiPMBM").innerText = `PM ${Math.round(pm/(pm+bm)*100)||0}% / BM ${Math.round(bm/(pm+bm)*100)||0}%`;
-
-  const failures = parseTable("tblFailures").reduce((s,r)=>s+(+r[1]||0),0);
-  document.getElementById("kpiFailures").innerText = failures;
-
-  const status = parseTable("tblStatus");
-  const scheduled = +status.find(r=>r[0]==="Scheduled")?.[1]||0;
-  const completed = +status.find(r=>r[0]==="Completed")?.[1]||0;
-  document.getElementById("kpiCompleted").innerText = scheduled ? Math.round(completed/scheduled*100)+"%" : "0%";
-
-  const causes = parseTable("tblCauses");
-  let top = causes.sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById("kpiCause").innerText = top ? top[0] : "-";
-}
-
-function buildCharts() {
-  if (Object.keys(charts).length) {
-    Object.values(charts).forEach(c=>c.destroy());
-  }
-
-  const bd = parseTable("tblBreakdown");
-  charts.bd = new Chart(chartBreakdown,{
-    type:"bar",
-    data:{labels:bd.map(r=>r[0]),datasets:[{data:bd.map(r=>+r[1]),backgroundColor:"#007bbf"}]}
-  });
-
-  const cost = parseTable("tblCost");
-  charts.cost = new Chart(chartCost,{
-    type:"bar",
-    data:{
-      labels:cost.map(r=>r[0]),
-      datasets:[
-        {label:"Actual",data:cost.map(r=>+r[1]),backgroundColor:"#007bbf"},
-        {label:"Budget",data:cost.map(r=>+r[2]),backgroundColor:"#90caf9"}
-      ]
+        // Monthly Tables
+        populateMonthlyTable('tbl-cost', 5000, 4800);
+        populateMonthlyTable('tbl-pmbm', 200, 150);
+        populateMonthlyTable('tbl-failures', 10, null);
+        populateMonthlyTable('tbl-power', 12000, 11500);
     }
-  });
 
-  const status = parseTable("tblStatus");
-  charts.status = new Chart(chartStatus,{
-    type:"doughnut",
-    data:{labels:status.map(r=>r[0]),datasets:[{data:status.map(r=>+r[1]),backgroundColor:["#007bbf","#4caf50","#f44336"]}]}
-  });
-
-  const pmbm = parseTable("tblPMBM");
-  charts.pmbm = new Chart(chartPMBM,{
-    type:"bar",
-    data:{
-      labels:pmbm.map(r=>r[0]),
-      datasets:[
-        {label:"PM",data:pmbm.map(r=>+r[1]),backgroundColor:"#007bbf"},
-        {label:"BM",data:pmbm.map(r=>+r[2]),backgroundColor:"#ff9800"}
-      ]
+    function populateMonthlyTable(id, base1, base2) {
+        const tbody = document.querySelector(`#${id} tbody`);
+        tbody.innerHTML = "";
+        MONTHS.forEach(m => {
+            let row = `<tr><td>${m}</td><td contenteditable="true">${Math.floor(base1 + Math.random()*500)}</td>`;
+            if (base2 !== null) row += `<td contenteditable="true">${base2}</td>`;
+            row += `</tr>`;
+            tbody.innerHTML += row;
+        });
     }
-  });
 
-  const causes = parseTable("tblCauses");
-  charts.causes = new Chart(chartCauses,{
-    type:"pie",
-    data:{labels:causes.map(r=>r[0]),datasets:[{data:causes.map(r=>+r[1]),backgroundColor:["#007bbf","#ff9800","#4caf50","#9e9e9e"]}]}
-  });
+    function addRow(tableId, data) {
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        const tr = document.createElement('tr');
+        data.forEach((val, idx) => {
+            const td = document.createElement('td');
+            td.innerText = val;
+            if (idx === 0 || (tableId === 'tbl-breakdown' && idx === 2)) {
+                if (idx === 0) td.contentEditable = true;
+                else td.className = 'auto-calc';
+            } else {
+                td.contentEditable = true;
+            }
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+        updateAll();
+    }
 
-  const fail = parseTable("tblFailures");
-  charts.fail = new Chart(chartFailures,{
-    type:"line",
-    data:{labels:fail.map(r=>r[0]),datasets:[{data:fail.map(r=>+r[1]),borderColor:"#007bbf",fill:false}]}
-  });
-}
+    // Charting Logic
+    function initCharts() {
+        const ctxConfig = (type, label, color) => ({
+            type: type,
+            data: { labels: [], datasets: [{ label: label, data: [], backgroundColor: color, borderColor: color, fill: false }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
 
-function attachListeners() {
-  document.querySelectorAll("td[contenteditable]").forEach(td=>{
-    td.addEventListener("input",()=>{
-      td.classList.add("edited");
-      updateAll();
-    });
-  });
-}
+        charts.breakdown = new Chart(document.getElementById('chart-breakdown-lines'), ctxConfig('bar', 'Hrs per Line', '#007bbf'));
+        charts.cost = new Chart(document.getElementById('chart-cost-trend'), {
+            type: 'bar',
+            data: { labels: MONTHS, datasets: [{ label: 'Actual', backgroundColor: '#007bbf' }, { label: 'Budget', backgroundColor: '#ccc' }] }
+        });
+        charts.status = new Chart(document.getElementById('chart-maint-status'), ctxConfig('doughnut', 'Status', ['#f1c40f', '#2ecc71', '#e74c3c']));
+        charts.pmbm = new Chart(document.getElementById('chart-pm-bm'), {
+            type: 'bar',
+            data: { labels: MONTHS, datasets: [{ label: 'PM Hours', backgroundColor: '#2ecc71' }, { label: 'BM Hours', backgroundColor: '#e74c3c' }] }
+        });
+        charts.causes = new Chart(document.getElementById('chart-downtime-causes'), ctxConfig('pie', 'Causes', ['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#34495e']));
+        charts.failures = new Chart(document.getElementById('chart-failure-trend'), ctxConfig('line', 'Monthly Failures', '#e74c3c'));
+        charts.duration = new Chart(document.getElementById('chart-duration-dist'), {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Actual', backgroundColor: '#007bbf' }, { label: 'Target', backgroundColor: '#ddd' }] }
+        });
+        charts.freq = new Chart(document.getElementById('chart-frequency'), {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Scheduled', backgroundColor: '#34495e' }, { label: 'Completed', backgroundColor: '#2ecc71' }] }
+        });
+        charts.power = new Chart(document.getElementById('chart-power-cost'), ctxConfig('bar', 'Power Cost ($)', '#f39c12'));
+    }
 
-function updateAll() {
-  updateKPIs();
-  buildCharts();
-}
+    function updateAll() {
+        const data = parseAllTables();
+        updateKpiCards(data);
+        refreshCharts(data);
+        calculateBreakdownPercentages();
+    }
 
-function saveData() {
-  const tables = document.querySelectorAll("table");
-  const data = {};
-  tables.forEach(t=>data[t.id]=t.innerHTML);
-  localStorage.setItem("kpiData",JSON.stringify(data));
-  alert("Data saved");
-}
+    function parseTable(id) {
+        const rows = Array.from(document.querySelectorAll(`#${id} tbody tr`));
+        return rows.map(tr => Array.from(tr.cells).map(td => td.innerText));
+    }
 
-function resetData() {
-  localStorage.removeItem("kpiData");
-  location.reload();
-}
+    function parseAllTables() {
+        return {
+            breakdown: parseTable('tbl-breakdown'),
+            cost: parseTable('tbl-cost'),
+            status: parseTable('tbl-status'),
+            pmbm: parseTable('tbl-pmbm'),
+            causes: parseTable('tbl-causes'),
+            failures: parseTable('tbl-failures'),
+            duration: parseTable('tbl-duration'),
+            freq: parseTable('tbl-freq'),
+            power: parseTable('tbl-power')
+        };
+    }
 
-(function init(){
-  const saved = localStorage.getItem("kpiData");
-  if(saved){
-    const data = JSON.parse(saved);
-    Object.keys(data).forEach(id=>{
-      document.getElementById(id).innerHTML = data[id];
-    });
-  }
-  attachListeners();
-  updateAll();
-})();
+    function calculateBreakdownPercentages() {
+        const rows = document.querySelectorAll('#tbl-breakdown tbody tr');
+        let total = 0;
+        rows.forEach(r => total += parseFloat(r.cells[1].innerText) || 0);
+        rows.forEach(r => {
+            const val = parseFloat(r.cells[1].innerText) || 0;
+            const pct = total === 0 ? 0 : ((val / total) * 100).toFixed(1);
+            r.cells[2].innerText = pct + '%';
+        });
+    }
+
+    function updateKpiCards(data) {
+        // Total Hours
+        const totalHrs = data.breakdown.reduce((sum, r) => sum + (parseFloat(r[1]) || 0), 0);
+        document.querySelector('#kpi-total-hours .value').innerText = totalHrs.toFixed(1);
+
+        // Total Cost
+        const totalCost = data.cost.reduce((sum, r) => sum + (parseFloat(r[1]) || 0), 0);
+        document.querySelector('#kpi-total-cost .value').innerText = '$' + totalCost.toLocaleString();
+
+        // PM/BM Ratio
+        const pm = data.pmbm.reduce((sum, r) => sum + (parseFloat(r[1]) || 0), 0);
+        const bm = data.pmbm.reduce((sum, r) => sum + (parseFloat(r[2]) || 0), 0);
+        const ratio = (pm + bm) === 0 ? 0 : ((pm / (pm + bm)) * 100).toFixed(1);
+        document.querySelector('#kpi-pm-bm-ratio .value').innerText = ratio + '%';
+
+        // Failures
+        const fails = data.failures.reduce((sum, r) => sum + (parseFloat(r[1]) || 0), 0);
+        document.querySelector('#kpi-failures .value').innerText = fails;
+
+        // Completion
+        const sched = data.status.find(r => r[0] === 'Scheduled');
+        const comp = data.status.find(r => r[0] === 'Completed');
+        const sVal = parseFloat(sched ? sched[1] : 0);
+        const cVal = parseFloat(comp ? comp[1] : 0);
+        const complPct = (sVal + cVal) === 0 ? 0 : ((cVal / (sVal + cVal)) * 100).toFixed(1);
+        document.querySelector('#kpi-completion .value').innerText = complPct + '%';
+
+        // Top Cause
+        let top = { name: '-', val: 0 };
+        data.causes.forEach(r => {
+            if(parseFloat(r[1]) > top.val) top = { name: r[0], val: parseFloat(r[1]) };
+        });
+        document.querySelector('#kpi-top-cause .value').innerText = top.name;
+    }
+
+    function refreshCharts(data) {
+        // Breakdown
+        charts.breakdown.data.labels = data.breakdown.map(r => r[0]);
+        charts.breakdown.data.datasets[0].data = data.breakdown.map(r => r[1]);
+        charts.breakdown.update();
+
+        // Cost
+        charts.cost.data.datasets[0].data = data.cost.map(r => r[1]);
+        charts.cost.data.datasets[1].data = data.cost.map(r => r[2]);
+        charts.cost.update();
+
+        // Status
+        charts.status.data.labels = data.status.map(r => r[0]);
+        charts.status.data.datasets[0].data = data.status.map(r => r[1]);
+        charts.status.update();
+
+        // PMBM
+        charts.pmbm.data.datasets[0].data = data.pmbm.map(r => r[1]);
+        charts.pmbm.data.datasets[1].data = data.pmbm.map(r => r[2]);
+        charts.pmbm.update();
+
+        // Causes
+        charts.causes.data.labels = data.causes.map(r => r[0]);
+        charts.causes.data.datasets[0].data = data.causes.map(r => r[1]);
+        charts.causes.update();
+
+        // Failure
+        charts.failures.data.labels = data.failures.map(r => r[0]);
+        charts.failures.data.datasets[0].data = data.failures.map(r => r[1]);
+        charts.failures.update();
+
+        // Duration
+        charts.duration.data.labels = data.duration.map(r => r[0]);
+        charts.duration.data.datasets[0].data = data.duration.map(r => r[1]);
+        charts.duration.data.datasets[1].data = data.duration.map(r => r[2]);
+        charts.duration.update();
+
+        // Freq
+        charts.freq.data.labels = data.freq.map(r => r[0]);
+        charts.freq.data.datasets[0].data = data.freq.map(r => r[1]);
+        charts.freq.data.datasets[1].data = data.freq.map(r => r[2]);
+        charts.freq.update();
+
+        // Power
+        charts.power.data.labels = data.power.map(r => r[0]);
+        charts.power.data.datasets[0].data = data.power.map(r => r[1]);
+        charts.power.update();
+    }
+
+    // Excel functionality: Tab, Enter, Copy-Paste
+    function attachTableListeners() {
+        document.querySelectorAll('table').forEach(table => {
+            table.addEventListener('input', updateAll);
+
+            table.addEventListener('keydown', e => {
+                const td = e.target;
+                const tr = td.parentElement;
+                const colIndex = td.cellIndex;
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextRow = tr.nextElementSibling;
+                    if (nextRow) nextRow.cells[colIndex].focus();
+                }
+            });
+
+            table.addEventListener('paste', e => {
+                e.preventDefault();
+                const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                const rows = text.split('\n');
+                let targetCell = e.target;
+                
+                rows.forEach((rowText, i) => {
+                    const rowData = rowText.split('\t');
+                    let targetRow = targetCell.parentElement;
+                    if (i > 0) {
+                        targetRow = targetRow.nextElementSibling;
+                    }
+                    if (targetRow) {
+                        rowData.forEach((cellData, j) => {
+                            const targetCol = targetRow.cells[targetCell.cellIndex + j];
+                            if (targetCol && targetCol.contentEditable === "true") {
+                                targetCol.innerText = cellData.trim();
+                            }
+                        });
+                    }
+                });
+                updateAll();
+            });
+        });
+    }
+
+    function saveData() {
+        const data = {};
+        document.querySelectorAll('table').forEach(tbl => {
+            data[tbl.id] = parseTable(tbl.id);
+        });
+        localStorage.setItem('nadec_dashboard_data', JSON.stringify(data));
+        alert('Data saved successfully to browser storage!');
+    }
+
+    function loadFromStorage() {
+        const data = JSON.parse(localStorage.getItem('nadec_dashboard_data'));
+        Object.keys(data).forEach(id => {
+            const tbody = document.querySelector(`#${id} tbody`);
+            tbody.innerHTML = "";
+            data[id].forEach(rowData => {
+                const tr = document.createElement('tr');
+                rowData.forEach((val, idx) => {
+                    const td = document.createElement('td');
+                    td.innerText = val;
+                    // Logic to set editability based on table structure
+                    if (id === 'tbl-breakdown' && idx === 2) {
+                        td.className = 'auto-calc';
+                    } else if ( (id === 'tbl-cost' || id === 'tbl-pmbm' || id === 'tbl-failures' || id === 'tbl-power') && idx === 0) {
+                        td.contentEditable = false; // Months not editable to keep sync
+                    } else {
+                        td.contentEditable = true;
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function resetData() {
+        if (confirm('Clear all data and return to defaults?')) {
+            localStorage.removeItem('nadec_dashboard_data');
+            location.reload();
+        }
+    }
 </script>
 
 </body>
