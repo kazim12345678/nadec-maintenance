@@ -1,416 +1,470 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bottling Maintenance Command Center - 2026</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --nadec-blue: #007bbf;
-            --nadec-dark: #004a73;
-            --bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text: #2c3e50;
-            --danger: #e74c3c;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --border: #dcdde1;
-        }
-
-        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
-        /* --- SIDEBAR --- */
-        nav {
-            width: 260px;
-            background: var(--nadec-dark);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            flex-shrink: 0;
-        }
-        nav h2 { font-size: 1.2rem; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-        nav a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px; border-radius: 6px; margin-bottom: 5px; transition: 0.3s; cursor: pointer; }
-        nav a:hover, nav a.active { background: var(--nadec-blue); color: white; }
-        .sidebar-footer { margin-top: auto; font-size: 0.8rem; opacity: 0.5; }
-
-        /* --- MAIN CONTENT --- */
-        main { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        header { 
-            background: white; padding: 15px 30px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
-        }
-        .btn-save { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .btn-reset { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-
-        /* --- KPI SUMMARY --- */
-        .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; padding: 20px 30px; }
-        .kpi-box { 
-            background: white; padding: 20px; border-radius: 8px; border-left: 5px solid var(--nadec-blue); 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;
-        }
-        .kpi-box h4 { margin: 0; font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; }
-        .kpi-box .val { font-size: 1.5rem; font-weight: bold; color: var(--nadec-dark); margin-top: 5px; }
-
-        /* --- CHART GRID --- */
-        .dashboard-view { padding: 0 30px 30px 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .chart-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); min-height: 350px; }
-        .chart-card h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--nadec-dark); border-bottom: 1px solid #eee; padding-bottom: 8px; }
-
-        /* --- DATA TABLES --- */
-        .data-view { padding: 30px; display: none; } /* Hidden by default */
-        .table-section { background: white; border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; }
-        .table-section h3 { margin-top: 0; }
-        .table-container { overflow-x: auto; max-height: 500px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f1f3f5; padding: 12px; border: 1px solid #dee2e6; text-align: left; position: sticky; top: 0; }
-        td { padding: 10px; border: 1px solid #dee2e6; outline: none; }
-        td[contenteditable="true"]:focus { background: #fff9c4; border: 2px solid var(--nadec-blue); }
-        .calc-field { background: #f8f9fa; font-weight: bold; color: #636e72; }
-
-        /* --- UTILS --- */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .badge-danger { background: #ffeaa7; color: #d63031; }
-
-        @media (max-width: 1400px) { .dashboard-view { grid-template-columns: repeat(2, 1fr); } .kpi-row { grid-template-columns: repeat(3, 1fr); } }
-    </style>
+  <meta charset="UTF-8" />
+  <title>NADEC – Maintenance KPI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --primary: #006f3c;
+      --primary-light: #e5f4ec;
+      --accent: #0099cc;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text-main: #222;
+      --text-muted: #666;
+      --border: #d0d4dd;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    header span {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    main {
+      max-width: 1200px;
+      margin: 16px auto 40px;
+      padding: 0 16px;
+    }
+    h2 {
+      margin: 24px 0 8px;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+    .section-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+    }
+    .note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .kpi-card {
+      background: var(--primary-light);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--primary);
+    }
+    .kpi-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .kpi-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f0f3f8;
+      font-weight: 600;
+    }
+    tbody tr:nth-child(even) {
+      background: #fafbfe;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      background: #fff;
+      margin: 2px 4px 2px 0;
+    }
+    .layout-two {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+      gap: 16px;
+    }
+    @media (max-width: 800px) {
+      .layout-two {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-
-<nav>
-    <h2>NADEC Bottling</h2>
-    <a onclick="showView('dashboard')" id="nav-dash" class="active">📊 Live Dashboard</a>
-    <a onclick="showView('data')" id="nav-data">✏️ Maintenance Logs</a>
-    <a onclick="window.print()">🖨️ Export Report</a>
-    
-    <div class="sidebar-footer">
-        <p>Asset Management System</p>
-        <p>Version 2.4 - 2026</p>
+  <header>
+    <div>
+      <h1>NADEC – Maintenance KPI Dashboard</h1>
+      <span>Maintenance Department – Haradh Plant | Lines 1–18 (Filler, Labeller, Packer, Palletizer)</span>
     </div>
-</nav>
+    <div>
+      <span>Source: Maintenance RAW_DATA &amp; PM_SCHEDULE</span>
+    </div>
+  </header>
 
-<main>
-    <header>
-        <h1 id="view-title">Maintenance Executive Summary</h1>
+  <main>
+    <!-- DASHBOARD SUMMARY -->
+    <section class="section-card">
+      <h2>Plant KPI Overview</h2>
+      <p class="note">High-level KPIs summarizing breakdown, PM performance, and cost impact.</p>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Breakdown Hours</div>
+          <div class="kpi-value">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">PM Completion %</div>
+          <div class="kpi-value">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Plant MTTR (hrs)</div>
+          <div class="kpi-value">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Plant MTBF (hrs)</div>
+          <div class="kpi-value">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Maintenance Cost (SAR)</div>
+          <div class="kpi-value">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Power Cost (SAR)</div>
+          <div class="kpi-value">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RAW_DATA -->
+    <section class="section-card">
+      <h2>RAW_DATA – Maintenance Records</h2>
+      <p class="note">Enter maintenance records here. Month &amp; Duration Bucket are auto-calculated in Excel version.</p>
+
+      <h3>Maintenance Events</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Month</th>
+            <th>Line Number</th>
+            <th>Machine Name</th>
+            <th>Maintenance Type</th>
+            <th>Breakdown Category</th>
+            <th>Breakdown Cause</th>
+            <th>Breakdown Duration (Hours)</th>
+            <th>Repair Time (Hours)</th>
+            <th>Technician Name</th>
+            <th>Maintenance Cost (SAR)</th>
+            <th>Power Consumption Cost (SAR)</th>
+            <th>Status</th>
+            <th>Duration Bucket</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Example rows – replace with real data if needed -->
+          <tr>
+            <td>2025-01-01</td>
+            <td>Jan</td>
+            <td>1</td>
+            <td>Filler</td>
+            <td>Preventive</td>
+            <td>Mechanical</td>
+            <td>Missing Parts</td>
+            <td>2.5</td>
+            <td>2.0</td>
+            <td>Tech A</td>
+            <td>1500</td>
+            <td>300</td>
+            <td>Completed</td>
+            <td>0–3 hrs</td>
+          </tr>
+          <tr>
+            <td>2025-01-02</td>
+            <td>Jan</td>
+            <td>2</td>
+            <td>Labeller</td>
+            <td>Breakdown</td>
+            <td>Electrical</td>
+            <td>Power Cut</td>
+            <td>1.0</td>
+            <td>0.8</td>
+            <td>Tech B</td>
+            <td>900</td>
+            <td>120</td>
+            <td>Pending</td>
+            <td>0–3 hrs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Reference Lists</h3>
+      <p class="note">Lists used as dropdowns / validation in the Excel file.</p>
+      <div>
+        <span class="pill">Line_Number_List: 1–18</span>
+        <span class="pill">Machine_List: Filler, Labeller, Packer, Palletizer, Safety, Hygiene</span>
+        <span class="pill">Maint_Type_List: Preventive, Breakdown, Instrumentation, Automation, Others</span>
+        <span class="pill">Category_List: Mechanical, Electrical, Instrumentation, Automation, Manpower, Others</span>
+        <span class="pill">Cause_List: Missing Parts, Power Cut, PM Planned, Manpower, Others</span>
+        <span class="pill">Status_List: Completed, Pending, Not Completed</span>
+      </div>
+    </section>
+
+    <!-- PM_SCHEDULE -->
+    <section class="section-card">
+      <h2>PM_SCHEDULE – Planned Maintenance</h2>
+      <p class="note">Planned PM tasks with frequency, dates, and completion status.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Line Number</th>
+            <th>Machine</th>
+            <th>PM Task</th>
+            <th>Frequency</th>
+            <th>Planned Date</th>
+            <th>Completed Date</th>
+            <th>Status</th>
+            <th>Assigned Technician</th>
+            <th>Month</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Filler</td>
+            <td>Monthly PM</td>
+            <td>Monthly</td>
+            <td>2025-01-05</td>
+            <td>2025-01-05</td>
+            <td>Completed</td>
+            <td>Tech A</td>
+            <td>Jan</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Labeller</td>
+            <td>Weekly Check</td>
+            <td>Weekly</td>
+            <td>2025-01-07</td>
+            <td></td>
+            <td>Planned</td>
+            <td>Tech B</td>
+            <td>Jan</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Frequency List</h3>
+      <div>
+        <span class="pill">Daily</span>
+        <span class="pill">Weekly</span>
+        <span class="pill">Monthly</span>
+        <span class="pill">Quarterly</span>
+        <span class="pill">Half-Yearly</span>
+        <span class="pill">Yearly</span>
+        <span class="pill">Running Hours</span>
+      </div>
+    </section>
+
+    <!-- KPI_CALC -->
+    <section class="section-card">
+      <h2>KPI_CALC – Calculated KPIs</h2>
+      <p class="note">In Excel, this sheet aggregates RAW_DATA &amp; PM_SCHEDULE into monthly and line-wise KPIs.</p>
+
+      <div class="layout-two">
         <div>
-            <button class="btn-reset" onclick="resetData()">Clear Data</button>
-            <button class="btn-save" onclick="saveToStorage()">💾 Save All Changes</button>
-        </div>
-    </header>
+          <h3>Monthly Breakdown Hours</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Total Breakdown Hours</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Jan</td><td>—</td></tr>
+              <tr><td>Feb</td><td>—</td></tr>
+              <tr><td>Mar</td><td>—</td></tr>
+              <tr><td>Apr</td><td>—</td></tr>
+              <tr><td>May</td><td>—</td></tr>
+              <tr><td>Jun</td><td>—</td></tr>
+              <tr><td>Jul</td><td>—</td></tr>
+              <tr><td>Aug</td><td>—</td></tr>
+              <tr><td>Sep</td><td>—</td></tr>
+              <tr><td>Oct</td><td>—</td></tr>
+              <tr><td>Nov</td><td>—</td></tr>
+              <tr><td>Dec</td><td>—</td></tr>
+            </tbody>
+          </table>
 
-    <!-- TOP KPI CARDS -->
-    <div class="kpi-row">
-        <div class="kpi-box"><h4>Avg MTBF</h4><div class="val" id="kpi-mtbf">0h</div><small>Reliability</small></div>
-        <div class="kpi-box"><h4>Avg MTTR</h4><div class="val" id="kpi-mttr">0m</div><small>Repair Speed</small></div>
-        <div class="kpi-box"><h4>Bottles Lost</h4><div class="val" id="kpi-loss">0k</div><small>OEE Impact</small></div>
-        <div class="kpi-box"><h4>PM Compliance</h4><div class="val" id="kpi-pm">0%</div><small>Preventive</small></div>
-        <div class="kpi-box"><h4>Total Maint Cost</h4><div class="val" id="kpi-cost">$0</div><small>YTD Actual</small></div>
-        <div class="kpi-box"><h4>Bad Actor</h4><div class="val" id="kpi-actor">-</div><small>Line Priority</small></div>
-    </div>
-
-    <!-- DASHBOARD VIEW -->
-    <div id="view-dashboard" class="dashboard-view">
-        <div class="chart-card"><h3>Breakdown Pareto (Top 20 Lines)</h3><canvas id="chart-pareto"></canvas></div>
-        <div class="chart-card"><h3>Line Health Radar (MTBF vs MTTR)</h3><canvas id="chart-radar"></canvas></div>
-        <div class="chart-card"><h3>Loss Impact (Bottles Lost x1000)</h3><canvas id="chart-bottles"></canvas></div>
-        <div class="chart-card"><h3>Maintenance Cost (Actual vs Budget)</h3><canvas id="chart-cost"></canvas></div>
-        <div class="chart-card"><h3>Root Cause Distribution</h3><canvas id="chart-causes"></canvas></div>
-        <div class="chart-card"><h3>Maintenance Manhours (PM vs BM)</h3><canvas id="chart-manhours"></canvas></div>
-        <div class="chart-card"><h3>PM Completion Status</h3><canvas id="chart-pm"></canvas></div>
-        <div class="chart-card"><h3>Spare Parts Spend Trend</h3><canvas id="chart-spares"></canvas></div>
-        <div class="chart-card"><h3>Monthly Failure Trend</h3><canvas id="chart-failure-trend"></canvas></div>
-    </div>
-
-    <!-- DATA ENTRY VIEW -->
-    <div id="view-data" class="data-view">
-        <div class="table-section">
-            <h3>1. Bottling Line Master Log (20 Lines)</h3>
-            <p><small>Note: Enter Line Speed (Bottles/Hr) to calculate OEE Loss Impact.</small></p>
-            <div class="table-container">
-                <table id="tbl-main">
-                    <thead>
-                        <tr>
-                            <th>Production Line</th>
-                            <th>Status</th>
-                            <th>Line Speed (BPH)</th>
-                            <th>Downtime (Hrs)</th>
-                            <th>Failure Count</th>
-                            <th>PM Manhours</th>
-                            <th>BM Manhours</th>
-                            <th class="calc-field">MTBF (Hrs)</th>
-                            <th class="calc-field">MTTR (Min)</th>
-                            <th class="calc-field">Loss (k-Bottles)</th>
-                        </tr>
-                    </thead>
-                    <tbody><!-- Generates 20 Lines --></tbody>
-                </table>
-            </div>
-            <button class="btn-save" style="margin-top:15px; background: #34495e;" onclick="addRow('tbl-main')">+ Add Extra Line</button>
+          <h3>PM vs Breakdown Manhours (Monthly)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>PM Manhours</th>
+                <th>Breakdown Manhours</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Jan</td><td>—</td><td>—</td></tr>
+              <tr><td>Feb</td><td>—</td><td>—</td></tr>
+              <tr><td>Mar</td><td>—</td><td>—</td></tr>
+              <tr><td>Apr</td><td>—</td><td>—</td></tr>
+              <tr><td>May</td><td>—</td><td>—</td></tr>
+              <tr><td>Jun</td><td>—</td><td>—</td></tr>
+              <tr><td>Jul</td><td>—</td><td>—</td></tr>
+              <tr><td>Aug</td><td>—</td><td>—</td></tr>
+              <tr><td>Sep</td><td>—</td><td>—</td></tr>
+              <tr><td>Oct</td><td>—</td><td>—</td></tr>
+              <tr><td>Nov</td><td>—</td><td>—</td></tr>
+              <tr><td>Dec</td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="table-section">
-            <h3>2. Monthly Finance & Spares</h3>
-            <table id="tbl-finance">
-                <thead><tr><th>Month</th><th>Maint. Actual ($)</th><th>Budget ($)</th><th>Spare Parts ($)</th><th>Power Cost ($)</th></tr></thead>
-                <tbody></tbody>
-            </table>
+        <div>
+          <h3>Breakdown Contribution by Line</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Line Number</th>
+                <th>Breakdown Hours</th>
+                <th>Contribution %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Lines 1–18 -->
+              <tr><td>1</td><td>—</td><td>—</td></tr>
+              <tr><td>2</td><td>—</td><td>—</td></tr>
+              <tr><td>3</td><td>—</td><td>—</td></tr>
+              <tr><td>4</td><td>—</td><td>—</td></tr>
+              <tr><td>5</td><td>—</td><td>—</td></tr>
+              <tr><td>6</td><td>—</td><td>—</td></tr>
+              <tr><td>7</td><td>—</td><td>—</td></tr>
+              <tr><td>8</td><td>—</td><td>—</td></tr>
+              <tr><td>9</td><td>—</td><td>—</td></tr>
+              <tr><td>10</td><td>—</td><td>—</td></tr>
+              <tr><td>11</td><td>—</td><td>—</td></tr>
+              <tr><td>12</td><td>—</td><td>—</td></tr>
+              <tr><td>13</td><td>—</td><td>—</td></tr>
+              <tr><td>14</td><td>—</td><td>—</td></tr>
+              <tr><td>15</td><td>—</td><td>—</td></tr>
+              <tr><td>16</td><td>—</td><td>—</td></tr>
+              <tr><td>17</td><td>—</td><td>—</td></tr>
+              <tr><td>18</td><td>—</td><td>—</td></tr>
+              <tr><td><strong>Total</strong></td><td>—</td><td>100%</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Cost vs Budget (Monthly)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Maint Cost Actual</th>
+                <th>Maint Cost Budget</th>
+                <th>Power Cost Actual</th>
+                <th>Power Cost Budget</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Jan</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Feb</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Mar</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Apr</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>May</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Jun</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Jul</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Aug</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Sep</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Oct</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Nov</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>Dec</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <div class="table-section">
-            <h3>3. Root Cause Analysis & PM Status</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                <table id="tbl-causes">
-                    <thead><tr><th>Category</th><th>Incidents</th></tr></thead>
-                    <tbody>
-                        <tr><td>Mechanical</td><td contenteditable="true">45</td></tr>
-                        <tr><td>Electrical/Automation</td><td contenteditable="true">32</td></tr>
-                        <tr><td>Pneumatic</td><td contenteditable="true">18</td></tr>
-                        <tr><td>Operator Error</td><td contenteditable="true">12</td></tr>
-                        <tr><td>Lubrication Issue</td><td contenteditable="true">8</td></tr>
-                    </tbody>
-                </table>
-                <table id="tbl-pm-status">
-                    <thead><tr><th>PM Status</th><th>Work Orders</th></tr></thead>
-                    <tbody>
-                        <tr><td>Completed</td><td contenteditable="true">85</td></tr>
-                        <tr><td>Scheduled</td><td contenteditable="true">100</td></tr>
-                        <tr><td>Overdue</td><td contenteditable="true">15</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</main>
+      <h3>Plant KPIs (Overall)</h3>
+      <table>
+        <tbody>
+          <tr><th>Total Breakdown Hours</th><td>—</td></tr>
+          <tr><th>Total Maintenance Cost</th><td>—</td></tr>
+          <tr><th>Total Power Cost</th><td>—</td></tr>
+          <tr><th>Overall PM Completion %</th><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-<script>
-    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    let charts = {};
+    <!-- DASHBOARD DETAIL SECTIONS -->
+    <section class="section-card">
+      <h2>Dashboard Detail Sections</h2>
+      <p class="note">These correspond to the charts and pivots you planned in Excel.</p>
 
-    window.onload = () => {
-        if (!localStorage.getItem('nadec_bottling_v3')) {
-            initDefaults();
-        } else {
-            loadFromStorage();
-        }
-        initCharts();
-        calculateEverything();
-        setupExcelInteractivity();
-    };
+      <h3>Downtime Causes</h3>
+      <p class="note">In Excel: build Pivot &amp; Pie using RAW_DATA (Breakdown Category / Cause vs Duration).</p>
 
-    function initDefaults() {
-        // Build 20 Bottling Lines
-        const tbody = document.querySelector('#tbl-main tbody');
-        for(let i=1; i<=20; i++) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td contenteditable="true">Bottling Line ${i}</td>
-                <td><span class="badge badge-danger">Active</span></td>
-                <td contenteditable="true">${18000 + (i*500)}</td>
-                <td contenteditable="true">${Math.floor(Math.random()*40) + 5}</td>
-                <td contenteditable="true">${Math.floor(Math.random()*10) + 2}</td>
-                <td contenteditable="true">${120}</td>
-                <td contenteditable="true">${80}</td>
-                <td class="calc-field">0</td>
-                <td class="calc-field">0</td>
-                <td class="calc-field">0</td>
-            `;
-            tbody.appendChild(tr);
-        }
+      <h3>Failure Status Trend</h3>
+      <p class="note">In Excel: build Pivot &amp; Line using RAW_DATA (Status vs Month).</p>
 
-        const finBody = document.querySelector('#tbl-finance tbody');
-        MONTHS.forEach(m => {
-            finBody.innerHTML += `<tr><td>${m}</td><td contenteditable="true">${5000 + Math.random()*2000}</td><td contenteditable="true">6000</td><td contenteditable="true">${2000}</td><td contenteditable="true">${15000}</td></tr>`;
-        });
-    }
+      <h3>Breakdown Duration Status</h3>
+      <p class="note">In Excel: build Pivot &amp; Chart using RAW_DATA (Duration Bucket vs Count / Hours).</p>
 
-    function initCharts() {
-        const ctx = (id) => document.getElementById(id).getContext('2d');
-        const cfg = (type, label, color) => ({
-            type: type,
-            data: { labels: [], datasets: [{ label: label, data: [], backgroundColor: color, borderColor: color, fill: false }] },
-            options: { responsive: true, maintainAspectRatio: false, animation: { duration: 800 } }
-        });
-
-        charts.pareto = new Chart(ctx('chart-pareto'), cfg('bar', 'Downtime Hours', '#007bbf'));
-        charts.radar = new Chart(ctx('chart-radar'), cfg('radar', 'Line Health', 'rgba(0, 123, 191, 0.2)'));
-        charts.bottles = new Chart(ctx('chart-bottles'), cfg('bar', 'k-Bottles Lost', '#e74c3c'));
-        charts.cost = new Chart(ctx('chart-cost'), {
-            type: 'bar',
-            data: { labels: MONTHS, datasets: [{label: 'Actual', backgroundColor: '#004a73'}, {label: 'Budget', backgroundColor: '#ccc'}] },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-        charts.causes = new Chart(ctx('chart-causes'), cfg('pie', 'Causes', ['#3498db','#9b59b6','#f1c40f','#e67e22','#1abc9c']));
-        charts.manhours = new Chart(ctx('chart-manhours'), cfg('doughnut', 'Hrs', ['#27ae60','#e74c3c']));
-        charts.pm = new Chart(ctx('chart-pm'), cfg('polarArea', 'Work Orders', ['#27ae60','#3498db','#e74c3c']));
-        charts.spares = new Chart(ctx('chart-spares'), cfg('line', 'Spare Parts $', '#8e44ad'));
-        charts.failures = new Chart(ctx('chart-failure-trend'), cfg('line', 'Failures', '#c0392b'));
-    }
-
-    function calculateEverything() {
-        const mainData = getTableData('tbl-main');
-        const finData = getTableData('tbl-finance');
-        const causeData = getTableData('tbl-causes');
-        const pmData = getTableData('tbl-pm-status');
-
-        let totalDowntime = 0;
-        let totalFails = 0;
-        let totalLoss = 0;
-        let totalCost = 0;
-        let pmTotal = 0;
-        let bmTotal = 0;
-
-        // 1. Process Master Table
-        const rows = document.querySelectorAll('#tbl-main tbody tr');
-        rows.forEach((tr, i) => {
-            const bph = parseFloat(tr.cells[2].innerText) || 0;
-            const hrs = parseFloat(tr.cells[3].innerText) || 0;
-            const fails = parseFloat(tr.cells[4].innerText) || 0;
-            const pmH = parseFloat(tr.cells[5].innerText) || 0;
-            const bmH = parseFloat(tr.cells[6].innerText) || 0;
-
-            const mtbf = fails > 0 ? (168 / fails).toFixed(1) : 168; // Based on 1 week
-            const mttr = fails > 0 ? ((hrs * 60) / fails).toFixed(0) : 0;
-            const loss = (hrs * bph) / 1000;
-
-            tr.cells[7].innerText = mtbf;
-            tr.cells[8].innerText = mttr;
-            tr.cells[9].innerText = loss.toFixed(0);
-
-            totalDowntime += hrs;
-            totalFails += fails;
-            totalLoss += loss;
-            pmTotal += pmH;
-            bmTotal += bmH;
-        });
-
-        // 2. Process Finance
-        finData.forEach(r => totalCost += parseFloat(r[1]) || 0);
-
-        // 3. Update KPI Cards
-        document.getElementById('kpi-mtbf').innerText = totalFails > 0 ? (totalDowntime/totalFails).toFixed(1) + 'h' : '0h';
-        document.getElementById('kpi-mttr').innerText = totalFails > 0 ? ((totalDowntime*60)/totalFails).toFixed(0) + 'm' : '0m';
-        document.getElementById('kpi-loss').innerText = (totalLoss / 1000).toFixed(1) + 'M';
-        document.getElementById('kpi-cost').innerText = '$' + totalCost.toLocaleString();
-        
-        const comp = parseFloat(pmData[0][1]) || 0;
-        const totalPMs = (parseFloat(pmData[0][1])||0) + (parseFloat(pmData[1][1])||0) + (parseFloat(pmData[2][1])||0);
-        document.getElementById('kpi-pm').innerText = totalPMs > 0 ? ((comp/totalPMs)*100).toFixed(0) + '%' : '0%';
-
-        // 4. Update Charts
-        charts.pareto.data.labels = mainData.map(r => r[0]);
-        charts.pareto.data.datasets[0].data = mainData.map(r => r[3]);
-        charts.pareto.update();
-
-        charts.bottles.data.labels = mainData.map(r => r[0]);
-        charts.bottles.data.datasets[0].data = mainData.map(r => r[9]);
-        charts.bottles.update();
-
-        charts.cost.data.datasets[0].data = finData.map(r => r[1]);
-        charts.cost.data.datasets[1].data = finData.map(r => r[2]);
-        charts.cost.update();
-
-        charts.causes.data.labels = causeData.map(r => r[0]);
-        charts.causes.data.datasets[0].data = causeData.map(r => r[1]);
-        charts.causes.update();
-
-        charts.manhours.data.labels = ['PM', 'BM'];
-        charts.manhours.data.datasets[0].data = [pmTotal, bmTotal];
-        charts.manhours.update();
-
-        charts.pm.data.labels = pmData.map(r => r[0]);
-        charts.pm.data.datasets[0].data = pmData.map(r => r[1]);
-        charts.pm.update();
-
-        charts.spares.data.labels = MONTHS;
-        charts.spares.data.datasets[0].data = finData.map(r => r[3]);
-        charts.spares.update();
-    }
-
-    function getTableData(id) {
-        return Array.from(document.querySelectorAll(`#${id} tbody tr`)).map(tr => 
-            Array.from(tr.cells).map(td => td.innerText)
-        );
-    }
-
-    function showView(view) {
-        document.getElementById('view-dashboard').style.display = view === 'dashboard' ? 'grid' : 'none';
-        document.getElementById('view-data').style.display = view === 'data' ? 'block' : 'none';
-        document.getElementById('view-title').innerText = view === 'dashboard' ? 'Maintenance Executive Summary' : 'Maintenance & Breakdown Logs';
-        document.getElementById('nav-dash').classList.toggle('active', view === 'dashboard');
-        document.getElementById('nav-data').classList.toggle('active', view === 'data');
-    }
-
-    function setupExcelInteractivity() {
-        document.body.addEventListener('input', (e) => {
-            if (e.target.contentEditable) calculateEverything();
-        });
-
-        document.body.addEventListener('paste', (e) => {
-            if (e.target.contentEditable) {
-                e.preventDefault();
-                const text = e.clipboardData.getData('text');
-                const rows = text.split('\n');
-                let curTr = e.target.parentElement;
-                const startCol = e.target.cellIndex;
-                rows.forEach(rowStr => {
-                    if(!rowStr.trim()) return;
-                    const cols = rowStr.split('\t');
-                    cols.forEach((val, j) => {
-                        const cell = curTr.cells[startCol + j];
-                        if (cell && cell.contentEditable === "true") cell.innerText = val.trim();
-                    });
-                    curTr = curTr.nextElementSibling;
-                });
-                calculateEverything();
-            }
-        });
-    }
-
-    function saveToStorage() {
-        const data = {
-            main: getTableData('tbl-main'),
-            fin: getTableData('tbl-finance'),
-            cause: getTableData('tbl-causes'),
-            pm: getTableData('tbl-pm-status')
-        };
-        localStorage.setItem('nadec_bottling_v3', JSON.stringify(data));
-        alert('Data Saved to Local Browser Storage!');
-    }
-
-    function loadFromStorage() {
-        const data = JSON.parse(localStorage.getItem('nadec_bottling_v3'));
-        
-        const fill = (id, d) => {
-            const tbody = document.querySelector(`#${id} tbody`);
-            tbody.innerHTML = "";
-            d.forEach(rowData => {
-                const tr = document.createElement('tr');
-                rowData.forEach((val, i) => {
-                    const td = document.createElement('td');
-                    td.innerText = val;
-                    if (id === 'tbl-main' && i >= 7) td.className = 'calc-field';
-                    else if (id === 'tbl-finance' && i === 0) td.contentEditable = false;
-                    else td.contentEditable = true;
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-        };
-
-        fill('tbl-main', data.main);
-        fill('tbl-finance', data.fin);
-        fill('tbl-causes', data.cause);
-        fill('tbl-pm-status', data.pm);
-    }
-
-    function resetData() {
-        if(confirm("Erase all logs?")) {
-            localStorage.removeItem('nadec_bottling_v3');
-            location.reload();
-        }
-    }
-</script>
+      <h3>PM Completion Summary</h3>
+      <p class="note">Completed vs Not Completed PM tasks from PM_SCHEDULE.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Completed</td><td>—</td></tr>
+          <tr><td>Not Completed</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
 </body>
 </html>
