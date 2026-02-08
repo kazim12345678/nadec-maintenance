@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Breakdown Maintenance Dashboard</title>
+  <title>NADEC Breakdown Maintenance Dashboard 2025</title>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,13 +22,20 @@
       color: white;
       padding: 25px;
       text-align: center;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 700;
       letter-spacing: 1px;
     }
 
+    .subhead {
+      font-size: 15px;
+      font-weight: 300;
+      margin-top: 6px;
+      color: #d9e6ff;
+    }
+
     .container {
-      max-width: 1400px;
+      max-width: 1500px;
       margin: auto;
       padding: 20px;
     }
@@ -54,7 +61,7 @@
     }
 
     .kpi-card h2 {
-      font-size: 16px;
+      font-size: 15px;
       margin: 0;
       color: #003366;
     }
@@ -82,37 +89,40 @@
     h3 {
       text-align: center;
       color: #003366;
+      margin-top: 40px;
     }
 
-    textarea {
+    table {
       width: 100%;
-      height: 130px;
+      border-collapse: collapse;
       margin-top: 15px;
-      font-family: monospace;
-      border-radius: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
+      font-size: 14px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.12);
     }
 
-    button {
-      margin-top: 15px;
-      padding: 12px 18px;
-      border: none;
+    table th {
       background: #003366;
       color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 15px;
+      padding: 10px;
     }
 
-    button:hover {
-      background: #0055aa;
+    table td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    table tr:hover {
+      background: #f2f6ff;
     }
 
     footer {
       text-align: center;
       padding: 15px;
-      margin-top: 25px;
+      margin-top: 30px;
       font-size: 14px;
       color: gray;
     }
@@ -122,7 +132,10 @@
 <body>
 
 <header>
-  🚀 Breakdown Maintenance KPI Dashboard (Editable Web Version)
+  NADEC Drinkable Maintenance Performance Report of 2025
+  <div class="subhead">
+    Breakdown Downtime | Machine Failures | Technician Contribution Dashboard
+  </div>
 </header>
 
 <div class="container">
@@ -131,27 +144,27 @@
   <div class="kpi-grid">
     <div class="kpi-card">
       <h2>Total Downtime Hours</h2>
-      <p id="totalDowntime">3466</p>
+      <p>3466</p>
     </div>
 
     <div class="kpi-card">
       <h2>Total Breakdown Events</h2>
-      <p id="totalEvents">8903</p>
+      <p>8903</p>
     </div>
 
     <div class="kpi-card">
-      <h2>Worst Month</h2>
-      <p id="worstMonth">Jul</p>
+      <h2>Worst Downtime Month</h2>
+      <p>July</p>
     </div>
 
     <div class="kpi-card">
-      <h2>Worst Machine</h2>
-      <p id="worstMachine">M15</p>
+      <h2>Highest Breakdown Machine</h2>
+      <p>M15</p>
     </div>
 
     <div class="kpi-card">
-      <h2>Top Technician</h2>
-      <p id="topTech">Dante</p>
+      <h2>Top Technician Contribution</h2>
+      <p>Dante</p>
     </div>
   </div>
 
@@ -159,7 +172,7 @@
   <div class="chart-grid">
 
     <div class="chart-box">
-      <h3>Monthly Downtime (Jan–Dec)</h3>
+      <h3>Monthly Downtime Hours (2025)</h3>
       <canvas id="monthlyChart"></canvas>
     </div>
 
@@ -175,98 +188,91 @@
 
   </div>
 
-  <!-- Editable Data Section -->
-  <h3>✍️ Edit Data (Monthly Downtime)</h3>
-  <textarea id="monthlyData">
-Jan,285
-Feb,241
-Mar,312
-Apr,222
-May,304
-Jun,260
-Jul,446
-Aug,277
-Sep,260
-Oct,327
-Nov,270
-Dec,257
-  </textarea>
+  <!-- TABLES BELOW DASHBOARD -->
 
-  <button onclick="updateDashboard()">Update Dashboard</button>
+  <h3>📌 Monthly Downtime Table</h3>
+  <table>
+    <tr><th>Month</th><th>Downtime Hours</th></tr>
+    <tr><td>Jan</td><td>285:51</td></tr>
+    <tr><td>Feb</td><td>241:58</td></tr>
+    <tr><td>Mar</td><td>312:16</td></tr>
+    <tr><td>Apr</td><td>222:32</td></tr>
+    <tr><td>May</td><td>304:34</td></tr>
+    <tr><td>Jun</td><td>260:13</td></tr>
+    <tr><td>Jul</td><td>446:58</td></tr>
+    <tr><td>Aug</td><td>277:00</td></tr>
+    <tr><td>Sep</td><td>260:12</td></tr>
+    <tr><td>Oct</td><td>327:08</td></tr>
+    <tr><td>Nov</td><td>270:41</td></tr>
+    <tr><td>Dec</td><td>257:24</td></tr>
+    <tr><th>Grand Total</th><th>3466:47</th></tr>
+  </table>
+
+  <h3>⚙ Machine Breakdown Count Table</h3>
+  <table>
+    <tr><th>Machine</th><th>Breakdown Count</th></tr>
+    <tr><td>M15</td><td>963</td></tr>
+    <tr><td>M7</td><td>825</td></tr>
+    <tr><td>M1</td><td>822</td></tr>
+    <tr><td>M14</td><td>805</td></tr>
+    <tr><td>M2</td><td>621</td></tr>
+    <tr><td>Crates Area</td><td>635</td></tr>
+    <tr><th>Grand Total Events</th><th>8903</th></tr>
+  </table>
+
+  <h3>👷 Technician Contribution Table</h3>
+  <table>
+    <tr><th>Technician</th><th>Contribution</th></tr>
+    <tr><td>Dante</td><td>1541</td></tr>
+    <tr><td>Sameer</td><td>1479</td></tr>
+    <tr><td>Gilbert</td><td>1395</td></tr>
+    <tr><td>Lito</td><td>1236</td></tr>
+    <tr><td>Husam</td><td>1214</td></tr>
+    <tr><td>Ali</td><td>753</td></tr>
+  </table>
 
 </div>
 
 <footer>
-  Dashboard Created for Maintenance Breakdown Analysis | GitHub Pages Ready
+  NADEC Drinkable Plant | Maintenance Breakdown Dashboard 2025 | GitHub Pages Ready
 </footer>
 
 <script>
-  let monthlyChart;
+  // Monthly Downtime Chart
+  new Chart(document.getElementById("monthlyChart"), {
+    type: "bar",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      datasets: [{
+        label: "Downtime Hours",
+        data: [285,241,312,222,304,260,446,277,260,327,270,257]
+      }]
+    }
+  });
 
-  function buildMonthlyChart(labels, values) {
-    if (monthlyChart) monthlyChart.destroy();
-
-    monthlyChart = new Chart(document.getElementById("monthlyChart"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Downtime Hours",
-          data: values
-        }]
-      }
-    });
-  }
-
-  function updateDashboard() {
-    let raw = document.getElementById("monthlyData").value.trim().split("\n");
-
-    let labels = [];
-    let values = [];
-
-    raw.forEach(line => {
-      let parts = line.split(",");
-      labels.push(parts[0]);
-      values.push(parseFloat(parts[1]));
-    });
-
-    buildMonthlyChart(labels, values);
-
-    // Worst Month KPI
-    let maxVal = Math.max(...values);
-    let worstIndex = values.indexOf(maxVal);
-
-    document.getElementById("worstMonth").innerText = labels[worstIndex];
-  }
-
-  // Machine Chart (Top Machines)
+  // Machine Breakdown Chart
   new Chart(document.getElementById("machineChart"), {
     type: "bar",
     data: {
-      labels: ["M15","M1","M14","M7","M2"],
+      labels: ["M15","M7","M1","M14","M2"],
       datasets: [{
         label: "Breakdown Count",
-        data: [963,822,805,825,621]
+        data: [963,825,822,805,621]
       }]
     },
-    options: {
-      indexAxis: "y"
-    }
+    options: { indexAxis: "y" }
   });
 
-  // Technician Contribution Pie
+  // Technician Contribution Pie Chart
   new Chart(document.getElementById("techChart"), {
     type: "pie",
     data: {
-      labels: ["Dante","Sameer","Gilbert","Ali","Edgar"],
+      labels: ["Dante","Sameer","Gilbert","Lito","Husam","Ali"],
       datasets: [{
-        data: [1541,1479,1395,753,1113]
+        data: [1541,1479,1395,1236,1214,753]
       }]
     }
   });
-
-  // Load Default Monthly Chart
-  updateDashboard();
 </script>
 
 </body>
