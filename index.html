@@ -2,79 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Breakdown KPI Dashboard</title>
+  <title>NADEC Breakdown Maintenance Dashboard 2025</title>
 
-  <!-- Chart.js Latest -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
       margin: 0;
-      background: #f4f7fb;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(to right, #eef2f3, #ffffff);
     }
 
     header {
-      background: linear-gradient(to right, #003973, #E5E5BE);
+      background: #003366;
       color: white;
+      padding: 25px;
       text-align: center;
-      padding: 20px;
+      font-size: 24px;
+      font-weight: 700;
     }
 
-    h1 {
-      margin: 0;
+    .subhead {
+      font-size: 15px;
+      font-weight: 300;
+      margin-top: 6px;
+      color: #d9e6ff;
     }
 
     .container {
-      width: 95%;
+      max-width: 1600px;
       margin: auto;
       padding: 20px;
     }
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 15px;
       margin-bottom: 25px;
     }
 
-    .kpi {
+    .kpi-card {
       background: white;
-      padding: 15px;
-      border-radius: 14px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      padding: 18px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
       text-align: center;
     }
 
-    .kpi h2 {
-      font-size: 16px;
-      margin: 5px 0;
-      color: #003973;
+    .kpi-card h2 {
+      font-size: 15px;
+      margin: 0;
+      color: #003366;
     }
 
-    .kpi p {
-      font-size: 22px;
+    .kpi-card p {
+      font-size: 28px;
       font-weight: bold;
-      margin: 0;
+      margin: 10px 0 0;
+      color: #222;
     }
 
     .chart-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 20px;
     }
 
     .chart-box {
       background: white;
-      border-radius: 14px;
       padding: 15px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      border-radius: 15px;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.12);
     }
 
-    canvas {
-      width: 100% !important;
-      height: 320px !important;
+    h3 {
+      text-align: center;
+      color: #003366;
+      margin-top: 50px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 13px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.12);
+    }
+
+    table th {
+      background: #003366;
+      color: white;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    table td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    table tr:hover {
+      background: #f2f6ff;
+    }
+
+    .scroll-box {
+      max-height: 500px;
+      overflow-y: auto;
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+      font-size: 14px;
+      color: gray;
     }
   </style>
 </head>
@@ -82,107 +134,131 @@
 <body>
 
 <header>
-  <h1>⚙️ Breakdown Maintenance Dashboard</h1>
-  <p>Downtime • Machines • Technicians</p>
+  NADEC Drinkable Maintenance Performance Report of 2025
+  <div class="subhead">
+    Breakdown Downtime | Machine Failures | Technician Workload Contribution Dashboard
+  </div>
 </header>
 
 <div class="container">
 
   <!-- KPI Cards -->
   <div class="kpi-grid">
-    <div class="kpi"><h2>Total Downtime</h2><p>3466 hrs</p></div>
-    <div class="kpi"><h2>Total Events</h2><p>8903</p></div>
-    <div class="kpi"><h2>Worst Month</h2><p>July</p></div>
-    <div class="kpi"><h2>Worst Machine</h2><p>M15</p></div>
-    <div class="kpi"><h2>Top Technician</h2><p>Dante</p></div>
+    <div class="kpi-card"><h2>Total Downtime Hours</h2><p>3466</p></div>
+    <div class="kpi-card"><h2>Total Breakdown Events</h2><p>8903</p></div>
+    <div class="kpi-card"><h2>Worst Downtime Month</h2><p>July</p></div>
+    <div class="kpi-card"><h2>Highest Breakdown Machine</h2><p>M15</p></div>
+    <div class="kpi-card"><h2>Top Technician Contributor</h2><p>Dante</p></div>
   </div>
 
   <!-- Charts -->
   <div class="chart-grid">
 
-    <!-- Monthly Downtime -->
     <div class="chart-box">
-      <h3>📅 Monthly Downtime Hours</h3>
+      <h3>Monthly Downtime Hours</h3>
       <canvas id="monthlyChart"></canvas>
     </div>
 
-    <!-- Machine Breakdown -->
     <div class="chart-box">
-      <h3>🏭 Top Machines Breakdown Count</h3>
+      <h3>Top Machines Breakdown Count</h3>
       <canvas id="machineChart"></canvas>
     </div>
 
-    <!-- Technician Contribution -->
     <div class="chart-box">
-      <h3>👷 Technician Contribution Share</h3>
+      <h3>Technician Contribution Share</h3>
       <canvas id="techChart"></canvas>
+    </div>
+
+    <!-- NEW Chart -->
+    <div class="chart-box">
+      <h3>Top Technician Workload Ranking</h3>
+      <canvas id="techBar"></canvas>
     </div>
 
   </div>
 
+  <!-- Technician Full Table -->
+  <h3>👷 Full Technician Monthly Breakdown Workload (Jan–Dec)</h3>
+
+  <div class="scroll-box">
+    <table>
+      <tr>
+        <th>Technician</th>
+        <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
+        <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
+        <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+        <th>Total Contribution</th>
+      </tr>
+
+      <tr><td>Ali</td><td>50</td><td>54</td><td>65</td><td>65</td><td>70</td><td>68</td><td>78</td><td>90</td><td></td><td>43</td><td>88</td><td>82</td><td>753</td></tr>
+      <tr><td>Amgad</td><td>117</td><td>97</td><td>102</td><td></td><td>105</td><td>126</td><td>110</td><td>121</td><td>84</td><td>99</td><td>101</td><td>50</td><td>1112</td></tr>
+      <tr><td>Dante</td><td>129</td><td>110</td><td>160</td><td>40</td><td>86</td><td>105</td><td>120</td><td>142</td><td>134</td><td>189</td><td>163</td><td>163</td><td>1541</td></tr>
+      <tr><td>Sameer</td><td>216</td><td>98</td><td>91</td><td>129</td><td>81</td><td></td><td>163</td><td>166</td><td>145</td><td>176</td><td>140</td><td>74</td><td>1479</td></tr>
+      <tr><td>Gilbert</td><td>132</td><td>128</td><td>115</td><td>113</td><td>152</td><td>128</td><td>125</td><td>126</td><td>118</td><td>147</td><td>111</td><td></td><td>1395</td></tr>
+      <tr><td>Lito</td><td>143</td><td>130</td><td>140</td><td>125</td><td>134</td><td>83</td><td>101</td><td>139</td><td>126</td><td>72</td><td>11</td><td>32</td><td>1236</td></tr>
+      <tr><td>Husam</td><td>88</td><td>92</td><td>72</td><td></td><td>100</td><td>127</td><td>126</td><td>145</td><td>130</td><td>107</td><td>98</td><td>129</td><td>1214</td></tr>
+      <tr><td>Nashwan</td><td>71</td><td>85</td><td>100</td><td>105</td><td>71</td><td></td><td>132</td><td>147</td><td>161</td><td>112</td><td>108</td><td>108</td><td>1200</td></tr>
+      <tr><td>Moneef</td><td>61</td><td>99</td><td>110</td><td>143</td><td>111</td><td>97</td><td>107</td><td>138</td><td>6</td><td>80</td><td>102</td><td>57</td><td>1111</td></tr>
+      <tr><td>Yousef</td><td>16</td><td>11</td><td>14</td><td>20</td><td>53</td><td>66</td><td>74</td><td>47</td><td>46</td><td>30</td><td>33</td><td>14</td><td>424</td></tr>
+
+    </table>
+  </div>
+
 </div>
 
+<footer>
+  NADEC Drinkable Plant | Technician Workload + Downtime Dashboard 2025 | GitHub Pages Ready
+</footer>
+
 <script>
-/* MONTHLY DOWNTIME BAR */
-new Chart(document.getElementById("monthlyChart"), {
-  type: "bar",
-  data: {
-    labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-    datasets: [{
-      label: "Downtime Hours",
-      data: [285,241,312,222,304,260,446,277,260,327,270,257],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: true }
+  // Monthly Downtime Chart
+  new Chart(document.getElementById("monthlyChart"), {
+    type: "bar",
+    data: {
+      labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      datasets: [{
+        label: "Downtime Hours",
+        data: [285,241,312,222,304,260,446,277,260,327,270,257]
+      }]
     }
-  }
-});
+  });
 
+  // Machine Breakdown Chart
+  new Chart(document.getElementById("machineChart"), {
+    type: "bar",
+    data: {
+      labels: ["M15","M7","M1","M14","M2"],
+      datasets: [{
+        label: "Breakdown Count",
+        data: [963,825,822,805,621]
+      }]
+    },
+    options: { indexAxis: "y" }
+  });
 
-/* MACHINE BREAKDOWN HORIZONTAL BAR */
-new Chart(document.getElementById("machineChart"), {
-  type: "bar",
-  data: {
-    labels: ["M15","M7","M1","M14","M2","M8","M4","M6","M3","M17"],
-    datasets: [{
-      label: "Breakdown Count",
-      data: [963,825,822,805,621,614,590,574,538,511],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    indexAxis: "y",   /* ✅ FIX FOR HORIZONTAL BAR */
-    responsive: true,
-    plugins: {
-      legend: { display: true }
+  // Technician Contribution Pie Chart
+  new Chart(document.getElementById("techChart"), {
+    type: "pie",
+    data: {
+      labels: ["Dante","Sameer","Gilbert","Lito","Husam","Ali"],
+      datasets: [{
+        data: [1541,1479,1395,1236,1214,753]
+      }]
     }
-  }
-});
+  });
 
-
-/* TECHNICIAN PIE CHART */
-new Chart(document.getElementById("techChart"), {
-  type: "pie",
-  data: {
-    labels: ["Dante","Sameer","Gilbert","Sami","Lito","Nashwan"],
-    datasets: [{
-      label: "Contribution",
-      data: [1541,1479,1395,1251,1236,1200]
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "bottom"
-      }
-    }
-  }
-});
+  // NEW Technician Ranking Chart
+  new Chart(document.getElementById("techBar"), {
+    type: "bar",
+    data: {
+      labels: ["Dante","Sameer","Gilbert","Lito","Husam","Amgad","Ali"],
+      datasets: [{
+        label: "Total Contribution",
+        data: [1541,1479,1395,1236,1214,1112,753]
+      }]
+    },
+    options: { indexAxis: "y" }
+  });
 </script>
 
 </body>
