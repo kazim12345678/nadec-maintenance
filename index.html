@@ -1,229 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Maintenance KPI Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Maintenance Breakdown Dashboard</title>
 
-<style>
-:root{
-  --green:#1f8f4a;
-  --blue:#0b5ed7;
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --text:#1f2937;
-}
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-header{
-  background:linear-gradient(90deg,var(--green),var(--blue));
-  color:#fff;
-  padding:15px;
-}
-h1{margin:0;font-size:22px}
-section{padding:15px}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-}
-.card{
-  background:var(--card);
-  padding:15px;
-  border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-.card h3{margin:0;font-size:14px;color:#555}
-.card p{margin:5px 0 0;font-size:24px;font-weight:bold;color:var(--green)}
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:#fff;
-}
-th,td{
-  border:1px solid #ddd;
-  padding:6px;
-  font-size:12px;
-}
-th{
-  background:#e6f4ea;
-}
-input,select{
-  width:100%;
-  padding:4px;
-  font-size:12px;
-}
-canvas{
-  width:100%;
-  height:250px;
-}
-.filter{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-}
-footer{
-  text-align:center;
-  padding:10px;
-  font-size:12px;
-  color:#777;
-}
-</style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- SheetJS -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+    }
+
+    header {
+      background: #0a3d62;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
+    }
+
+    .kpi-card h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #0a3d62;
+    }
+
+    .kpi-card p {
+      font-size: 26px;
+      margin: 8px 0 0;
+      font-weight: bold;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .chart-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #0a3d62;
+      color: white;
+    }
+
+    .upload-box {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      background: #0a3d62;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #07406e;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
-  <h1>🏭 Maintenance KPI Dashboard – 18 Serac Lines</h1>
+  <h1>Maintenance Breakdown KPI Dashboard</h1>
+  <p>Excel Pivot Data → Clean Dashboard (GitHub Pages Ready)</p>
 </header>
 
-<section>
-  <div class="grid">
-    <div class="card"><h3>Total Breakdown Hours</h3><p id="kpiBreakdown">0</p></div>
-    <div class="card"><h3>PM Completion %</h3><p id="kpiPM">0%</p></div>
-    <div class="card"><h3>MTTR (hrs)</h3><p id="kpiMTTR">0</p></div>
-    <div class="card"><h3>MTBF (hrs)</h3><p id="kpiMTBF">0</p></div>
-    <div class="card"><h3>Maintenance Cost</h3><p id="kpiCost">0 SAR</p></div>
-    <div class="card"><h3>Power Cost</h3><p id="kpiPower">0 SAR</p></div>
+<div class="container">
+
+  <!-- Upload -->
+  <div class="upload-box">
+    <input type="file" id="upload" accept=".xlsx" />
   </div>
-</section>
 
-<section>
-<h2>RAW DATA (Editable)</h2>
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <h2>Total Downtime Hours</h2>
+      <p id="totalDowntime">-</p>
+    </div>
+    <div class="kpi-card">
+      <h2>Total Breakdown Events</h2>
+      <p id="totalEvents">-</p>
+    </div>
+    <div class="kpi-card">
+      <h2>Worst Month</h2>
+      <p id="worstMonth">-</p>
+    </div>
+    <div class="kpi-card">
+      <h2>Worst Machine</h2>
+      <p id="worstMachine">-</p>
+    </div>
+    <div class="kpi-card">
+      <h2>Top Area Contribution</h2>
+      <p id="topArea">-</p>
+    </div>
+  </div>
 
-<div class="filter">
-  <label>Month:
-    <input type="month" id="monthFilter">
-  </label>
-  <button onclick="recalculate()">Apply</button>
+  <!-- Charts -->
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Daily Downtime Trend</h3>
+      <canvas id="dailyChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h3>Monthly Downtime (Jan–Dec)</h3>
+      <canvas id="monthlyChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h3>Top Machines Breakdown Count</h3>
+      <canvas id="machineChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <h3>Area Contribution Share</h3>
+      <canvas id="areaPie"></canvas>
+    </div>
+  </div>
+
+  <!-- Tables -->
+  <h2>Daily Breakdown Table</h2>
+  <table id="dailyTable"></table>
+
+  <h2>Monthly Breakdown Summary</h2>
+  <table id="monthlyTable"></table>
+
+  <h2>Machine Ranking Table</h2>
+  <table id="machineTable"></table>
+
+  <h2>Area Contribution Table</h2>
+  <table id="areaTable"></table>
+
 </div>
 
-<table id="rawTable">
-<thead>
-<tr>
-  <th>Date</th>
-  <th>Line</th>
-  <th>Machine</th>
-  <th>Type</th>
-  <th>Duration (hrs)</th>
-  <th>Cost</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<button onclick="addRow()">➕ Add Row</button>
-</section>
-
-<section>
-<h2>DASHBOARD</h2>
-<canvas id="lineChart"></canvas>
-</section>
-
-<footer>
-Maintenance Dashboard | LocalStorage Enabled | No Backend
-</footer>
-
 <script>
-/* ------------------ DATA ------------------ */
-let data = JSON.parse(localStorage.getItem("maintenanceData")) || [
-  {date:"2025-01-05",line:1,machine:"Filler",type:"Breakdown",duration:2,cost:500},
-  {date:"2025-01-08",line:2,machine:"Packer",type:"PM",duration:1,cost:200},
-  {date:"2025-01-12",line:1,machine:"Labeler",type:"Breakdown",duration:3,cost:800},
-  {date:"2025-02-02",line:3,machine:"Palletizer",type:"PM",duration:1,cost:150}
-];
+/* -------- Helper Functions ---------- */
 
-/* ------------------ INIT ------------------ */
-const tbody=document.querySelector("#rawTable tbody");
+// Convert Excel downtime string → hours
+function timeToHours(value) {
+  if (!value) return 0;
 
-function render(){
-  tbody.innerHTML="";
-  data.forEach((r,i)=>{
-    let tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td><input type="date" value="${r.date}" onchange="update(${i},'date',this.value)"></td>
-      <td><input type="number" min="1" max="18" value="${r.line}" onchange="update(${i},'line',this.value)"></td>
-      <td><input value="${r.machine}" onchange="update(${i},'machine',this.value)"></td>
-      <td>
-        <select onchange="update(${i},'type',this.value)">
-          <option ${r.type=="Breakdown"?"selected":""}>Breakdown</option>
-          <option ${r.type=="PM"?"selected":""}>PM</option>
-        </select>
-      </td>
-      <td><input type="number" value="${r.duration}" onchange="update(${i},'duration',this.value)"></td>
-      <td><input type="number" value="${r.cost}" onchange="update(${i},'cost',this.value)"></td>
-    `;
-    tbody.appendChild(tr);
+  // Example: "11 days, 21:51:00"
+  if (value.toString().includes("day")) {
+    let parts = value.split(",");
+    let days = parseFloat(parts[0]);
+    let time = parts[1].trim().split(":");
+    return days * 24 + (+time[0]) + (+time[1]/60);
+  }
+
+  // Example: "02:15:00"
+  let t = value.split(":");
+  return (+t[0]) + (+t[1]/60);
+}
+
+// Build HTML Table
+function renderTable(tableId, headers, rows) {
+  let html = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+  rows.forEach(r => {
+    html += "<tr>" + r.map(x => `<td>${x}</td>`).join("") + "</tr>";
   });
-  recalculate();
+  document.getElementById(tableId).innerHTML = html;
 }
 
-function update(i,key,val){
-  data[i][key]=key=="line"||key=="duration"||key=="cost"?Number(val):val;
-  save();
-}
+/* -------- Main Excel Loader ---------- */
 
-function addRow(){
-  data.push({date:"2025-01-01",line:1,machine:"Filler",type:"Breakdown",duration:1,cost:100});
-  save();
-}
+document.getElementById("upload").addEventListener("change", function(e) {
+  let file = e.target.files[0];
+  let reader = new FileReader();
 
-function save(){
-  localStorage.setItem("maintenanceData",JSON.stringify(data));
-  render();
-}
+  reader.onload = function(evt) {
+    let data = new Uint8Array(evt.target.result);
+    let workbook = XLSX.read(data, { type: "array" });
 
-/* ------------------ KPI LOGIC ------------------ */
-function recalculate(){
-  let month=document.getElementById("monthFilter").value;
-  let filtered=data.filter(d=>!month||d.date.startsWith(month));
+    let sheet = workbook.Sheets[workbook.SheetNames[0]];
+    let json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  let breakdowns=filtered.filter(d=>d.type=="Breakdown");
-  let pm=filtered.filter(d=>d.type=="PM");
+    /* ---- Extract Blocks (Pivot Detection Simplified) ---- */
 
-  let bdHours=breakdowns.reduce((a,b)=>a+b.duration,0);
-  let cost=filtered.reduce((a,b)=>a+b.cost,0);
+    let daily = [];
+    let monthly = [];
+    let machines = [];
+    let areas = [];
 
-  document.getElementById("kpiBreakdown").innerText=bdHours.toFixed(1);
-  document.getElementById("kpiPM").innerText=filtered.length?((pm.length/filtered.length)*100).toFixed(0)+"%":"0%";
-  document.getElementById("kpiMTTR").innerText=breakdowns.length?(bdHours/breakdowns.length).toFixed(1):0;
-  document.getElementById("kpiMTBF").innerText=breakdowns.length?((720/breakdowns.length)).toFixed(1):0;
-  document.getElementById("kpiCost").innerText=cost+" SAR";
-  document.getElementById("kpiPower").innerText=(cost*0.3).toFixed(0)+" SAR";
+    json.forEach(row => {
+      if (row[0] && row[1] && row[0].toString().includes("Jan")) {
+        daily.push([row[0], timeToHours(row[1])]);
+      }
+      if (["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].includes(row[0])) {
+        monthly.push([row[0], timeToHours(row[1])]);
+      }
+      if (row[0] && row[0].toString().startsWith("M")) {
+        machines.push([row[0], row[1]]);
+      }
+      if (row[0] && row[0].toString().includes("Area")) {
+        areas.push([row[0], row[row.length-1]]);
+      }
+    });
 
-  drawChart(filtered);
-}
+    /* ---- KPI Calculation ---- */
 
-/* ------------------ CHART ------------------ */
-function drawChart(filtered){
-  const c=document.getElementById("lineChart");
-  const ctx=c.getContext("2d");
-  ctx.clearRect(0,0,c.width,c.height);
+    let totalDowntime = daily.reduce((a,b)=>a+b[1],0);
+    document.getElementById("totalDowntime").innerText = totalDowntime.toFixed(1);
 
-  let perLine={};
-  filtered.forEach(d=>{
-    if(d.type=="Breakdown"){
-      perLine[d.line]=(perLine[d.line]||0)+d.duration;
-    }
-  });
+    document.getElementById("totalEvents").innerText = machines.reduce((a,b)=>a+(+b[1]||0),0);
 
-  let lines=Object.keys(perLine);
-  let max=Math.max(...Object.values(perLine),1);
+    let worstM = monthly.sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById("worstMonth").innerText = worstM ? worstM[0] : "-";
 
-  lines.forEach((l,i)=>{
-    let h=(perLine[l]/max)*200;
-    ctx.fillStyle="#1f8f4a";
-    ctx.fillRect(30+i*30,220-h,20,h);
-    ctx.fillStyle="#000";
-    ctx.fillText(l,30+i*30,235);
-  });
-}
+    let worstMachine = machines.sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById("worstMachine").innerText = worstMachine ? worstMachine[0] : "-";
 
-render();
+    let topArea = areas.sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById("topArea").innerText = topArea ? topArea[0] : "-";
+
+    /* ---- Render Tables ---- */
+
+    renderTable("dailyTable", ["Date","Downtime Hours"], daily);
+    renderTable("monthlyTable", ["Month","Downtime Hours"], monthly);
+    renderTable("machineTable", ["Machine","Breakdown Count"], machines);
+    renderTable("areaTable", ["Area","Contribution"], areas);
+
+    /* ---- Charts ---- */
+
+    new Chart(document.getElementById("dailyChart"), {
+      type: "line",
+      data: {
+        labels: daily.map(d=>d[0]),
+        datasets: [{ label:"Downtime Hours", data: daily.map(d=>d[1]) }]
+      }
+    });
+
+    new Chart(document.getElementById("monthlyChart"), {
+      type: "bar",
+      data: {
+        labels: monthly.map(m=>m[0]),
+        datasets: [{ label:"Downtime Hours", data: monthly.map(m=>m[1]) }]
+      }
+    });
+
+    new Chart(document.getElementById("machineChart"), {
+      type: "bar",
+      data: {
+        labels: machines.slice(0,10).map(x=>x[0]),
+        datasets: [{ label:"Breakdowns", data: machines.slice(0,10).map(x=>x[1]) }]
+      },
+      options:{ indexAxis:"y" }
+    });
+
+    new Chart(document.getElementById("areaPie"), {
+      type: "pie",
+      data: {
+        labels: areas.map(a=>a[0]),
+        datasets: [{ data: areas.map(a=>a[1]) }]
+      }
+    });
+
+  };
+
+  reader.readAsArrayBuffer(file);
+});
 </script>
 
 </body>
