@@ -2,14 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NADEC Breakdown Maintenance Dashboard 2025</title>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- PDF Export Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
@@ -31,7 +27,7 @@
     }
 
     .subhead {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 300;
       margin-top: 6px;
       color: #d9e6ff;
@@ -43,7 +39,6 @@
       padding: 20px;
     }
 
-    /* KPI Cards */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -72,7 +67,6 @@
       color: #222;
     }
 
-    /* Charts */
     .chart-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
@@ -89,10 +83,9 @@
     h3 {
       text-align: center;
       color: #003366;
-      margin-top: 40px;
+      margin-top: 50px;
     }
 
-    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -104,49 +97,28 @@
       box-shadow: 0px 4px 10px rgba(0,0,0,0.12);
     }
 
-    th {
+    table th {
       background: #003366;
       color: white;
       padding: 10px;
       font-size: 13px;
-      position: sticky;
-      top: 0;
     }
 
-    td {
+    table td {
       padding: 8px;
       border-bottom: 1px solid #ddd;
       text-align: center;
     }
 
-    tr:hover {
+    table tr:hover {
       background: #f2f6ff;
     }
 
-    /* Scroll Tables */
     .scroll-box {
-      max-height: 320px;
+      max-height: 500px;
       overflow-y: auto;
       margin-top: 20px;
       border-radius: 12px;
-    }
-
-    /* PDF Button */
-    .pdf-btn {
-      background: linear-gradient(135deg,#7a0019,#b3002d);
-      color: white;
-      border: none;
-      padding: 15px 25px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-      transition: 0.3s;
-    }
-
-    .pdf-btn:hover {
-      transform: scale(1.05);
     }
 
     footer {
@@ -155,13 +127,6 @@
       margin-top: 30px;
       font-size: 14px;
       color: gray;
-    }
-
-    /* Mobile Friendly */
-    @media(max-width:650px){
-      header {font-size:18px;}
-      .chart-grid {grid-template-columns:1fr;}
-      table {font-size:12px;}
     }
   </style>
 </head>
@@ -175,8 +140,7 @@
   </div>
 </header>
 
-<!-- DASHBOARD CONTENT -->
-<div id="dashboardContent" class="container">
+<div class="container">
 
   <!-- KPI Cards -->
   <div class="kpi-grid">
@@ -205,6 +169,7 @@
       <canvas id="techChart"></canvas>
     </div>
 
+    <!-- NEW Chart -->
     <div class="chart-box">
       <h3>Top Technician Workload Ranking</h3>
       <canvas id="techBar"></canvas>
@@ -212,8 +177,9 @@
 
   </div>
 
-  <!-- Technician Table -->
+  <!-- Technician Full Table -->
   <h3>👷 Full Technician Monthly Breakdown Workload (Jan–Dec)</h3>
+
   <div class="scroll-box">
     <table>
       <tr>
@@ -221,119 +187,217 @@
         <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th>
         <th>May</th><th>Jun</th><th>Jul</th><th>Aug</th>
         <th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
-        <th>Total</th>
+        <th>Total Contribution</th>
       </tr>
 
-      <tr><td>Ali</td><td>50</td><td>54</td><td>65</td><td>65</td><td>70</td><td>68</td><td>78</td><td>90</td><td>43</td><td>88</td><td>82</td><td>82</td><td>753</td></tr>
-      <tr><td>Amgad</td><td>117</td><td>97</td><td>102</td><td>105</td><td>126</td><td>110</td><td>121</td><td>84</td><td>99</td><td>101</td><td>50</td><td>50</td><td>1112</td></tr>
+      <tr><td>Ali</td><td>50</td><td>54</td><td>65</td><td>65</td><td>70</td><td>68</td><td>78</td><td>90</td><td></td><td>43</td><td>88</td><td>82</td><td>753</td></tr>
+      <tr><td>Amgad</td><td>117</td><td>97</td><td>102</td><td></td><td>105</td><td>126</td><td>110</td><td>121</td><td>84</td><td>99</td><td>101</td><td>50</td><td>1112</td></tr>
       <tr><td>Dante</td><td>129</td><td>110</td><td>160</td><td>40</td><td>86</td><td>105</td><td>120</td><td>142</td><td>134</td><td>189</td><td>163</td><td>163</td><td>1541</td></tr>
-      <tr><td>Sameer</td><td>216</td><td>98</td><td>91</td><td>129</td><td>81</td><td>163</td><td>166</td><td>145</td><td>176</td><td>140</td><td>74</td><td>74</td><td>1479</td></tr>
-      <tr><td>Gilbert</td><td>132</td><td>128</td><td>115</td><td>113</td><td>152</td><td>128</td><td>125</td><td>126</td><td>118</td><td>147</td><td>111</td><td>0</td><td>1395</td></tr>
+      <tr><td>Sameer</td><td>216</td><td>98</td><td>91</td><td>129</td><td>81</td><td></td><td>163</td><td>166</td><td>145</td><td>176</td><td>140</td><td>74</td><td>1479</td></tr>
+      <tr><td>Gilbert</td><td>132</td><td>128</td><td>115</td><td>113</td><td>152</td><td>128</td><td>125</td><td>126</td><td>118</td><td>147</td><td>111</td><td></td><td>1395</td></tr>
       <tr><td>Lito</td><td>143</td><td>130</td><td>140</td><td>125</td><td>134</td><td>83</td><td>101</td><td>139</td><td>126</td><td>72</td><td>11</td><td>32</td><td>1236</td></tr>
-    </table>
-  </div>
+      <tr><td>Husam</td><td>88</td><td>92</td><td>72</td><td></td><td>100</td><td>127</td><td>126</td><td>145</td><td>130</td><td>107</td><td>98</td><td>129</td><td>1214</td></tr>
+      <tr><td>Nashwan</td><td>71</td><td>85</td><td>100</td><td>105</td><td>71</td><td></td><td>132</td><td>147</td><td>161</td><td>112</td><td>108</td><td>108</td><td>1200</td></tr>
+      <tr><td>Moneef</td><td>61</td><td>99</td><td>110</td><td>143</td><td>111</td><td>97</td><td>107</td><td>138</td><td>6</td><td>80</td><td>102</td><td>57</td><td>1111</td></tr>
+      <tr><td>Yousef</td><td>16</td><td>11</td><td>14</td><td>20</td><td>53</td><td>66</td><td>74</td><td>47</td><td>46</td><td>30</td><td>33</td><td>14</td><td>424</td></tr>
 
-  <!-- Month Downtime Table -->
-  <h3>📅 Month-wise Breakdown Downtime Summary</h3>
-  <div class="scroll-box">
-    <table>
-      <tr><th>Month</th><th>Total Downtime (HH:MM:SS)</th></tr>
-      <tr><td>Jan</td><td>285:51:00</td></tr>
-      <tr><td>Feb</td><td>241:58:00</td></tr>
-      <tr><td>Mar</td><td>312:16:00</td></tr>
-      <tr><td>Apr</td><td>222:32:00</td></tr>
-      <tr><td>May</td><td>304:34:00</td></tr>
-      <tr><td>Jun</td><td>260:13:00</td></tr>
-      <tr style="font-weight:bold;background:#fff3cd;"><td>Jul</td><td>446:58:00 (Highest)</td></tr>
-      <tr><td>Aug</td><td>277:00:00</td></tr>
-      <tr><td>Sep</td><td>260:12:00</td></tr>
-      <tr><td>Oct</td><td>327:08:00</td></tr>
-      <tr><td>Nov</td><td>270:41:00</td></tr>
-      <tr><td>Dec</td><td>257:24:00</td></tr>
     </table>
-  </div>
-
-  <!-- Machine Table -->
-  <h3>⚙️ Machine-wise Breakdown Frequency Report</h3>
-  <div class="scroll-box">
-    <table>
-      <tr><th>Machine</th><th>Total Breakdown Count</th></tr>
-      <tr><td>Crates Area</td><td>635</td></tr>
-      <tr><td>M1</td><td>822</td></tr>
-      <tr><td>M12</td><td>366</td></tr>
-      <tr><td>M14</td><td>805</td></tr>
-      <tr style="font-weight:bold;background:#f8d7da;"><td>M15</td><td>963 (Highest)</td></tr>
-      <tr><td>M16</td><td>214</td></tr>
-      <tr><td>M17</td><td>511</td></tr>
-      <tr><td>M18</td><td>447</td></tr>
-      <tr><td>M7</td><td>825</td></tr>
-    </table>
-  </div>
-
-  <!-- PDF Button -->
-  <div style="text-align:center;margin:40px 0;">
-    <button class="pdf-btn" onclick="downloadPDF()">
-      📄 Download Full Dashboard PDF
-    </button>
   </div>
 
 </div>
 
 <footer>
-  NADEC Drinkable Plant | Maintenance Dashboard 2025 | GitHub Pages Ready
+  NADEC Drinkable Plant | Technician Workload + Downtime Dashboard 2025 | GitHub Pages Ready
 </footer>
 
 <script>
+  // Monthly Downtime Chart
   new Chart(document.getElementById("monthlyChart"), {
     type: "bar",
     data: {
       labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-      datasets: [{ label: "Downtime Hours",
+      datasets: [{
+        label: "Downtime Hours",
         data: [285,241,312,222,304,260,446,277,260,327,270,257]
       }]
     }
   });
 
+  // Machine Breakdown Chart
   new Chart(document.getElementById("machineChart"), {
     type: "bar",
     data: {
       labels: ["M15","M7","M1","M14","M2"],
-      datasets: [{ label: "Breakdown Count",
+      datasets: [{
+        label: "Breakdown Count",
         data: [963,825,822,805,621]
       }]
     },
     options: { indexAxis: "y" }
   });
 
+  // Technician Contribution Pie Chart
   new Chart(document.getElementById("techChart"), {
     type: "pie",
     data: {
-      labels: ["Dante","Sameer","Gilbert","Lito","Ali"],
-      datasets: [{ data: [1541,1479,1395,1236,753] }]
+      labels: ["Dante","Sameer","Gilbert","Lito","Husam","Ali"],
+      datasets: [{
+        data: [1541,1479,1395,1236,1214,753]
+      }]
     }
   });
 
+  // NEW Technician Ranking Chart
   new Chart(document.getElementById("techBar"), {
     type: "bar",
     data: {
-      labels: ["Dante","Sameer","Gilbert","Lito","Ali"],
-      datasets: [{ label: "Total Contribution",
-        data: [1541,1479,1395,1236,753]
+      labels: ["Dante","Sameer","Gilbert","Lito","Husam","Amgad","Ali"],
+      datasets: [{
+        label: "Total Contribution",
+        data: [1541,1479,1395,1236,1214,1112,753]
       }]
     },
     options: { indexAxis: "y" }
   });
-
-  function downloadPDF() {
-    const dashboard = document.getElementById("dashboardContent");
-    html2pdf().set({
-      margin: 0.3,
-      filename: "NADEC_Maintenance_Dashboard_2025.pdf",
-      html2canvas: { scale: 2 },
-      jsPDF: { format: "a4", orientation: "portrait" }
-    }).from(dashboard).save();
-  }
 </script>
 
 </body>
 </html>
+<!-- ===================================== -->
+<!-- MONTH-WISE BREAKDOWN DOWNTIME SUMMARY -->
+<!-- ===================================== -->
+
+<div style="
+  margin-top:35px;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+">
+
+  <h2 style="color:#003973; margin-bottom:10px;">
+    📅 Month-wise Breakdown Downtime (Hours Summary)
+  </h2>
+
+  <p style="font-size:15px; color:#444; margin-bottom:20px;">
+    This table represents the total breakdown downtime accumulated each month.
+    It helps identify seasonal downtime patterns and the worst-performing months
+    in terms of maintenance losses.
+  </p>
+
+  <table style="
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+    text-align:center;
+  ">
+    <thead>
+      <tr style="background:#003973; color:white;">
+        <th style="padding:12px;">Month</th>
+        <th style="padding:12px;">Total Downtime (HH:MM:SS)</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr><td style="padding:10px;">Jan</td><td>285:51:00</td></tr>
+      <tr><td style="padding:10px;">Feb</td><td>241:58:00</td></tr>
+      <tr><td style="padding:10px;">Mar</td><td>312:16:00</td></tr>
+      <tr><td style="padding:10px;">Apr</td><td>222:32:00</td></tr>
+      <tr><td style="padding:10px;">May</td><td>304:34:00</td></tr>
+      <tr><td style="padding:10px;">Jun</td><td>260:13:00</td></tr>
+      <tr style="background:#fff3cd; font-weight:bold;">
+        <td style="padding:10px;">Jul</td><td>446:58:00 (Highest)</td>
+      </tr>
+      <tr><td style="padding:10px;">Aug</td><td>277:00:00</td></tr>
+      <tr><td style="padding:10px;">Sep</td><td>260:12:00</td></tr>
+      <tr><td style="padding:10px;">Oct</td><td>327:08:00</td></tr>
+      <tr><td style="padding:10px;">Nov</td><td>270:41:00</td></tr>
+      <tr><td style="padding:10px;">Dec</td><td>257:24:00</td></tr>
+    </tbody>
+  </table>
+
+  <p style="
+    margin-top:15px;
+    font-size:14px;
+    color:#666;
+  ">
+    ✅ Insight: July recorded the maximum downtime, indicating a critical need for preventive
+    maintenance planning during mid-year peak breakdown periods.
+  </p>
+
+</div>
+<!-- ===================================== -->
+<!-- MACHINE-WISE BREAKDOWN SUMMARY TABLE -->
+<!-- ===================================== -->
+
+<div style="
+  margin-top:35px;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+">
+
+  <h2 style="color:#7a0019; margin-bottom:10px;">
+    ⚙️ Machine-wise Breakdown Frequency Report (2025)
+  </h2>
+
+  <p style="font-size:15px; color:#444; margin-bottom:20px;">
+    This table summarizes the total breakdown occurrences recorded per machine/area.
+    It helps identify critical assets with repeated failures and supports maintenance
+    prioritization, spare planning, and reliability improvement actions.
+  </p>
+
+  <table style="
+    width:100%;
+    border-collapse:collapse;
+    font-size:15px;
+    text-align:center;
+  ">
+    <thead>
+      <tr style="background:#7a0019; color:white;">
+        <th style="padding:12px;">Machine / Area</th>
+        <th style="padding:12px;">Total Breakdown Count</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr><td style="padding:10px;">Crates Area/Line</td><td>635</td></tr>
+      <tr><td style="padding:10px;">M1</td><td>822</td></tr>
+      <tr><td style="padding:10px;">M10</td><td>1</td></tr>
+      <tr><td style="padding:10px;">M12</td><td>366</td></tr>
+      <tr><td style="padding:10px;">M13</td><td>317</td></tr>
+      <tr><td style="padding:10px;">M14</td><td>805</td></tr>
+
+      <tr style="background:#f8d7da; font-weight:bold;">
+        <td style="padding:10px;">M15</td>
+        <td>963 (Highest)</td>
+      </tr>
+
+      <tr><td style="padding:10px;">M16</td><td>214</td></tr>
+      <tr><td style="padding:10px;">M17</td><td>511</td></tr>
+      <tr><td style="padding:10px;">M18</td><td>447</td></tr>
+      <tr><td style="padding:10px;">M2</td><td>621</td></tr>
+      <tr><td style="padding:10px;">M3</td><td>538</td></tr>
+      <tr><td style="padding:10px;">M4</td><td>590</td></tr>
+      <tr><td style="padding:10px;">M5</td><td>1</td></tr>
+      <tr><td style="padding:10px;">M6</td><td>574</td></tr>
+      <tr><td style="padding:10px;">M7</td><td>825</td></tr>
+      <tr><td style="padding:10px;">M8</td><td>614</td></tr>
+      <tr><td style="padding:10px;">M9</td><td>59</td></tr>
+    </tbody>
+  </table>
+
+  <p style="
+    margin-top:15px;
+    font-size:14px;
+    color:#666;
+  ">
+    ✅ Insight: Machine <b>M15</b> recorded the highest breakdown frequency (963 events),
+    making it the most critical asset requiring immediate preventive maintenance
+    and root cause failure analysis (RCFA).
+  </p>
+
+</div>
+
+
