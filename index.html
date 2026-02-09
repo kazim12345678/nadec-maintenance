@@ -399,5 +399,74 @@
   </p>
 
 </div>
+<!-- ======================================================= -->
+<!-- FULL DASHBOARD PDF DOWNLOAD BUTTON + EXPORT FUNCTION -->
+<!-- ======================================================= -->
+
+<!-- Download PDF Button -->
+<div style="text-align:center; margin:40px 0;">
+  <button onclick="downloadPDF()" style="
+    background:linear-gradient(135deg,#7a0019,#b3002d);
+    color:white;
+    border:none;
+    padding:15px 25px;
+    font-size:16px;
+    font-weight:bold;
+    border-radius:12px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.25);
+    transition:0.3s;
+  "
+  onmouseover="this.style.transform='scale(1.05)'"
+  onmouseout="this.style.transform='scale(1)'"
+  >
+    📄 Download NADEC Maintenance Report as PDF
+  </button>
+
+  <p style="font-size:14px; color:#555; margin-top:10px;">
+    Click to export the complete dashboard (charts + tables) into a professional PDF report.
+  </p>
+</div>
+
+<!-- PDF Export Library (Works in GitHub Pages) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- PDF Export Script -->
+<script>
+function downloadPDF() {
+
+  // Select full page dashboard
+  const dashboard = document.body;
+
+  // PDF Export Options
+  const options = {
+    margin: 0.4,
+    filename: "NADEC_Drinkable_Maintenance_Performance_Report_2025.pdf",
+
+    image: {
+      type: "jpeg",
+      quality: 0.98
+    },
+
+    html2canvas: {
+      scale: 2,        // High resolution
+      scrollY: 0       // Fix scrolling issues
+    },
+
+    jsPDF: {
+      unit: "in",
+      format: "a4",
+      orientation: "portrait"
+    }
+  };
+
+  // Generate + Download PDF
+  html2pdf()
+    .set(options)
+    .from(dashboard)
+    .save();
+}
+</script>
+
 
 
