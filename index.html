@@ -1,345 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maintenance Breakdown CUTE Dashboard</title>
+  <meta charset="UTF-8">
+  <title>NADEC Maintenance Breakdown Tracker</title>
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 15px;
-    background: #f4f6f9;
-  }
-
-  h1 {
-    text-align: center;
-    color: darkgreen;
-    font-size: 22px;
-    margin-bottom: 15px;
-  }
-
-  /* Button */
-  .toggle-btn {
-    display: block;
-    width: 95%;
-    max-width: 400px;
-    margin: 10px auto;
-    padding: 12px;
-    background: darkgreen;
-    color: white;
-    font-size: 16px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-  }
-
-  .toggle-btn:hover {
-    background: green;
-  }
-
-  /* Form Box */
-  .form-box {
-    display: none;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px auto;
-    width: 95%;
-    max-width: 500px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-
-  label {
-    font-weight: bold;
-    display: block;
-    margin-top: 10px;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
-
-  textarea {
-    resize: none;
-    height: 60px;
-  }
-
-  .save-btn {
-    margin-top: 15px;
-    padding: 10px;
-    width: 100%;
-    border: none;
-    background: darkblue;
-    color: white;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-
-  .save-btn:hover {
-    background: navy;
-  }
-
-  /* Timeline */
-  .timeline {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin: 15px auto;
-    width: 95%;
-    max-width: 900px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-
-  .machine-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  .machine-label {
-    width: 60px;
-    font-weight: bold;
-    font-size: 14px;
-  }
-
-  .machine-bar {
-    flex: 1;
-    height: 18px;
-    border: 1px solid #aaa;
-    border-radius: 6px;
-    overflow: hidden;
-    display: flex;
-  }
-
-  .segment {
-    height: 100%;
-    cursor: pointer;
-  }
-
-  .mech { background: red; }
-  .elec { background: blue; }
-  .auto { background: gold; }
-
-  /* Table */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 13px;
-  }
-
-  th {
-    background: darkgreen;
-    color: white;
-    padding: 8px;
-  }
-
-  td {
-    padding: 6px;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
-  }
-
-  tr:hover {
-    background: #f2f6ff;
-  }
-
-  /* Mobile Responsive */
-  @media(max-width:600px) {
-    .machine-label {
-      width: 45px;
-      font-size: 12px;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f9;
     }
 
-    h1 {
-      font-size: 18px;
+    header {
+      background: #003366;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
     }
+
+    .container {
+      padding: 15px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    button {
+      padding: 10px 14px;
+      margin: 6px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-upload { background: #007bff; color: white; }
+    .btn-add { background: #28a745; color: white; }
+    .btn-export { background: #ff9800; color: white; }
+    .btn-delete { background: crimson; color: white; }
+    .btn-edit { background: purple; color: white; }
+
+    .hidden { display: none; }
 
     table {
-      font-size: 11px;
+      width: 100%;
+      margin-top: 15px;
+      border-collapse: collapse;
+      background: white;
+      font-size: 14px;
     }
-  }
-</style>
+
+    th {
+      background: #003366;
+      color: white;
+      padding: 8px;
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    .timeline {
+      margin-top: 25px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .machine-row {
+      margin: 10px 0;
+    }
+
+    .machine-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .bar {
+      height: 18px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-right: 4px;
+      cursor: pointer;
+    }
+
+    .Mechanical { background: red; }
+    .Electrical { background: blue; }
+    .Automation { background: green; }
+
+    @media(max-width:768px){
+      table { font-size: 12px; }
+      .bar { height: 14px; }
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>🛠 Maintenance Breakdown CUTE Dashboard</h1>
+<header>
+  NADEC Real-Time Maintenance Breakdown Dashboard
+</header>
 
-<!-- Toggle Form Button -->
-<button class="toggle-btn" onclick="toggleForm()">
-  ➕ Add Breakdown Entry
-</button>
+<div class="container">
 
-<!-- Hidden Breakdown Form -->
-<div class="form-box" id="formBox">
-  <h2 style="text-align:center;">Breakdown Entry Form</h2>
+  <!-- Upload CSV -->
+  <input type="file" id="csvFile" accept=".csv" hidden>
+  <button class="btn-upload" onclick="document.getElementById('csvFile').click()">
+    📂 Upload CSV
+  </button>
 
-  <label>Date</label>
-  <input type="date" id="date">
+  <!-- Toggle Form -->
+  <button class="btn-add" onclick="toggleForm()">
+    ➕ Add Breakdown Entry
+  </button>
 
-  <label>Machine</label>
-  <select id="machine"></select>
+  <button class="btn-export" onclick="exportCSV()">
+    📥 Export Updated CSV
+  </button>
 
-  <label>Breakdown Minutes</label>
-  <input type="number" id="minutes" placeholder="Enter minutes">
+  <!-- Hidden Form -->
+  <div id="entryForm" class="hidden">
+    <h3>Add Breakdown</h3>
 
-  <label>Breakdown Type</label>
-  <select id="type">
-    <option value="mech">Mechanical (Red)</option>
-    <option value="elec">Electrical (Blue)</option>
-    <option value="auto">Automation (Yellow)</option>
-  </select>
+    Date: <input type="date" id="date"><br><br>
 
-  <label>Reason</label>
-  <textarea id="reason" placeholder="Write breakdown reason..."></textarea>
+    Machine:
+    <select id="machine">
+      <option>M1</option><option>M2</option><option>M3</option>
+      <option>M4</option><option>M5</option><option>M6</option>
+      <option>M7</option><option>M8</option><option>M9</option>
+      <option>M10</option><option>M11</option><option>M12</option>
+      <option>M13</option><option>M14</option><option>M15</option>
+      <option>M16</option><option>M17</option><option>M18</option>
+    </select><br><br>
 
-  <button class="save-btn" onclick="addBreakdown()">Save Breakdown</button>
-</div>
+    Time (minutes): <input type="number" id="time"><br><br>
 
-<!-- Timeline Display -->
-<div class="timeline">
-  <h2 style="text-align:center;">📍 Breakdown Report (18 Machines)</h2>
-  <div id="timeline"></div>
+    Reason:
+    <select id="reason">
+      <option>Mechanical</option>
+      <option>Electrical</option>
+      <option>Automation</option>
+    </select><br><br>
 
-  <!-- Entry Table -->
-  <h2 style="text-align:center;margin-top:25px;">📋 Breakdown Log Table</h2>
-  <div style="overflow-x:auto;">
-    <table id="logTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Machine</th>
-          <th>Minutes</th>
-          <th>Type</th>
-          <th>Reason</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    Technician: <input type="text" id="tech"><br><br>
+
+    <button class="btn-add" onclick="addEntry()">Save Entry</button>
   </div>
+
+  <!-- Data Table -->
+  <h3>📋 Breakdown Log</h3>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Machine</th>
+        <th>Time</th>
+        <th>Reason</th>
+        <th>Technician</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <h3>📊 Machine Breakdown Timeline (CUTE View)</h3>
+    <div id="timelineView"></div>
+  </div>
+
 </div>
 
 <script>
-/* ===== Machine Dropdown ===== */
-const machineSelect = document.getElementById("machine");
-for (let i = 1; i <= 18; i++) {
-  let opt = document.createElement("option");
-  opt.value = "M" + i;
-  opt.innerText = "Machine M" + i;
-  machineSelect.appendChild(opt);
-}
+  let breakdownData = JSON.parse(localStorage.getItem("breakdowns")) || [];
 
-/* ===== Load Stored Data ===== */
-let breakdownData = JSON.parse(localStorage.getItem("breakdowns")) || [];
-
-/* ===== Toggle Form ===== */
-function toggleForm() {
-  const box = document.getElementById("formBox");
-  box.style.display = (box.style.display === "block") ? "none" : "block";
-}
-
-/* ===== Add Breakdown ===== */
-function addBreakdown() {
-  const date = document.getElementById("date").value;
-  const machine = document.getElementById("machine").value;
-  const minutes = document.getElementById("minutes").value;
-  const type = document.getElementById("type").value;
-  const reason = document.getElementById("reason").value;
-
-  if (!date || !minutes || !reason) {
-    alert("⚠ Please fill all fields!");
-    return;
+  function toggleForm() {
+    document.getElementById("entryForm").classList.toggle("hidden");
   }
 
-  breakdownData.push({ date, machine, minutes, type, reason });
+  function saveData() {
+    localStorage.setItem("breakdowns", JSON.stringify(breakdownData));
+    renderTable();
+    renderTimeline();
+  }
 
-  localStorage.setItem("breakdowns", JSON.stringify(breakdownData));
+  function addEntry() {
+    let entry = {
+      date: document.getElementById("date").value,
+      machine: document.getElementById("machine").value,
+      time: document.getElementById("time").value,
+      reason: document.getElementById("reason").value,
+      tech: document.getElementById("tech").value
+    };
 
-  alert("✅ Breakdown Saved!");
+    breakdownData.push(entry);
+    saveData();
+  }
 
-  renderDashboard();
-}
+  function deleteEntry(index) {
+    breakdownData.splice(index, 1);
+    saveData();
+  }
 
-/* ===== Render Dashboard ===== */
-function renderDashboard() {
-  renderTimeline();
-  renderTable();
-}
+  function editEntry(index) {
+    let e = breakdownData[index];
 
-/* ===== Render Timeline ===== */
-function renderTimeline() {
-  const container = document.getElementById("timeline");
-  container.innerHTML = "";
+    document.getElementById("date").value = e.date;
+    document.getElementById("machine").value = e.machine;
+    document.getElementById("time").value = e.time;
+    document.getElementById("reason").value = e.reason;
+    document.getElementById("tech").value = e.tech;
 
-  for (let i = 1; i <= 18; i++) {
-    const machineName = "M" + i;
+    deleteEntry(index);
+    toggleForm();
+  }
 
-    const row = document.createElement("div");
-    row.className = "machine-row";
+  function renderTable() {
+    let tbody = document.querySelector("#dataTable tbody");
+    tbody.innerHTML = "";
 
-    const label = document.createElement("div");
-    label.className = "machine-label";
-    label.innerText = machineName;
+    breakdownData.forEach((e, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${e.date}</td>
+          <td>${e.machine}</td>
+          <td>${e.time} min</td>
+          <td>${e.reason}</td>
+          <td>${e.tech}</td>
+          <td>
+            <button class="btn-edit" onclick="editEntry(${i})">Edit</button>
+            <button class="btn-delete" onclick="deleteEntry(${i})">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-    const bar = document.createElement("div");
-    bar.className = "machine-bar";
+  function renderTimeline() {
+    let view = document.getElementById("timelineView");
+    view.innerHTML = "";
 
-    const events = breakdownData.filter(b => b.machine === machineName);
+    let machines = [...new Set(breakdownData.map(x => x.machine))];
 
-    events.forEach(ev => {
-      const seg = document.createElement("div");
-      seg.className = "segment " + ev.type;
-      seg.style.width = Math.min(ev.minutes, 120) + "px";
+    machines.forEach(m => {
+      let machineEvents = breakdownData.filter(x => x.machine === m);
 
-      seg.onclick = () => {
-        alert(
-          "📌 Breakdown Details\n\n" +
-          "Date: " + ev.date + "\n" +
-          "Machine: " + ev.machine + "\n" +
-          "Minutes: " + ev.minutes + "\n" +
-          "Type: " + ev.type.toUpperCase() + "\n" +
-          "Reason: " + ev.reason
-        );
-      };
+      let row = `<div class="machine-row">
+        <div class="machine-title">${m}</div>`;
 
-      bar.appendChild(seg);
+      machineEvents.forEach(ev => {
+        row += `<div class="bar ${ev.reason}"
+          style="width:${ev.time}px"
+          onclick="alert('Machine: ${m}\\nReason: ${ev.reason}\\nTime: ${ev.time} min\\nTechnician: ${ev.tech}')">
+        </div>`;
+      });
+
+      row += "</div>";
+      view.innerHTML += row;
+    });
+  }
+
+  function exportCSV() {
+    let csv = "Date,Machine,Time,Reason,Technician\n";
+
+    breakdownData.forEach(e => {
+      csv += `${e.date},${e.machine},${e.time},${e.reason},${e.tech}\n`;
     });
 
-    row.appendChild(label);
-    row.appendChild(bar);
-
-    container.appendChild(row);
+    let blob = new Blob([csv], { type: "text/csv" });
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "breakdown_data.csv";
+    link.click();
   }
-}
 
-/* ===== Render Table ===== */
-function renderTable() {
-  const tbody = document.querySelector("#logTable tbody");
-  tbody.innerHTML = "";
-
-  breakdownData.forEach(ev => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${ev.date}</td>
-      <td>${ev.machine}</td>
-      <td>${ev.minutes}</td>
-      <td>${ev.type}</td>
-      <td>${ev.reason}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-/* ===== Initial Load ===== */
-renderDashboard();
+  // Load Dashboard
+  renderTable();
+  renderTimeline();
 </script>
 
 </body>
