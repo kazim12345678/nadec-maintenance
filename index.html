@@ -1,545 +1,554 @@
-import pandas as pd
-import numpy as np
-import os
-from datetime import datetime
-
-# ----------------------------
-# Config
-# ----------------------------
-EXCEL_PATH = os.environ.get("EXCEL_PATH", "data/Book2_sheet2_all_things.xlsx")
-OUT_DIR = os.environ.get("OUT_DIR", "docs")
-OUT_HTML = os.path.join(OUT_DIR, "index.html")  # GitHub Pages friendly
-
-# ----------------------------
-# Helpers
-# ----------------------------
-def excel_serial_to_datetime(x):
-    """Convert Excel serial date (e.g., 46023) to pandas datetime."""
-    if pd.isna(x):
-        return pd.NaT
-    if isinstance(x, (pd.Timestamp, datetime)):
-        return pd.to_datetime(x)
-    try:
-        return pd.to_datetime(float(x), unit="D", origin="1899-12-30")
-    except:
-        return pd.NaT
-
-def row_contains_tokens(row_values, tokens):
-    r = [str(v).strip().lower() for v in row_values]
-    return all(any(tok in cell for cell in r) for tok in tokens)
-
-def find_header_row(df, tokens, search_start=0, search_end=None):
-    if search_end is None:
-        search_end = len(df)
-    for i in range(search_start, search_end):
-        if row_contains_tokens(df.iloc[i].values, tokens):
-            return i
-    return None
-
-def extract_table_from_header(df, header_row, ncols, stop_on_blank_firstcol=True):
-    block = df.iloc[header_row:, :ncols].copy()
-    cols = block.iloc[0].astype(str).str.strip().tolist()
-    out = block.iloc[1:].copy()
-    out.columns = cols
-
-    if stop_on_blank_firstcol and len(out) > 0:
-        firstcol = out.iloc[:, 0].astype(str).str.strip()
-        stop_idx = None
-        for i, v in enumerate(firstcol.values):
-            if v == "" or v.lower() in ["nan", "none"]:
-                stop_idx = i
-                break
-        if stop_idx is not None:
-            out = out.iloc[:stop_idx].copy()
-    return out
-
-def dt_fmt(d):
-    return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else ""
-
-def df_to_html_table(df, float_cols=None, int_cols=None):
-    t = df.copy()
-    if float_cols:
-        for c in float_cols:
-            if c in t.columns:
-                t[c] = t[c].astype(float).map(lambda x: f"{x:,.3f}")
-    if int_cols:
-        for c in int_cols:
-            if c in t.columns:
-                t[c] = t[c].astype(int).map(lambda x: f"{x:,d}")
-    return t.to_html(index=False, escape=False, border=0, classes="tbl")
-
-# ----------------------------
-# Load workbook
-# ----------------------------
-if not os.path.exists(EXCEL_PATH):
-    raise FileNotFoundError(
-        f"Excel not found at: {EXCEL_PATH}\n"
-        f"Tip: put your file at data/Book2_sheet2_all_things.xlsx or set EXCEL_PATH."
-    )
-
-sheet2_raw = pd.read_excel(EXCEL_PATH, sheet_name="Sheet2", header=None, engine="openpyxl")
-sheet3_raw = None
-sheet6_raw = None
-try:
-    sheet3_raw = pd.read_excel(EXCEL_PATH, sheet_name="Sheet3", header=None, engine="openpyxl")
-except:
-    pass
-try:
-    sheet6_raw = pd.read_excel(EXCEL_PATH, sheet_name="Sheet6", header=None, engine="openpyxl")
-except:
-    pass
-
-# ----------------------------
-# Extract Downtime_Raw (Tidy) from Sheet2
-# Columns: Date_Clean, Machine, Downtime_hours
-# ----------------------------
-downtime_hdr = find_header_row(sheet2_raw, tokens=["date_clean", "machine", "downtime_hours"])
-if downtime_hdr is None:
-    raise ValueError("Cannot find Downtime_Raw header row in Sheet2.")
-
-downtime = extract_table_from_header(sheet2_raw, downtime_hdr, ncols=3)
-downtime.columns = ["Date_Clean", "Machine", "Downtime_hours"]
-downtime["Date_Clean"] = downtime["Date_Clean"].apply(excel_serial_to_datetime)
-downtime["Machine"] = downtime["Machine"].astype(str).str.strip()
-downtime["Downtime_hours"] = pd.to_numeric(downtime["Downtime_hours"], errors="coerce").fillna(0.0)
-downtime = downtime.dropna(subset=["Date_Clean"]).copy()
-downtime["Month"] = downtime["Date_Clean"].dt.to_period("M").astype(str)
-
-# ----------------------------
-# Extract Notifications_By_Date from Sheet2
-# Columns: Date_Clean, With Notification, Without Notification, Grand Total
-# ----------------------------
-col0 = sheet2_raw.iloc[:, 0].astype(str).str.lower()
-label_row = None
-hits = col0[col0.str.contains("notifications_by_date", na=False)]
-if len(hits):
-    label_row = int(hits.index[0])
-
-notif_hdr = find_header_row(
-    sheet2_raw,
-    tokens=["date_clean", "with notification", "without notification"],
-    search_start=(label_row if label_row is not None else 0),
-    search_end=min((label_row + 40) if label_row is not None else len(sheet2_raw), len(sheet2_raw)),
-)
-if notif_hdr is None:
-    raise ValueError("Cannot find Notifications_By_Date header row in Sheet2.")
-
-notifications = extract_table_from_header(sheet2_raw, notif_hdr, ncols=4)
-notifications.columns = ["Date_Clean", "With_Notification", "Without_Notification", "Total_Jobs"]
-notifications["Date_Clean"] = notifications["Date_Clean"].apply(excel_serial_to_datetime)
-for c in ["With_Notification", "Without_Notification", "Total_Jobs"]:
-    notifications[c] = pd.to_numeric(notifications[c], errors="coerce").fillna(0).astype(int)
-notifications = notifications.dropna(subset=["Date_Clean"]).copy()
-notifications["Month"] = notifications["Date_Clean"].dt.to_period("M").astype(str)
-
-# ----------------------------
-# Extract Job_Category_Summary from Sheet2
-# Columns: Job_Category, Jobs_Count, Downtime_hours
-# ----------------------------
-cat_label_row = None
-hits2 = col0[col0.str.contains("job_category_summary", na=False)]
-if len(hits2):
-    cat_label_row = int(hits2.index[0])
-
-jobcat_hdr = find_header_row(
-    sheet2_raw,
-    tokens=["job_category", "jobs_count", "downtime_hours"],
-    search_start=(cat_label_row if cat_label_row is not None else 0),
-    search_end=min((cat_label_row + 40) if cat_label_row is not None else len(sheet2_raw), len(sheet2_raw)),
-)
-if jobcat_hdr is None:
-    raise ValueError("Cannot find Job_Category_Summary header row in Sheet2.")
-
-jobcat = extract_table_from_header(sheet2_raw, jobcat_hdr, ncols=3)
-jobcat.columns = ["Job_Category", "Jobs_Count", "Downtime_hours"]
-jobcat["Job_Category"] = jobcat["Job_Category"].astype(str).str.strip()
-jobcat["Jobs_Count"] = pd.to_numeric(jobcat["Jobs_Count"], errors="coerce").fillna(0).astype(int)
-jobcat["Downtime_hours"] = pd.to_numeric(jobcat["Downtime_hours"], errors="coerce").fillna(0.0)
-
-# ----------------------------
-# Compute ALL KPIs (1 to 11)
-# ----------------------------
-daily_downtime = downtime.groupby("Date_Clean", as_index=False)["Downtime_hours"].sum().sort_values("Date_Clean")
-n_days = len(daily_downtime)
-
-# KPI 1
-kpi1_total_downtime = float(downtime["Downtime_hours"].sum())
-
-# KPI 2
-kpi2_avg_daily = float(kpi1_total_downtime / n_days) if n_days else 0.0
-
-# KPI 3
-machine_totals = downtime.groupby("Machine", as_index=False)["Downtime_hours"].sum().sort_values("Downtime_hours", ascending=False)
-
-# KPI 4
-machine_totals["Contribution_pct"] = np.where(
-    kpi1_total_downtime > 0, machine_totals["Downtime_hours"] / kpi1_total_downtime * 100, 0.0
-)
-
-# KPI 5
-total_jobs = int(notifications["Total_Jobs"].sum())
-jobs_with = int(notifications["With_Notification"].sum())
-jobs_without = int(notifications["Without_Notification"].sum())
-kpi5_with_pct = (jobs_with / total_jobs * 100) if total_jobs else 0.0
-kpi5_without_pct = (jobs_without / total_jobs * 100) if total_jobs else 0.0
-
-# KPI 6
-notif_daily = notifications.sort_values("Date_Clean").copy()
-
-# KPI 7
-breakdown_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower() == "breakdown", "Jobs_Count"].sum())
-corrective_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower() == "corrective", "Jobs_Count"].sum())
-grand_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower() == "grand total", "Jobs_Count"].sum())
-if grand_jobs == 0:
-    grand_jobs = breakdown_jobs + corrective_jobs
-kpi7_breakdown_pct = (breakdown_jobs / grand_jobs * 100) if grand_jobs else 0.0
-kpi7_corrective_pct = (corrective_jobs / grand_jobs * 100) if grand_jobs else 0.0
-
-# KPI 8
-jobcat_calc = jobcat.copy()
-jobcat_calc["Downtime_per_Job"] = np.where(jobcat_calc["Jobs_Count"] > 0, jobcat_calc["Downtime_hours"] / jobcat_calc["Jobs_Count"], 0.0)
-
-# KPI 10
-if n_days:
-    worst_row = daily_downtime.loc[daily_downtime["Downtime_hours"].idxmax()]
-    kpi10_worst_day = worst_row["Date_Clean"]
-    kpi10_worst_hours = float(worst_row["Downtime_hours"])
-else:
-    kpi10_worst_day, kpi10_worst_hours = pd.NaT, 0.0
-
-# KPI 11
-top5 = daily_downtime.sort_values("Downtime_hours", ascending=False).head(5)
-kpi11_top5_contrib_pct = (top5["Downtime_hours"].sum() / kpi1_total_downtime * 100) if kpi1_total_downtime else 0.0
-
-monthly_downtime = downtime.groupby("Month", as_index=False)["Downtime_hours"].sum().sort_values("Month")
-notif_monthly = notifications.groupby("Month", as_index=False)[["With_Notification", "Without_Notification", "Total_Jobs"]].sum()
-notif_monthly["With_pct"] = np.where(notif_monthly["Total_Jobs"] > 0, notif_monthly["With_Notification"] / notif_monthly["Total_Jobs"] * 100, 0.0)
-notif_monthly["Without_pct"] = np.where(notif_monthly["Total_Jobs"] > 0, notif_monthly["Without_Notification"] / notif_monthly["Total_Jobs"] * 100, 0.0)
-
-# Full daily history (downtime + notifications)
-history_daily = daily_downtime.copy()
-history_daily["Date"] = history_daily["Date_Clean"].map(dt_fmt)
-history_daily = history_daily[["Date", "Downtime_hours"]].rename(columns={"Downtime_hours": "Total_Downtime_hours"})
-
-history_notif = notif_daily.copy()
-history_notif["Date"] = history_notif["Date_Clean"].map(dt_fmt)
-history_notif = history_notif[["Date", "With_Notification", "Without_Notification", "Total_Jobs"]]
-
-history_combined = pd.merge(history_daily, history_notif, on="Date", how="outer").sort_values("Date")
-history_combined["Total_Downtime_hours"] = pd.to_numeric(history_combined["Total_Downtime_hours"], errors="coerce").fillna(0.0)
-history_combined["With_Notification"] = pd.to_numeric(history_combined["With_Notification"], errors="coerce").fillna(0).astype(int)
-history_combined["Without_Notification"] = pd.to_numeric(history_combined["Without_Notification"], errors="coerce").fillna(0).astype(int)
-history_combined["Total_Jobs"] = pd.to_numeric(history_combined["Total_Jobs"], errors="coerce").fillna(0).astype(int)
-
-# Chart data
-chart_daily_labels = [dt_fmt(d) for d in daily_downtime["Date_Clean"].tolist()]
-chart_daily_values = [round(v, 3) for v in daily_downtime["Downtime_hours"].tolist()]
-
-topN = 10
-top_m = machine_totals.head(topN).copy()
-chart_mach_labels = top_m["Machine"].tolist()
-chart_mach_values = [round(v, 3) for v in top_m["Downtime_hours"].tolist()]
-
-notif_labels = [dt_fmt(d) for d in notif_daily["Date_Clean"].tolist()]
-notif_with = notif_daily["With_Notification"].tolist()
-notif_without = notif_daily["Without_Notification"].tolist()
-
-cat_rows = jobcat_calc[jobcat_calc["Job_Category"].str.lower().isin(["breakdown", "corrective"])].copy()
-cat_labels = cat_rows["Job_Category"].tolist()
-cat_jobs = cat_rows["Jobs_Count"].tolist()
-cat_downtime = [round(v, 3) for v in cat_rows["Downtime_hours"].tolist()]
-
-# ----------------------------
-# Build HTML
-# ----------------------------
-os.makedirs(OUT_DIR, exist_ok=True)
-generated_on = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-period_start = dt_fmt(daily_downtime["Date_Clean"].min()) if n_days else "-"
-period_end = dt_fmt(daily_downtime["Date_Clean"].max()) if n_days else "-"
-
-machine_table = machine_totals.copy()
-machine_table["Downtime_hours"] = machine_table["Downtime_hours"].round(3)
-machine_table["Contribution_pct"] = machine_table["Contribution_pct"].round(2)
-
-top_machine_name = machine_table.iloc[0]["Machine"] if len(machine_table) else "-"
-top_machine_hours = float(machine_table.iloc[0]["Downtime_hours"]) if len(machine_table) else 0.0
-top_machine_pct = float(machine_table.iloc[0]["Contribution_pct"]) if len(machine_table) else 0.0
-
-html = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Machine Downtime KPI Report</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root {{
-  --bg:#0b1220; --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.04);
-  --text:#e7eefc; --muted:#a9b7d0; --accent:#6aa6ff; --accent2:#67e8f9;
-  --good:#34d399; --warn:#fbbf24; --bad:#fb7185; --border:rgba(255,255,255,.10);
-}}
-*{{box-sizing:border-box}}
-body{{
-  margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
-  background:radial-gradient(1200px 800px at 20% 10%, rgba(106,166,255,.25), transparent 60%),
-            radial-gradient(1200px 800px at 80% 20%, rgba(103,232,249,.18), transparent 60%),
-            var(--bg);
-}}
-.container{{max-width:1320px;margin:0 auto;padding:26px 18px 60px}}
-.header{{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-end;
-  padding:18px;border:1px solid var(--border);background:linear-gradient(180deg,var(--panel),var(--panel2));
-  border-radius:18px}}
-.header h1{{margin:0;font-size:26px;font-weight:800}}
-.small{{font-size:12px;line-height:1.55;color:var(--muted)}}
-.meta{{text-align:right;font-size:13px;color:var(--muted);line-height:1.55}}
-.grid{{display:grid;gap:14px}}
-.kpi-grid{{margin-top:14px;grid-template-columns:repeat(12,1fr)}}
-.card{{border:1px solid var(--border);background:linear-gradient(180deg,var(--panel),var(--panel2));
-  border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25)}}
-.kpi{{grid-column:span 3;min-height:110px}}
-.kpi.wide{{grid-column:span 6}}
-.label{{font-size:12px;color:var(--muted);margin-bottom:6px}}
-.value{{font-size:22px;font-weight:800}}
-.sub{{margin-top:6px;font-size:12px;color:var(--muted)}}
-.code{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:6px 9px;border:1px solid var(--border);
-  background:rgba(255,255,255,.05);border-radius:10px;display:inline-block}}
-.section-title{{margin:22px 2px 10px;font-size:16px;font-weight:800}}
-.two-col{{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}}
-@media (max-width:980px){{.kpi{{grid-column:span 6}}.kpi.wide{{grid-column:span 12}}.two-col{{grid-template-columns:1fr}}}}
-.chart-wrap{{height:320px}} .chart-wrap.tall{{height:380px}}
-.tbl{{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}}
-.tbl thead th{{text-align:left;font-size:12px;color:var(--muted);padding:10px;border-bottom:1px solid var(--border)}}
-.tbl tbody td{{padding:10px;border-bottom:1px solid var(--border);font-size:13px}}
-.tbl tbody tr:hover{{background:rgba(106,166,255,.06)}}
-.hr{{height:1px;background:var(--border);margin:14px 0}}
-.badge{{display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:800;color:var(--text)}}
-.dot{{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(106,166,255,.15)}}
-</style>
-</head>
-<body>
-<div class="container">
-
-  <div class="header">
-    <div>
-      <h1>Machine Downtime KPI Report</h1>
-      <div class="small">
-        Source workbook: <span class="code">{os.path.basename(EXCEL_PATH)}</span><br/>
-        Generated: <span class="code">{generated_on}</span>
-      </div>
-    </div>
-    <div class="meta">
-      Period: {period_start} → {period_end}<br/>
-      Days: {n_days} | Machines: {len(machine_totals)} | Total Jobs: {total_jobs:,d}
-    </div>
-  </div>
-
-  <div class="grid kpi-grid">
-    <div class="card kpi">
-      <div class="label">KPI 1 — Total Downtime (hrs)</div>
-      <div class="value">{kpi1_total_downtime:,.3f}</div>
-      <div class="sub">Formula: <span class="code">SUM(Downtime_hours)</span></div>
-    </div>
-
-    <div class="card kpi">
-      <div class="label">KPI 2 — Average Daily Downtime (hrs/day)</div>
-      <div class="value">{kpi2_avg_daily:,.3f}</div>
-      <div class="sub">Formula: <span class="code">Total Downtime / #Days</span></div>
-    </div>
-
-    <div class="card kpi">
-      <div class="label">KPI 5 — % Jobs With Notification</div>
-      <div class="value">{kpi5_with_pct:,.2f}%</div>
-      <div class="sub">With: {jobs_with:,d} | Without: {jobs_without:,d} ({kpi5_without_pct:,.2f}%)</div>
-    </div>
-
-    <div class="card kpi">
-      <div class="label">KPI 7 — Breakdown vs Corrective (Jobs %)</div>
-      <div class="value">{kpi7_breakdown_pct:,.2f}% / {kpi7_corrective_pct:,.2f}%</div>
-      <div class="sub">Breakdown: {breakdown_jobs:,d} | Corrective: {corrective_jobs:,d}</div>
-    </div>
-
-    <div class="card kpi">
-      <div class="label">KPI 10 — Worst Downtime Day</div>
-      <div class="value">{dt_fmt(kpi10_worst_day) if pd.notna(kpi10_worst_day) else "-"}</div>
-      <div class="sub">Hours: <span class="code">{kpi10_worst_hours:,.3f}</span></div>
-    </div>
-
-    <div class="card kpi">
-      <div class="label">KPI 11 — Top 5 Days Contribution</div>
-      <div class="value">{kpi11_top5_contrib_pct:,.2f}%</div>
-      <div class="sub">Formula: <span class="code">SUM(Top5)/Total × 100</span></div>
-    </div>
-
-    <div class="card kpi wide">
-      <div class="label">KPI 3 + KPI 4 — Downtime by Machine + Contribution %</div>
-      <div class="small">
-        KPI 3: <span class="code">SUM(Downtime_hours) by Machine</span><br/>
-        KPI 4: <span class="code">Machine Downtime / Total Downtime × 100</span>
-      </div>
-      <div class="hr"></div>
-      <div class="small">
-        <b>Top machine:</b> {top_machine_name} — {top_machine_hours:,.3f} hrs ({top_machine_pct:,.2f}%)
-      </div>
-    </div>
-  </div>
-
-  <div class="section-title"><span class="badge"><span class="dot"></span> Trends & Visuals</span></div>
-
-  <div class="two-col">
-    <div class="card">
-      <div class="label">KPI 9 — Daily Downtime Trend</div>
-      <div class="chart-wrap tall"><canvas id="chartDaily"></canvas></div>
-      <div class="small">Daily totals from Downtime_Raw history.</div>
-    </div>
-    <div class="card">
-      <div class="label">KPI 3 — Top {topN} Machines by Downtime</div>
-      <div class="chart-wrap tall"><canvas id="chartMachines"></canvas></div>
-      <div class="small">Ranked by total downtime hours.</div>
-    </div>
-  </div>
-
-  <div class="two-col" style="margin-top:14px;">
-    <div class="card">
-      <div class="label">KPI 6 — Notification Effectiveness (Daily)</div>
-      <div class="chart-wrap"><canvas id="chartNotif"></canvas></div>
-      <div class="small">With = planned/proactive. Without = reactive.</div>
-    </div>
-    <div class="card">
-      <div class="label">Job Category — Jobs Share (Tooltip shows Downtime hrs)</div>
-      <div class="chart-wrap"><canvas id="chartCat"></canvas></div>
-      <div class="small">Supports KPI 7 + KPI 8 analysis.</div>
-    </div>
-  </div>
-
-  <div class="section-title"><span class="badge"><span class="dot"></span> KPI Definitions (ALL Included)</span></div>
-  <div class="card">
-    <div class="small">
-      <b>KPI 1</b> Total Downtime: <span class="code">SUM(Downtime_hours)</span><br/>
-      <b>KPI 2</b> Avg Daily Downtime: <span class="code">Total Downtime / Number of Days</span><br/>
-      <b>KPI 3</b> Downtime by Machine: <span class="code">SUM(Downtime_hours) grouped by Machine</span><br/>
-      <b>KPI 4</b> Contribution %: <span class="code">Machine Downtime / Total Downtime × 100</span><br/>
-      <b>KPI 5</b> % With Notification: <span class="code">With Notification / Total Jobs × 100</span><br/>
-      <b>KPI 6</b> Notification Trend: daily <span class="code">With vs Without</span><br/>
-      <b>KPI 7</b> Breakdown vs Corrective %: <span class="code">Jobs share</span><br/>
-      <b>KPI 8</b> Downtime per Job: <span class="code">Downtime_hours / Jobs_Count</span><br/>
-      <b>KPI 9</b> Daily Downtime Trend: line chart of daily totals<br/>
-      <b>KPI 10</b> Worst Downtime Day: <span class="code">MAX(Daily Downtime)</span><br/>
-      <b>KPI 11</b> Top 5 Days Contribution: <span class="code">SUM(Top 5 Days) / Total × 100</span>
-    </div>
-  </div>
-
-  <div class="section-title"><span class="badge"><span class="dot"></span> Tables (Complete)</span></div>
-
-  <div class="two-col">
-    <div class="card">
-      <div class="label">Monthly Downtime Summary</div>
-      {df_to_html_table(monthly_downtime.rename(columns={{"Downtime_hours":"Total_Downtime_hours"}}),
-                        float_cols=["Total_Downtime_hours"])}
-    </div>
-    <div class="card">
-      <div class="label">Monthly Notifications Summary</div>
-      {df_to_html_table(notif_monthly,
-                        float_cols=["With_pct","Without_pct"],
-                        int_cols=["With_Notification","Without_Notification","Total_Jobs"])}
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px;">
-    <div class="label">Machine Downtime (ALL Machines) — includes Contribution %</div>
-    {df_to_html_table(machine_table, float_cols=["Downtime_hours","Contribution_pct"])}
-  </div>
-
-  <div class="two-col" style="margin-top:14px;">
-    <div class="card">
-      <div class="label">Job Category Summary (KPI 7 + KPI 8)</div>
-      {df_to_html_table(jobcat_calc,
-                        float_cols=["Downtime_hours","Downtime_per_Job"],
-                        int_cols=["Jobs_Count"])}
-    </div>
-    <div class="card">
-      <div class="label">Top 5 Downtime Days (Used in KPI 11)</div>
-      {df_to_html_table(top5.assign(Date=top5["Date_Clean"].map(dt_fmt))[["Date","Downtime_hours"]],
-                        float_cols=["Downtime_hours"])}
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px;">
-    <div class="label">FULL Daily History (Downtime + Notifications)</div>
-    {df_to_html_table(history_combined,
-                      float_cols=["Total_Downtime_hours"],
-                      int_cols=["With_Notification","Without_Notification","Total_Jobs"])}
-  </div>
-
-</div>
-
-<script>
-const dailyLabels = {chart_daily_labels};
-const dailyValues = {chart_daily_values};
-
-const machLabels = {chart_mach_labels};
-const machValues = {chart_mach_values};
-
-const notifLabels = {notif_labels};
-const notifWith = {notif_with};
-const notifWithout = {notif_without};
-
-const catLabels = {cat_labels};
-const catJobs = {cat_jobs};
-const catDowntime = {cat_downtime};
-
-new Chart(document.getElementById('chartDaily'), {{
-  type: 'line',
-  data: {{ labels: dailyLabels, datasets: [{{ label:'Daily Downtime (hrs)', data: dailyValues,
-    borderColor:'#6aa6ff', backgroundColor:'rgba(106,166,255,0.15)', fill:true, tension:0.25, pointRadius:1.5 }}] }},
-  options: {{ responsive:true, maintainAspectRatio:false,
-    plugins:{{ legend:{{ labels:{{ color:'#e7eefc' }} }} }},
-    scales:{{ x:{{ ticks:{{ color:'#a9b7d0', autoSkip:true }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }},
-             y:{{ ticks:{{ color:'#a9b7d0' }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }} }}
-}});
-
-new Chart(document.getElementById('chartMachines'), {{
-  type: 'bar',
-  data: {{ labels: machLabels, datasets: [{{ label:'Downtime (hrs)', data: machValues,
-    backgroundColor:'rgba(103,232,249,0.18)', borderColor:'#67e8f9', borderWidth:1 }}] }},
-  options: {{ responsive:true, maintainAspectRatio:false,
-    plugins:{{ legend:{{ labels:{{ color:'#e7eefc' }} }} }},
-    scales:{{ x:{{ ticks:{{ color:'#a9b7d0' }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }},
-             y:{{ ticks:{{ color:'#a9b7d0' }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }} }}
-}});
-
-new Chart(document.getElementById('chartNotif'), {{
-  type: 'line',
-  data: {{ labels: notifLabels, datasets: [
-    {{ label:'With Notification', data: notifWith, borderColor:'#34d399',
-       backgroundColor:'rgba(52,211,153,0.10)', fill:true, tension:0.25, pointRadius:1.5 }},
-    {{ label:'Without Notification', data: notifWithout, borderColor:'#fb7185',
-       backgroundColor:'rgba(251,113,133,0.10)', fill:true, tension:0.25, pointRadius:1.5 }}
-  ]}},
-  options: {{ responsive:true, maintainAspectRatio:false,
-    plugins:{{ legend:{{ labels:{{ color:'#e7eefc' }} }} }},
-    scales:{{ x:{{ ticks:{{ color:'#a9b7d0', autoSkip:true }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }},
-             y:{{ ticks:{{ color:'#a9b7d0' }}, grid:{{ color:'rgba(255,255,255,0.05)' }} }} }}
-}});
-
-new Chart(document.getElementById('chartCat'), {{
-  type: 'doughnut',
-  data: {{ labels: catLabels, datasets: [{{ label:'Jobs', data: catJobs,
-    backgroundColor:['rgba(106,166,255,0.40)','rgba(251,191,36,0.35)'],
-    borderColor:['#6aa6ff','#fbbf24'], borderWidth:1 }}] }},
-  options: {{ responsive:true, maintainAspectRatio:false,
-    plugins:{{ legend:{{ labels:{{ color:'#e7eefc' }} }},
-      tooltip:{{ callbacks:{{ afterLabel:(ctx)=>{{ const i=ctx.dataIndex; return 'Downtime (hrs): '+catDowntime[i]; }} }} }}
-    }}
-}});
-</script>
-</body></html>
-"""
-
-with open(OUT_HTML, "w", encoding="utf-8") as f:
-    f.write(html)
-
-print("✅ KPI Report generated:", OUT_HTML)
+name: Build KPI Report (overwrite index.html)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install pandas numpy openpyxl
+          fi
+
+      - name: Generate KPI dashboard (index.html)
+        env:
+          EXCEL_PATH: data/Book2_sheet2_all_things.xlsx
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          import numpy as np
+          import os
+          from datetime import datetime
+
+          EXCEL_PATH = os.environ.get("EXCEL_PATH","data/Book2_sheet2_all_things.xlsx")
+          OUT_HTML = "index.html"  # overwrite repo root index.html
+
+          # ----------------------------
+          # Helpers
+          # ----------------------------
+          def excel_serial_to_datetime(x):
+              if pd.isna(x):
+                  return pd.NaT
+              if isinstance(x, (pd.Timestamp, datetime)):
+                  return pd.to_datetime(x)
+              try:
+                  return pd.to_datetime(float(x), unit="D", origin="1899-12-30")
+              except:
+                  return pd.NaT
+
+          def row_contains_tokens(row_values, tokens):
+              r = [str(v).strip().lower() for v in row_values]
+              return all(any(tok in cell for cell in r) for tok in tokens)
+
+          def find_header_row(df, tokens, search_start=0, search_end=None):
+              if search_end is None:
+                  search_end = len(df)
+              for i in range(search_start, search_end):
+                  if row_contains_tokens(df.iloc[i].values, tokens):
+                      return i
+              return None
+
+          def extract_table_from_header(df, header_row, ncols, stop_on_blank_firstcol=True):
+              block = df.iloc[header_row:, :ncols].copy()
+              cols = block.iloc[0].astype(str).str.strip().tolist()
+              out = block.iloc[1:].copy()
+              out.columns = cols
+              if stop_on_blank_firstcol and len(out) > 0:
+                  firstcol = out.iloc[:, 0].astype(str).str.strip()
+                  stop_idx = None
+                  for i, v in enumerate(firstcol.values):
+                      if v == "" or v.lower() in ["nan","none"]:
+                          stop_idx = i
+                          break
+                  if stop_idx is not None:
+                      out = out.iloc[:stop_idx].copy()
+              return out
+
+          def dt_fmt(d):
+              return pd.to_datetime(d).strftime("%Y-%m-%d") if pd.notna(d) else ""
+
+          def df_to_html_table(df, float_cols=None, int_cols=None):
+              t = df.copy()
+              if float_cols:
+                  for c in float_cols:
+                      if c in t.columns:
+                          t[c] = t[c].astype(float).map(lambda x: f"{x:,.3f}")
+              if int_cols:
+                  for c in int_cols:
+                      if c in t.columns:
+                          t[c] = t[c].astype(int).map(lambda x: f"{x:,d}")
+              return t.to_html(index=False, escape=False, border=0, classes="tbl")
+
+          # ----------------------------
+          # Load workbook
+          # ----------------------------
+          if not os.path.exists(EXCEL_PATH):
+              raise FileNotFoundError(
+                  f"Excel not found at: {EXCEL_PATH}\n"
+                  f"Upload your file into repo at: data/Book2_sheet2_all_things.xlsx"
+              )
+
+          sheet2_raw = pd.read_excel(EXCEL_PATH, sheet_name="Sheet2", header=None, engine="openpyxl")
+
+          # ----------------------------
+          # Extract clean tables from Sheet2
+          # ----------------------------
+          # A) Downtime_Raw (Tidy): Date_Clean, Machine, Downtime_hours
+          downtime_hdr = find_header_row(sheet2_raw, tokens=["date_clean","machine","downtime_hours"])
+          if downtime_hdr is None:
+              raise ValueError("Cannot find Downtime_Raw header row in Sheet2 (Date_Clean/Machine/Downtime_hours).")
+
+          downtime = extract_table_from_header(sheet2_raw, downtime_hdr, ncols=3)
+          downtime.columns = ["Date_Clean","Machine","Downtime_hours"]
+          downtime["Date_Clean"] = downtime["Date_Clean"].apply(excel_serial_to_datetime)
+          downtime["Machine"] = downtime["Machine"].astype(str).str.strip()
+          downtime["Downtime_hours"] = pd.to_numeric(downtime["Downtime_hours"], errors="coerce").fillna(0.0)
+          downtime = downtime.dropna(subset=["Date_Clean"]).copy()
+          downtime["Month"] = downtime["Date_Clean"].dt.to_period("M").astype(str)
+
+          # B) Notifications_By_Date: Date_Clean, With, Without, Total
+          col0 = sheet2_raw.iloc[:,0].astype(str).str.lower()
+          label_row = None
+          hits = col0[col0.str.contains("notifications_by_date", na=False)]
+          if len(hits):
+              label_row = int(hits.index[0])
+
+          notif_hdr = find_header_row(
+              sheet2_raw,
+              tokens=["date_clean","with notification","without notification"],
+              search_start=(label_row if label_row is not None else 0),
+              search_end=min((label_row+50) if label_row is not None else len(sheet2_raw), len(sheet2_raw))
+          )
+          if notif_hdr is None:
+              raise ValueError("Cannot find Notifications_By_Date header row in Sheet2.")
+
+          notifications = extract_table_from_header(sheet2_raw, notif_hdr, ncols=4)
+          notifications.columns = ["Date_Clean","With_Notification","Without_Notification","Total_Jobs"]
+          notifications["Date_Clean"] = notifications["Date_Clean"].apply(excel_serial_to_datetime)
+          for c in ["With_Notification","Without_Notification","Total_Jobs"]:
+              notifications[c] = pd.to_numeric(notifications[c], errors="coerce").fillna(0).astype(int)
+          notifications = notifications.dropna(subset=["Date_Clean"]).copy()
+          notifications["Month"] = notifications["Date_Clean"].dt.to_period("M").astype(str)
+
+          # C) Job_Category_Summary: Job_Category, Jobs_Count, Downtime_hours
+          cat_label_row = None
+          hits2 = col0[col0.str.contains("job_category_summary", na=False)]
+          if len(hits2):
+              cat_label_row = int(hits2.index[0])
+
+          jobcat_hdr = find_header_row(
+              sheet2_raw,
+              tokens=["job_category","jobs_count","downtime_hours"],
+              search_start=(cat_label_row if cat_label_row is not None else 0),
+              search_end=min((cat_label_row+50) if cat_label_row is not None else len(sheet2_raw), len(sheet2_raw))
+          )
+          if jobcat_hdr is None:
+              raise ValueError("Cannot find Job_Category_Summary header row in Sheet2.")
+
+          jobcat = extract_table_from_header(sheet2_raw, jobcat_hdr, ncols=3)
+          jobcat.columns = ["Job_Category","Jobs_Count","Downtime_hours"]
+          jobcat["Job_Category"] = jobcat["Job_Category"].astype(str).str.strip()
+          jobcat["Jobs_Count"] = pd.to_numeric(jobcat["Jobs_Count"], errors="coerce").fillna(0).astype(int)
+          jobcat["Downtime_hours"] = pd.to_numeric(jobcat["Downtime_hours"], errors="coerce").fillna(0.0)
+
+          # ----------------------------
+          # Compute ALL KPIs (1 to 11)
+          # ----------------------------
+          daily_downtime = downtime.groupby("Date_Clean", as_index=False)["Downtime_hours"].sum().sort_values("Date_Clean")
+          n_days = len(daily_downtime)
+
+          # KPI 1
+          kpi1_total_downtime = float(downtime["Downtime_hours"].sum())
+
+          # KPI 2
+          kpi2_avg_daily = float(kpi1_total_downtime / n_days) if n_days else 0.0
+
+          # KPI 3
+          machine_totals = downtime.groupby("Machine", as_index=False)["Downtime_hours"].sum().sort_values("Downtime_hours", ascending=False)
+
+          # KPI 4
+          machine_totals["Contribution_pct"] = np.where(
+              kpi1_total_downtime > 0, machine_totals["Downtime_hours"]/kpi1_total_downtime*100, 0.0
+          )
+
+          # KPI 5
+          total_jobs = int(notifications["Total_Jobs"].sum())
+          jobs_with = int(notifications["With_Notification"].sum())
+          jobs_without = int(notifications["Without_Notification"].sum())
+          kpi5_with_pct = (jobs_with/total_jobs*100) if total_jobs else 0.0
+          kpi5_without_pct = (jobs_without/total_jobs*100) if total_jobs else 0.0
+
+          # KPI 6
+          notif_daily = notifications.sort_values("Date_Clean").copy()
+
+          # KPI 7
+          breakdown_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower()=="breakdown","Jobs_Count"].sum())
+          corrective_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower()=="corrective","Jobs_Count"].sum())
+          grand_jobs = int(jobcat.loc[jobcat["Job_Category"].str.lower()=="grand total","Jobs_Count"].sum())
+          if grand_jobs == 0:
+              grand_jobs = breakdown_jobs + corrective_jobs
+          kpi7_breakdown_pct = (breakdown_jobs/grand_jobs*100) if grand_jobs else 0.0
+          kpi7_corrective_pct = (corrective_jobs/grand_jobs*100) if grand_jobs else 0.0
+
+          # KPI 8
+          jobcat_calc = jobcat.copy()
+          jobcat_calc["Downtime_per_Job"] = np.where(jobcat_calc["Jobs_Count"]>0, jobcat_calc["Downtime_hours"]/jobcat_calc["Jobs_Count"], 0.0)
+
+          # KPI 10
+          if n_days:
+              worst_row = daily_downtime.loc[daily_downtime["Downtime_hours"].idxmax()]
+              kpi10_worst_day = worst_row["Date_Clean"]
+              kpi10_worst_hours = float(worst_row["Downtime_hours"])
+          else:
+              kpi10_worst_day, kpi10_worst_hours = pd.NaT, 0.0
+
+          # KPI 11
+          top5 = daily_downtime.sort_values("Downtime_hours", ascending=False).head(5)
+          kpi11_top5_contrib_pct = (top5["Downtime_hours"].sum()/kpi1_total_downtime*100) if kpi1_total_downtime else 0.0
+
+          monthly_downtime = downtime.groupby("Month", as_index=False)["Downtime_hours"].sum().sort_values("Month")
+          notif_monthly = notifications.groupby("Month", as_index=False)[["With_Notification","Without_Notification","Total_Jobs"]].sum()
+          notif_monthly["With_pct"] = np.where(notif_monthly["Total_Jobs"]>0, notif_monthly["With_Notification"]/notif_monthly["Total_Jobs"]*100, 0.0)
+          notif_monthly["Without_pct"] = np.where(notif_monthly["Total_Jobs"]>0, notif_monthly["Without_Notification"]/notif_monthly["Total_Jobs"]*100, 0.0)
+
+          # Full daily history
+          history_daily = daily_downtime.copy()
+          history_daily["Date"] = history_daily["Date_Clean"].map(dt_fmt)
+          history_daily = history_daily[["Date","Downtime_hours"]].rename(columns={"Downtime_hours":"Total_Downtime_hours"})
+
+          history_notif = notif_daily.copy()
+          history_notif["Date"] = history_notif["Date_Clean"].map(dt_fmt)
+          history_notif = history_notif[["Date","With_Notification","Without_Notification","Total_Jobs"]]
+
+          history_combined = pd.merge(history_daily, history_notif, on="Date", how="outer").sort_values("Date")
+          history_combined["Total_Downtime_hours"] = pd.to_numeric(history_combined["Total_Downtime_hours"], errors="coerce").fillna(0.0)
+          history_combined["With_Notification"] = pd.to_numeric(history_combined["With_Notification"], errors="coerce").fillna(0).astype(int)
+          history_combined["Without_Notification"] = pd.to_numeric(history_combined["Without_Notification"], errors="coerce").fillna(0).astype(int)
+          history_combined["Total_Jobs"] = pd.to_numeric(history_combined["Total_Jobs"], errors="coerce").fillna(0).astype(int)
+
+          # Chart data
+          chart_daily_labels = [dt_fmt(d) for d in daily_downtime["Date_Clean"].tolist()]
+          chart_daily_values = [round(v,3) for v in daily_downtime["Downtime_hours"].tolist()]
+          topN = 10
+          top_m = machine_totals.head(topN).copy()
+          chart_mach_labels = top_m["Machine"].tolist()
+          chart_mach_values = [round(v,3) for v in top_m["Downtime_hours"].tolist()]
+
+          notif_labels = [dt_fmt(d) for d in notif_daily["Date_Clean"].tolist()]
+          notif_with = notif_daily["With_Notification"].tolist()
+          notif_without = notif_daily["Without_Notification"].tolist()
+
+          cat_rows = jobcat_calc[jobcat_calc["Job_Category"].str.lower().isin(["breakdown","corrective"])].copy()
+          cat_labels = cat_rows["Job_Category"].tolist()
+          cat_jobs = cat_rows["Jobs_Count"].tolist()
+          cat_downtime = [round(v,3) for v in cat_rows["Downtime_hours"].tolist()]
+
+          # Prepare machine table
+          machine_table = machine_totals.copy()
+          machine_table["Downtime_hours"] = machine_table["Downtime_hours"].round(3)
+          machine_table["Contribution_pct"] = machine_table["Contribution_pct"].round(2)
+          top_machine_name = machine_table.iloc[0]["Machine"] if len(machine_table) else "-"
+          top_machine_hours = float(machine_table.iloc[0]["Downtime_hours"]) if len(machine_table) else 0.0
+          top_machine_pct = float(machine_table.iloc[0]["Contribution_pct"]) if len(machine_table) else 0.0
+
+          generated_on = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+          period_start = dt_fmt(daily_downtime["Date_Clean"].min()) if n_days else "-"
+          period_end = dt_fmt(daily_downtime["Date_Clean"].max()) if n_days else "-"
+
+          html = f"""
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>Machine Downtime KPI Report</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+              :root {{
+                --bg:#0b1220; --panel:rgba(255,255,255,.06); --panel2:rgba(255,255,255,.04);
+                --text:#e7eefc; --muted:#a9b7d0; --accent:#6aa6ff; --accent2:#67e8f9;
+                --good:#34d399; --warn:#fbbf24; --bad:#fb7185; --border:rgba(255,255,255,.10);
+              }}
+              *{{box-sizing:border-box}}
+              body{{
+                margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
+                background:radial-gradient(1200px 800px at 20% 10%, rgba(106,166,255,.25), transparent 60%),
+                          radial-gradient(1200px 800px at 80% 20%, rgba(103,232,249,.18), transparent 60%),
+                          var(--bg);
+              }}
+              .container{{max-width:1320px;margin:0 auto;padding:26px 18px 60px}}
+              .header{{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-end;
+                padding:18px;border:1px solid var(--border);background:linear-gradient(180deg,var(--panel),var(--panel2));
+                border-radius:18px}}
+              .header h1{{margin:0;font-size:26px;font-weight:800}}
+              .small{{font-size:12px;line-height:1.55;color:var(--muted)}}
+              .meta{{text-align:right;font-size:13px;color:var(--muted);line-height:1.55}}
+              .grid{{display:grid;gap:14px}}
+              .kpi-grid{{margin-top:14px;grid-template-columns:repeat(12,1fr)}}
+              .card{{border:1px solid var(--border);background:linear-gradient(180deg,var(--panel),var(--panel2));
+                border-radius:16px;padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.25)}}
+              .kpi{{grid-column:span 3;min-height:110px}}
+              .kpi.wide{{grid-column:span 6}}
+              .label{{font-size:12px;color:var(--muted);margin-bottom:6px}}
+              .value{{font-size:22px;font-weight:800}}
+              .sub{{margin-top:6px;font-size:12px;color:var(--muted)}}
+              .code{{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:6px 9px;border:1px solid var(--border);
+                background:rgba(255,255,255,.05);border-radius:10px;display:inline-block}}
+              .section-title{{margin:22px 2px 10px;font-size:16px;font-weight:800}}
+              .two-col{{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}}
+              @media (max-width:980px){{.kpi{{grid-column:span 6}}.kpi.wide{{grid-column:span 12}}.two-col{{grid-template-columns:1fr}}}}
+              .chart-wrap{{height:320px}} .chart-wrap.tall{{height:380px}}
+              .tbl{{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}}
+              .tbl thead th{{text-align:left;font-size:12px;color:var(--muted);padding:10px;border-bottom:1px solid var(--border)}}
+              .tbl tbody td{{padding:10px;border-bottom:1px solid var(--border);font-size:13px}}
+              .tbl tbody tr:hover{{background:rgba(106,166,255,.06)}}
+              .hr{{height:1px;background:var(--border);margin:14px 0}}
+              .badge{{display:inline-flex;gap:8px;align-items:center;font-size:12px;font-weight:800;color:var(--text)}}
+              .dot{{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(106,166,255,.15)}}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <div>
+                  <h1>Machine Downtime KPI Report</h1>
+                  <div class="small">
+                    Source Excel: <span class="code">{os.path.basename(EXCEL_PATH)}</span><br/>
+                    Generated: <span class="code">{generated_on}</span>
+                  </div>
+                </div>
+                <div class="meta">
+                  Period: {period_start} → {period_end}<br/>
+                  Days: {n_days} | Machines: {len(machine_totals)} | Total Jobs: {total_jobs:,d}
+                </div>
+              </div>
+
+              <div class="grid kpi-grid">
+                <div class="card kpi">
+                  <div class="label">KPI 1 — Total Downtime (hrs)</div>
+                  <div class="value">{kpi1_total_downtime:,.3f}</div>
+                  <div class="sub">Formula: <span class="code">SUM(Downtime_hours)</span></div>
+                </div>
+
+                <div class="card kpi">
+                  <div class="label">KPI 2 — Average Daily Downtime (hrs/day)</div>
+                  <div class="value">{kpi2_avg_daily:,.3f}</div>
+                  <div class="sub">Formula: <span class="code">Total Downtime / #Days</span></div>
+                </div>
+
+                <div class="card kpi">
+                  <div class="label">KPI 5 — % Jobs With Notification</div>
+                  <div class="value">{kpi5_with_pct:,.2f}%</div>
+                  <div class="sub">With: {jobs_with:,d} | Without: {jobs_without:,d} ({kpi5_without_pct:,.2f}%)</div>
+                </div>
+
+                <div class="card kpi">
+                  <div class="label">KPI 7 — Breakdown vs Corrective (Jobs %)</div>
+                  <div class="value">{kpi7_breakdown_pct:,.2f}% / {kpi7_corrective_pct:,.2f}%</div>
+                  <div class="sub">Breakdown: {breakdown_jobs:,d} | Corrective: {corrective_jobs:,d}</div>
+                </div>
+
+                <div class="card kpi">
+                  <div class="label">KPI 10 — Worst Downtime Day</div>
+                  <div class="value">{dt_fmt(kpi10_worst_day) if pd.notna(kpi10_worst_day) else "-"}</div>
+                  <div class="sub">Hours: <span class="code">{kpi10_worst_hours:,.3f}</span></div>
+                </div>
+
+                <div class="card kpi">
+                  <div class="label">KPI 11 — Top 5 Days Contribution</div>
+                  <div class="value">{kpi11_top5_contrib_pct:,.2f}%</div>
+                  <div class="sub">Formula: <span class="code">SUM(Top5)/Total × 100</span></div>
+                </div>
+
+                <div class="card kpi wide">
+                  <div class="label">KPI 3 + KPI 4 — Downtime by Machine + Contribution %</div>
+                  <div class="small">
+                    KPI 3: <span class="code">SUM(Downtime_hours) by Machine</span><br/>
+                    KPI 4: <span class="code">Machine Downtime / Total Downtime × 100</span>
+                  </div>
+                  <div class="hr"></div>
+                  <div class="small"><b>Top machine:</b> {top_machine_name} — {top_machine_hours:,.3f} hrs ({top_machine_pct:,.2f}%)</div>
+                </div>
+              </div>
+
+              <div class="section-title"><span class="badge"><span class="dot"></span> Trends & Visuals</span></div>
+
+              <div class="two-col">
+                <div class="card">
+                  <div class="label">KPI 9 — Daily Downtime Trend</div>
+                  <div class="chart-wrap tall"><canvas id="chartDaily"></canvas></div>
+                  <div class="small">Daily totals from Downtime_Raw history.</div>
+                </div>
+                <div class="card">
+                  <div class="label">KPI 3 — Top 10 Machines by Downtime</div>
+                  <div class="chart-wrap tall"><canvas id="chartMachines"></canvas></div>
+                  <div class="small">Ranked by total downtime hours.</div>
+                </div>
+              </div>
+
+              <div class="two-col" style="margin-top:14px;">
+                <div class="card">
+                  <div class="label">KPI 6 — Notification Effectiveness (Daily)</div>
+                  <div class="chart-wrap"><canvas id="chartNotif"></canvas></div>
+                  <div class="small">With = planned/proactive. Without = reactive.</div>
+                </div>
+                <div class="card">
+                  <div class="label">Job Category — Jobs Share (Tooltip shows Downtime hrs)</div>
+                  <div class="chart-wrap"><canvas id="chartCat"></canvas></div>
+                  <div class="small">Supports KPI 7 + KPI 8 analysis.</div>
+                </div>
+              </div>
+
+              <div class="section-title"><span class="badge"><span class="dot"></span> KPI Definitions (ALL Included)</span></div>
+              <div class="card">
+                <div class="small">
+                  <b>KPI 1</b> Total Downtime: <span class="code">SUM(Downtime_hours)</span><br/>
+                  <b>KPI 2</b> Avg Daily Downtime: <span class="code">Total Downtime / Number of Days</span><br/>
+                  <b>KPI 3</b> Downtime by Machine: <span class="code">SUM(Downtime_hours) grouped by Machine</span><br/>
+                  <b>KPI 4</b> Contribution %: <span class="code">Machine Downtime / Total Downtime × 100</span><br/>
+                  <b>KPI 5</b> % With Notification: <span class="code">With Notification / Total Jobs × 100</span><br/>
+                  <b>KPI 6</b> Notification Trend: daily <span class="code">With vs Without</span><br/>
+                  <b>KPI 7</b> Breakdown vs Corrective %: <span class="code">Jobs share</span><br/>
+                  <b>KPI 8</b> Downtime per Job: <span class="code">Downtime_hours / Jobs_Count</span><br/>
+                  <b>KPI 9</b> Daily Downtime Trend: line chart of daily totals<br/>
+                  <b>KPI 10</b> Worst Downtime Day: <span class="code">MAX(Daily Downtime)</span><br/>
+                  <b>KPI 11</b> Top 5 Days Contribution: <span class="code">SUM(Top 5 Days) / Total × 100</span>
+                </div>
+              </div>
+
+              <div class="section-title"><span class="badge"><span class="dot"></span> Tables (Complete)</span></div>
+
+              <div class="two-col">
+                <div class="card">
+                  <div class="label">Monthly Downtime Summary</div>
+                  {df_to_html_table(monthly_downtime.rename(columns={"Downtime_hours":"Total_Downtime_hours"}),
+                                    float_cols=["Total_Downtime_hours"])}
+                </div>
+                <div class="card">
+                  <div class="label">Monthly Notifications Summary</div>
+                  {df_to_html_table(notif_monthly, float_cols=["With_pct","Without_pct"],
+                                    int_cols=["With_Notification","Without_Notification","Total_Jobs"])}
+                </div>
+              </div>
+
+              <div class="card" style="margin-top:14px;">
+                <div class="label">Machine Downtime (ALL Machines) — includes Contribution %</div>
+                {df_to_html_table(machine_table, float_cols=["Downtime_hours","Contribution_pct"])}
+              </div>
+
+              <div class="two-col" style="margin-top:14px;">
+                <div class="card">
+                  <div class="label">Job Category Summary (KPI 7 + KPI 8)</div>
+                  {df_to_html_table(jobcat_calc, float_cols=["Downtime_hours","Downtime_per_Job"], int_cols=["Jobs_Count"])}
+                </div>
+                <div class="card">
+                  <div class="label">Top 5 Downtime Days (Used in KPI 11)</div>
+                  {df_to_html_table(top5.assign(Date=top5["Date_Clean"].map(dt_fmt))[["Date","Downtime_hours"]],
+                                    float_cols=["Downtime_hours"])}
+                </div>
+              </div>
+
+              <div class="card" style="margin-top:14px;">
+                <div class="label">FULL Daily History (Downtime + Notifications)</div>
+                {df_to_html_table(history_combined, float_cols=["Total_Downtime_hours"],
+                                  int_cols=["With_Notification","Without_Notification","Total_Jobs"])}
+              </div>
+
+            </div>
+
+            <script>
+              const dailyLabels = {chart_daily_labels};
+              const dailyValues = {chart_daily_values};
+              const machLabels  = {chart_mach_labels};
+              const machValues  = {chart_mach_values};
+              const notifLabels = {notif_labels};
+              const notifWith   = {notif_with};
+              const notifWithout= {notif_without};
+              const catLabels   = {cat_labels};
+              const catJobs     = {cat_jobs};
+              const catDowntime = {cat_downtime};
+
+              new Chart(document.getElementById('chartDaily'), {{
+                type:'line',
+                data:{{labels:dailyLabels,datasets:[{{label:'Daily Downtime (hrs)',data:dailyValues,
+                  borderColor:'#6aa6ff',backgroundColor:'rgba(106,166,255,0.15)',fill:true,tension:0.25,pointRadius:1.5}}]}},
+                options:{{responsive:true,maintainAspectRatio:false,
+                  plugins:{{legend:{{labels:{{color:'#e7eefc'}}}}}},
+                  scales:{{x:{{ticks:{{color:'#a9b7d0',autoSkip:true}},grid:{{color:'rgba(255,255,255,0.05)'}}}},
+                          y:{{ticks:{{color:'#a9b7d0'}},grid:{{color:'rgba(255,255,255,0.05)'}}}}}}
+              }});
+
+              new Chart(document.getElementById('chartMachines'), {{
+                type:'bar',
+                data:{{labels:machLabels,datasets:[{{label:'Downtime (hrs)',data:machValues,
+                  backgroundColor:'rgba(103,232,249,0.18)',borderColor:'#67e8f9',borderWidth:1}}]}},
+                options:{{responsive:true,maintainAspectRatio:false,
+                  plugins:{{legend:{{labels:{{color:'#e7eefc'}}}}}},
+                  scales:{{x:{{ticks:{{color:'#a9b7d0'}},grid:{{color:'rgba(255,255,255,0.05)'}}}},
+                          y:{{ticks:{{color:'#a9b7d0'}},grid:{{color:'rgba(255,255,255,0.05)'}}}}}}
+              }});
+
+              new Chart(document.getElementById('chartNotif'), {{
+                type:'line',
+                data:{{labels:notifLabels,datasets:[
+                  {{label:'With Notification',data:notifWith,borderColor:'#34d399',
+                    backgroundColor:'rgba(52,211,153,0.10)',fill:true,tension:0.25,pointRadius:1.5}},
+                  {{label:'Without Notification',data:notifWithout,borderColor:'#fb7185',
+                    backgroundColor:'rgba(251,113,133,0.10)',fill:true,tension:0.25,pointRadius:1.5}}
+                ]}},
+                options:{{responsive:true,maintainAspectRatio:false,
+                  plugins:{{legend:{{labels:{{color:'#e7eefc'}}}}}},
+                  scales:{{x:{{ticks:{{color:'#a9b7d0',autoSkip:true}},grid:{{color:'rgba(255,255,255,0.05)'}}}},
+                          y:{{ticks:{{color:'#a9b7d0'}},grid:{{color:'rgba(255,255,255,0.05)'}}}}}}
+              }});
+
+              new Chart(document.getElementById('chartCat'), {{
+                type:'doughnut',
+                data:{{labels:catLabels,datasets:[{{label:'Jobs',data:catJobs,
+                  backgroundColor:['rgba(106,166,255,0.40)','rgba(251,191,36,0.35)'],
+                  borderColor:['#6aa6ff','#fbbf24'],borderWidth:1}}]}},
+                options:{{responsive:true,maintainAspectRatio:false,
+                  plugins:{{legend:{{labels:{{color:'#e7eefc'}}}},
+                    tooltip:{{callbacks:{{afterLabel:(ctx)=>{{const i=ctx.dataIndex; return 'Downtime (hrs): '+catDowntime[i];}}}}}}
+                  }}
+              }});
+            </script>
+          </body>
+          </html>
+          """
+
+          with open(OUT_HTML, "w", encoding="utf-8") as f:
+              f.write(html)
+
+          print("✅ Generated:", OUT_HTML)
+          PY
+
+      - name: Commit & push updated index.html
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html
+          git commit -m "Auto-generate KPI dashboard (index.html)" || echo "No changes to commit"
+          git push
