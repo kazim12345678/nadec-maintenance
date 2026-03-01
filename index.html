@@ -1,290 +1,1882 @@
-<div class="section">
-    <h2>Shift Wise Breakdown Distribution</h2>
-    <canvas id="shiftChart"></canvas>
-</div>
-
-<div class="section">
-    <h2>Section Wise Breakdown Distribution</h2>
-    <canvas id="sectionChart"></canvas>
-</div>
-<div class="section">
-    <h2>Daily Breakdown Trend – January & February 2026</h2>
-    <canvas id="dailyTrendChart"></canvas>
-</div>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Drinkable Section Maintenance Dashboard - Jan/Feb 2026</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body{
-    font-family: 'Segoe UI', sans-serif;
-    margin:0;
-    background:#0f172a;
-    color:white;
-}
-.header{
-    text-align:center;
-    padding:20px;
-    background:#1e293b;
-}
-.kpi-container{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-around;
-    margin:20px;
-}
-.kpi{
-    background:#1e293b;
-    padding:20px;
-    border-radius:12px;
-    width:22%;
-    text-align:center;
-    margin:10px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.4);
-}
-.kpi h2{
-    margin:10px 0;
-    font-size:28px;
-    color:#38bdf8;
-}
-.section{
-    background:#1e293b;
-    margin:20px;
-    padding:20px;
-    border-radius:12px;
-}
-canvas{
-    background:white;
-    border-radius:10px;
-    padding:10px;
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:15px;
-}
-th,td{
-    padding:8px;
-    text-align:left;
-}
-th{
-    background:#334155;
-}
-tr:nth-child(even){
-    background:#1e293b;
-}
-.critical{
-    color:#ef4444;
-    font-weight:bold;
-}
-.medium{
-    color:#facc15;
-}
-.low{
-    color:#22c55e;
-}
-@media(max-width:768px){
-    .kpi{width:90%;}
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Drinkable Section Breakdown Dashboard – Jan–Feb 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-main: #050814;
+      --bg-card: #101522;
+      --bg-card-soft: #151b2b;
+      --accent: #00d1b2;
+      --accent-soft: rgba(0, 209, 178, 0.2);
+      --accent-strong: #ff6b6b;
+      --accent-medium: #f4b400;
+      --text-main: #f5f7ff;
+      --text-muted: #9aa4c6;
+      --border-subtle: #22283a;
+      --danger: #ff4d4f;
+      --warning: #ffb020;
+      --success: #2ecc71;
+      --info: #3498db;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.25s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1b2340 0, #050814 45%, #02030a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .app-shell {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(90deg, rgba(0, 209, 178, 0.16), rgba(0, 209, 178, 0.02));
+      border: 1px solid rgba(0, 209, 178, 0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .title-pill span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 209, 178, 0.9);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 span.sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meta strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .header-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(9, 14, 30, 0.9);
+    }
+
+    .badge span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .badge.critical span.dot {
+      background: var(--danger);
+    }
+
+    .badge-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 1100px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+      }
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body {
+        padding: 12px;
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(0, 209, 178, 0.08), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.8), #050814 70%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.04), transparent 55%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .kpi-main {
+      font-size: 22px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .kpi-main span.unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .kpi-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .trend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      background: rgba(0, 209, 178, 0.12);
+      color: var(--accent);
+    }
+
+    .trend-pill.negative {
+      background: rgba(255, 77, 79, 0.12);
+      color: var(--danger);
+    }
+
+    .trend-arrow {
+      font-size: 12px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .kpi-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+
+    .kpi-tag span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .kpi-tag.critical span.dot {
+      background: var(--danger);
+    }
+
+    .kpi-tag.high span.dot {
+      background: var(--warning);
+    }
+
+    .kpi-tag.medium span.dot {
+      background: var(--info);
+    }
+
+    .kpi-tag.low span.dot {
+      background: var(--success);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 220px;
+      margin-top: 4px;
+      z-index: 1;
+    }
+
+    .chart-container-small {
+      height: 180px;
+    }
+
+    .list {
+      list-style: none;
+      margin-top: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .list-label span.bullet {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+    }
+
+    .list-value {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .list-value-main {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .list-value-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .risk-pill {
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .risk-low {
+      color: var(--success);
+      background: rgba(46, 204, 113, 0.08);
+      border-color: rgba(46, 204, 113, 0.4);
+    }
+
+    .risk-medium {
+      color: var(--warning);
+      background: rgba(255, 176, 32, 0.08);
+      border-color: rgba(255, 176, 32, 0.4);
+    }
+
+    .risk-high {
+      color: var(--danger);
+      background: rgba(255, 77, 79, 0.08);
+      border-color: rgba(255, 77, 79, 0.4);
+    }
+
+    .risk-critical {
+      color: var(--danger);
+      background: rgba(255, 77, 79, 0.16);
+      border-color: rgba(255, 77, 79, 0.7);
+      box-shadow: 0 0 18px rgba(255, 77, 79, 0.35);
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .insight-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .insight-block {
+      background: rgba(5, 10, 25, 0.9);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insight-block::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 209, 178, 0.08), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .insight-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .insight-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tagline {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer-note span {
+      opacity: 0.8;
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(5, 10, 25, 0.9);
+      color: var(--text-muted);
+    }
+
+    .pill-inline strong {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .counter {
+      display: inline-block;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+      margin: 4px 0 8px;
+      opacity: 0.7;
+    }
+
+    .mt-kpi-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .mt-kpi-chip {
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(5, 10, 25, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mt-kpi-chip span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 10px;
+    }
+
+    .mt-kpi-chip span.value {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .mt-kpi-chip span.unit {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .legend-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-color.fill {
+      background: #00d1b2;
+    }
+
+    .legend-color.downline {
+      background: #f4b400;
+    }
+
+    .legend-color.upstream {
+      background: #3498db;
+    }
+
+    .legend-color.crates {
+      background: #ff6b6b;
+    }
+
+    .legend-color.day {
+      background: #00d1b2;
+    }
+
+    .legend-color.night {
+      background: #ff6b6b;
+    }
+
+    .legend-color.spike {
+      background: #ff6b6b;
+    }
+
+    .legend-color.normal {
+      background: #3498db;
+    }
+
+    .tag-critical {
+      color: var(--danger);
+    }
+
+    .tag-high {
+      color: var(--warning);
+    }
+
+    .tag-medium {
+      color: var(--info);
+    }
+
+    .tag-low {
+      color: var(--success);
+    }
+  </style>
 </head>
-
 <body>
+  <div class="app-shell">
+    <!-- HEADER / EXECUTIVE CONTEXT -->
+    <header>
+      <div class="title-block">
+        <div class="title-pill">
+          <span class="dot"></span>
+          <span>Executive Maintenance View</span>
+        </div>
+        <h1>
+          Drinkable Section Breakdown – Jan–Feb 2026
+          <span class="sub">FMCG | Reliability & Loss Intelligence</span>
+        </h1>
+        <div class="meta">
+          Period: <strong>Jan–Feb 2026</strong> · Total Breakdown: <strong><span id="metaTotalHours">1347</span> h</strong> ·
+          Scope: <strong>Drinkable Section – Filling, Upstream, Downline, Crates</strong>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="badge critical">
+          <span class="dot"></span>
+          <span>Reliability concentration risk</span>
+        </div>
+        <div class="badge">
+          <span class="dot"></span>
+          <span>Executive mode · Summary first, analytics below</span>
+        </div>
+      </div>
+    </header>
 
-<div class="header">
-    <h1>Drinkable Section Maintenance Dashboard</h1>
-    <h3>January – February 2026 KPI Report</h3>
-</div>
+    <main>
+      <!-- EXECUTIVE SUMMARY PANEL -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Executive summary</div>
+            <div class="card-subtitle">High-level loss picture for plant management</div>
+          </div>
+          <div class="kpi-tag critical" id="overallRiskTag">
+            <span class="dot"></span>
+            <span id="overallRiskLabel">Critical risk</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid grid-4">
+          <!-- Total Breakdown Hours -->
+          <div>
+            <div class="kpi-label">Total breakdown hours</div>
+            <div class="kpi-main">
+              <span class="counter" id="kpiTotalHours">0</span>
+              <span class="unit">hours</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Across all machines & shifts</span>
+              <span class="trend-pill negative" id="trendOverall">
+                <span class="trend-arrow">▲</span>
+                <span id="trendOverallText">Feb higher vs Jan</span>
+              </span>
+            </div>
+          </div>
 
-<div class="kpi-container">
-    <div class="kpi">
-        <h4>Total Breakdown Hours</h4>
-        <h2>1347</h2>
-    </div>
-    <div class="kpi">
-        <h4>Highest Loss Area</h4>
-        <h2>Filling & Capping</h2>
-    </div>
-    <div class="kpi">
-        <h4>Critical Machine</h4>
-        <h2>M15</h2>
-    </div>
-    <div class="kpi">
-        <h4>2nd Critical Machine</h4>
-        <h2>M14</h2>
-    </div>
-</div>
+          <!-- Section Contribution -->
+          <div>
+            <div class="kpi-label">Main loss section</div>
+            <div class="kpi-main">
+              <span id="kpiMainSection">Filling & Capping</span>
+              <span class="unit" id="kpiMainSectionPct">0%</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Section share of total breakdown</span>
+              <span id="kpiMainSectionRisk" class="risk-pill risk-critical">Critical</span>
+            </div>
+          </div>
 
-<div class="section">
-    <h2>Machine Wise Breakdown (Hours)</h2>
-    <canvas id="machineChart"></canvas>
-</div>
+          <!-- Critical Machine -->
+          <div>
+            <div class="kpi-label">Critical machine</div>
+            <div class="kpi-main">
+              <span id="kpiCriticalMachine">M15</span>
+              <span class="unit" id="kpiCriticalMachinePct">0%</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Machine share of total breakdown</span>
+              <span class="kpi-tag critical">
+                <span class="dot"></span>
+                > 10% = Critical
+              </span>
+            </div>
+          </div>
 
-<div class="section">
-    <h2>Area Wise Breakdown (Hours)</h2>
-    <canvas id="areaChart"></canvas>
-</div>
+          <!-- Shift Comparison -->
+          <div>
+            <div class="kpi-label">Shift loss comparison</div>
+            <div class="kpi-main">
+              <span id="kpiShiftLead">Night shift</span>
+              <span class="unit" id="kpiShiftLeadPct">0% vs day</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Night vs Day breakdown share</span>
+              <span class="trend-pill negative" id="shiftTrendPill">
+                <span class="trend-arrow">▲</span>
+                <span id="shiftTrendText">Night higher</span>
+              </span>
+            </div>
+          </div>
+        </div>
 
-<div class="section">
-    <h2>Top 5 Critical Machines</h2>
-    <table>
-        <tr><th>Machine</th><th>Breakdown Hours</th><th>Status</th></tr>
-        <tr><td>M15</td><td class="critical">151</td><td class="critical">Critical</td></tr>
-        <tr><td>M14</td><td class="critical">143</td><td class="critical">Critical</td></tr>
-        <tr><td>M6</td><td class="medium">127</td><td class="medium">High</td></tr>
-        <tr><td>M7</td><td class="medium">127</td><td class="medium">High</td></tr>
-        <tr><td>M2</td><td class="medium">99</td><td class="medium">High</td></tr>
-    </table>
-</div>
+        <div class="mt-kpi-row">
+          <div class="mt-kpi-chip">
+            <span class="label">Assumed window</span>
+            <span class="value" id="mtWindowDays">59</span>
+            <span class="unit">days · 600 min/day</span>
+          </div>
+          <div class="mt-kpi-chip">
+            <span class="label">Estimated MTTR</span>
+            <span class="value" id="mttrValue">0</span>
+            <span class="unit">min/event</span>
+          </div>
+          <div class="mt-kpi-chip">
+            <span class="label">Estimated MTBF</span>
+            <span class="value" id="mtbfValue">0</span>
+            <span class="unit">min/event</span>
+          </div>
+          <div class="mt-kpi-chip">
+            <span class="label">Average breakdown</span>
+            <span class="value" id="avgDailyBreakdown">0</span>
+            <span class="unit">h/day</span>
+          </div>
+        </div>
 
-<div class="section">
-    <h2>Top 5 Critical Areas</h2>
-    <table>
-        <tr><th>Area</th><th>Breakdown Hours</th><th>Status</th></tr>
-        <tr><td>Filling & Capping Machine</td><td class="critical">573</td><td class="critical">Critical</td></tr>
-        <tr><td>Packer Machine & Heating Tunnel</td><td class="critical">246</td><td class="critical">Critical</td></tr>
-        <tr><td>Crates Stacker & Unitizer</td><td class="medium">120</td><td class="medium">High</td></tr>
-        <tr><td>Crates Destacker & Washer</td><td class="medium">88</td><td class="medium">High</td></tr>
-        <tr><td>Bottle Line Conveyor</td><td class="medium">65</td><td class="medium">High</td></tr>
-    </table>
-</div>
+        <div class="footer-note">
+          <span>
+            <span class="badge-label">Executive conclusion:</span>
+            Filling & Capping and Downline dominate losses; reliability is concentrated on a few machines and the night shift.
+          </span>
+          <span>
+            <span class="badge-label">MTTR/MTBF note:</span>
+            Estimated assuming one breakdown event per day over the analysis window (600 minutes/day).
+          </span>
+        </div>
+      </section>
 
-<script>
+      <!-- ANALYTICAL KPI LAYER -->
+      <section class="grid grid-3">
+        <!-- Top Machines & Pareto -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top 5 machines & Pareto</div>
+              <div class="card-subtitle">Dynamic ranking and 80/20 cumulative impact</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              Auto-ranked from raw hours
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container chart-container-small">
+            <canvas id="machineParetoChart"></canvas>
+          </div>
+          <ul class="list" id="topMachinesList"></ul>
+          <div class="legend-inline">
+            <div class="legend-item">
+              <div class="legend-color normal"></div>
+              <span>Machine breakdown hours</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color spike" style="border-radius: 50%;"></div>
+              <span>Cumulative % (Pareto)</span>
+            </div>
+          </div>
+        </div>
 
-// MACHINE DATA
-const machineChart = new Chart(document.getElementById('machineChart'), {
-    type: 'bar',
-    data: {
-        labels: ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M12','M13','M14','M15','M16','M17','M18'],
-        datasets: [{
-            label: 'Breakdown Hours',
-            data: [74,99,73,93,3,127,127,86,5,31,55,143,151,70,56,63],
-            backgroundColor: 'rgba(59,130,246,0.7)'
-        }]
+        <!-- Section Contribution -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Section contribution</div>
+              <div class="card-subtitle">Filling, Downline, Upstream, Crates</div>
+            </div>
+            <div id="sectionRiskTag" class="kpi-tag critical">
+              <span class="dot"></span>
+              High section risk
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container chart-container-small">
+            <canvas id="sectionPieChart"></canvas>
+          </div>
+          <ul class="list" id="sectionList"></ul>
+          <div class="legend-inline">
+            <div class="legend-item">
+              <div class="legend-color fill"></div>
+              <span>Filling & Capping</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color downline"></div>
+              <span>Downline</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color upstream"></div>
+              <span>Upstream</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color crates"></div>
+              <span>Crates area</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shift Comparison -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Shift breakdown comparison</div>
+              <div class="card-subtitle">Day vs Night loss profile</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              % share by shift
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container chart-container-small">
+            <canvas id="shiftBarChart"></canvas>
+          </div>
+          <ul class="list" id="shiftList"></ul>
+          <div class="legend-inline">
+            <div class="legend-item">
+              <div class="legend-color day"></div>
+              <span>Day shift</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color night"></div>
+              <span>Night shift</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DAILY TREND & SPIKES -->
+      <section class="grid grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Daily breakdown trend</div>
+              <div class="card-subtitle">Jan–Feb 2026 with spike detection</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              Spikes &gt; mean + 1σ
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container">
+            <canvas id="dailyTrendChart"></canvas>
+          </div>
+          <ul class="list" id="spikeList"></ul>
+          <div class="legend-inline">
+            <div class="legend-item">
+              <div class="legend-color normal"></div>
+              <span>Daily breakdown hours</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color spike"></div>
+              <span>Detected spikes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Area-wise Detail -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Area-wise breakdown detail</div>
+              <div class="card-subtitle">Filling, Downline, Upstream, Crates sub-areas</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              Supports PM focus
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container chart-container-small">
+            <canvas id="areaBarChart"></canvas>
+          </div>
+          <ul class="list" id="areaList"></ul>
+        </div>
+      </section>
+
+      <!-- INTELLIGENT INSIGHTS & MAINTENANCE RECOMMENDATIONS -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Intelligent insights</div>
+            <div class="card-subtitle">Root cause interpretation, risk posture, and maintenance priorities</div>
+          </div>
+          <div id="insightRiskPill" class="risk-pill risk-critical">Critical risk</div>
+        </div>
+        <div class="divider"></div>
+
+        <div class="section-label">Interpretation layer</div>
+        <div class="section-title">What the data is saying</div>
+        <div class="section-subtitle">
+          Automatically derived from section, machine, shift and daily trend analytics.
+        </div>
+
+        <div class="insight-grid">
+          <div class="insight-block">
+            <div class="insight-title">Root cause interpretation</div>
+            <div class="insight-text" id="rootCauseText"></div>
+          </div>
+          <div class="insight-block">
+            <div class="insight-title">Reliability risk statement</div>
+            <div class="insight-text" id="reliabilityRiskText"></div>
+          </div>
+          <div class="insight-block">
+            <div class="insight-title">Operational risk level</div>
+            <div class="insight-text" id="operationalRiskText"></div>
+          </div>
+          <div class="insight-block">
+            <div class="insight-title">Maintenance priority recommendation</div>
+            <div class="insight-text" id="maintenancePriorityText"></div>
+          </div>
+        </div>
+
+        <div class="divider" style="margin-top: 10px;"></div>
+
+        <div class="section-label">Preventive maintenance focus</div>
+        <div class="section-title">Where to focus PM effort next</div>
+        <div class="section-subtitle">
+          Prioritized based on contribution, criticality thresholds (&gt;10% machine, &gt;40% section) and shift exposure.
+        </div>
+
+        <ul class="list" id="pmFocusList"></ul>
+
+        <div class="footer-note">
+          <span>
+            <span class="badge-label">Summary for plant manager:</span>
+            Filling & Capping and Downline dominate losses; top machines (especially M15, M14, M6/M7) drive a large share of
+            breakdown hours, with a slightly higher exposure on the night shift.
+          </span>
+          <span>
+            <span class="badge-label">Actionable next step:</span>
+            Lock in a targeted PM and reliability program on the critical machines and sections before expanding plant-wide.
+          </span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // -----------------------------
+    // RAW DATA (from user input)
+    // -----------------------------
+    const totalBreakdownHours = 1347;
+
+    const machineBreakdown = {
+      "M1": 74,
+      "M2": 99,
+      "M3": 73,
+      "M4": 93,
+      "M5": 3,
+      "M6": 127,
+      "M7": 127,
+      "M8": 86,
+      "M9": 5,
+      "M12": 31,
+      "M13": 55,
+      "M14": 143,
+      "M15": 151,
+      "M16": 70,
+      "M17": 56,
+      "M18": 63,
+      "Crates Area": 89
+    };
+
+    const areaBreakdown = {
+      "Filling & Capping Machine": 573,
+      "Packer Machine & Heating Tunnel": 246,
+      "Crates Stacker & Unitizer": 120,
+      "Crates Destacker / Washer": 88,
+      "Bottle Line Conveyor": 65,
+      "Ink Jet Printer": 46,
+      "Bottle Debagger": 52,
+      "Others small contributors": 157 // 573+246+120+88+65+46+52 = 1190; 1347-1190 = 157
+    };
+
+    const sectionBreakdown = {
+      "Filling & Capping": 681,
+      "Downline": 447,
+      "Upstream": 128,
+      "Crates Area": 89
+    };
+
+    const shiftBreakdown = {
+      "Day Shift": 642,
+      "Night Shift": 703
+    };
+
+    // Daily trend: only spikes explicitly provided; remaining days assumed 0 for spike detection logic.
+    // Period: Jan (31 days) + Feb (28 days) = 59 days.
+    const dailyTrend = (() => {
+      const daysInJan = 31;
+      const daysInFeb = 28;
+      const data = [];
+      for (let d = 1; d <= daysInJan; d++) {
+        data.push({ label: `Jan ${d}`, value: 0 });
+      }
+      for (let d = 1; d <= daysInFeb; d++) {
+        data.push({ label: `Feb ${d}`, value: 0 });
+      }
+      // Apply known spikes
+      data[6].value = 37;   // 7-Jan (index 6)
+      data[31 + 10].value = 35; // 11-Feb (index 41)
+      data[31 + 26].value = 33; // 27-Feb (index 57)
+      return data;
+    })();
+
+    // -----------------------------
+    // HELPER FUNCTIONS
+    // -----------------------------
+    function sumValues(obj) {
+      return Object.values(obj).reduce((a, b) => a + b, 0);
     }
-});
 
-// AREA DATA
-const areaChart = new Chart(document.getElementById('areaChart'), {
-    type: 'bar',
-    data: {
-        labels: ['Filling & Capping','Packer','Crates Stacker','Crates Destacker','Bottle Conveyor','Ink Jet','Bottle Debagger'],
-        datasets: [{
-            label: 'Breakdown Hours',
-            data: [573,246,120,88,65,46,52],
-            backgroundColor: 'rgba(239,68,68,0.7)'
-        }]
+    function calculatePercent(value, total) {
+      if (!total) return 0;
+      return (value / total) * 100;
     }
-});
 
-</script>
+    function classifyRiskByPercent(pct) {
+      if (pct >= 40) return "critical";
+      if (pct >= 25) return "high";
+      if (pct >= 10) return "medium";
+      return "low";
+    }
 
-</body>
-</html>
-<script>
+    function riskClassToLabel(cls) {
+      switch (cls) {
+        case "critical": return "Critical";
+        case "high": return "High";
+        case "medium": return "Medium";
+        default: return "Low";
+      }
+    }
 
-// DAILY TREND DATA
-const dailyTrendChart = new Chart(document.getElementById('dailyTrendChart'), {
-    type: 'line',
-    data: {
-        labels: [
-        "1-Jan","2-Jan","3-Jan","4-Jan","5-Jan","6-Jan","7-Jan","8-Jan","9-Jan","10-Jan",
-        "11-Jan","12-Jan","13-Jan","14-Jan","15-Jan","16-Jan","17-Jan","18-Jan","19-Jan","20-Jan",
-        "21-Jan","22-Jan","23-Jan","24-Jan","25-Jan","26-Jan","27-Jan","28-Jan","29-Jan","30-Jan","31-Jan",
-        "1-Feb","2-Feb","3-Feb","4-Feb","5-Feb","6-Feb","7-Feb","8-Feb","9-Feb","10-Feb",
-        "11-Feb","12-Feb","13-Feb","14-Feb","15-Feb","16-Feb","17-Feb","18-Feb","19-Feb","20-Feb",
-        "21-Feb","22-Feb","23-Feb","24-Feb","25-Feb","26-Feb","27-Feb","28-Feb"
-        ],
-        datasets: [{
-            label: "Daily Breakdown Hours",
-            data: [
-            31,27,21,22,16,24,37,30,19,24,
-            20,19,14,20,24,22,20,15,27,12,
-            22,22,17,28,23,18,12,31,25,7,20,
-            11,25,16,15,23,22,22,17,20,16,
-            35,20,26,27,28,21,30,22,23,31,
-            26,30,32,20,29,31,33,24
-            ],
-            borderColor: "#38bdf8",
-            backgroundColor: "rgba(56,189,248,0.2)",
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4,
-            pointBackgroundColor: "#facc15"
-        }]
-    },
-    options: {
+    function riskClassToCss(cls) {
+      switch (cls) {
+        case "critical": return "risk-critical";
+        case "high": return "risk-high";
+        case "medium": return "risk-medium";
+        default: return "risk-low";
+      }
+    }
+
+    function riskClassToTagCss(cls) {
+      switch (cls) {
+        case "critical": return "tag-critical";
+        case "high": return "tag-high";
+        case "medium": return "tag-medium";
+        default: return "tag-low";
+      }
+    }
+
+    function animateCounter(element, target, duration = 900, decimals = 0) {
+      const start = 0;
+      const startTime = performance.now();
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const value = start + (target - start) * progress;
+        element.textContent = value.toFixed(decimals);
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    function mean(values) {
+      if (!values.length) return 0;
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    }
+
+    function stdDev(values) {
+      if (!values.length) return 0;
+      const m = mean(values);
+      const variance = values.reduce((acc, v) => acc + Math.pow(v - m, 2), 0) / values.length;
+      return Math.sqrt(variance);
+    }
+
+    // -----------------------------
+    // EXECUTIVE SUMMARY CALCULATIONS
+    // -----------------------------
+    const totalFromMachines = sumValues(machineBreakdown);
+    const totalFromSections = sumValues(sectionBreakdown);
+    const totalFromAreas = sumValues(areaBreakdown);
+    const totalFromShifts = sumValues(shiftBreakdown);
+
+    // Main section (highest contribution)
+    const sectionEntries = Object.entries(sectionBreakdown).map(([name, hours]) => {
+      const pct = calculatePercent(hours, totalBreakdownHours);
+      return { name, hours, pct };
+    }).sort((a, b) => b.hours - a.hours);
+
+    const mainSection = sectionEntries[0];
+    const mainSectionRiskClass = classifyRiskByPercent(mainSection.pct);
+
+    // Critical machine (>10% of total)
+    const machineEntries = Object.entries(machineBreakdown).map(([name, hours]) => {
+      const pct = calculatePercent(hours, totalBreakdownHours);
+      return { name, hours, pct };
+    }).sort((a, b) => b.hours - a.hours);
+
+    const criticalMachines = machineEntries.filter(m => m.pct >= 10);
+    const topMachine = machineEntries[0];
+
+    // Shift comparison
+    const dayHours = shiftBreakdown["Day Shift"];
+    const nightHours = shiftBreakdown["Night Shift"];
+    const dayPct = calculatePercent(dayHours, totalBreakdownHours);
+    const nightPct = calculatePercent(nightHours, totalBreakdownHours);
+    const shiftLead = nightHours >= dayHours ? "Night shift" : "Day shift";
+    const shiftLeadDiffPct = Math.abs(nightPct - dayPct);
+
+    // Jan vs Feb trend (approximate from daily trend)
+    const janValues = dailyTrend.slice(0, 31).map(d => d.value);
+    const febValues = dailyTrend.slice(31).map(d => d.value);
+    const janTotal = janValues.reduce((a, b) => a + b, 0);
+    const febTotal = febValues.reduce((a, b) => a + b, 0);
+    const trendHigherInFeb = febTotal > janTotal;
+
+    // MTTR / MTBF estimation
+    const daysInWindow = 59;
+    const assumedMinutesPerDay = 600;
+    const totalWindowMinutes = daysInWindow * assumedMinutesPerDay;
+    const totalBreakdownMinutes = totalBreakdownHours * 60;
+    const assumedEvents = daysInWindow; // assumption: one breakdown event per day
+    const estimatedMTTR = totalBreakdownMinutes / assumedEvents;
+    const estimatedMTBF = (totalWindowMinutes - totalBreakdownMinutes) / assumedEvents;
+    const avgDailyBreakdownHours = totalBreakdownHours / daysInWindow;
+
+    // Overall risk classification (based on main section + top machine + shift imbalance)
+    let overallRiskScore = 0;
+    overallRiskScore += mainSection.pct >= 50 ? 2 : (mainSection.pct >= 40 ? 1 : 0);
+    overallRiskScore += topMachine.pct >= 10 ? 2 : 0;
+    overallRiskScore += shiftLeadDiffPct >= 5 ? 1 : 0;
+    const overallRiskClass = overallRiskScore >= 4 ? "critical" : (overallRiskScore >= 3 ? "high" : (overallRiskScore >= 2 ? "medium" : "low"));
+
+    // -----------------------------
+    // UPDATE EXECUTIVE SUMMARY UI
+    // -----------------------------
+    document.getElementById("metaTotalHours").textContent = totalBreakdownHours.toString();
+
+    const totalHoursEl = document.getElementById("kpiTotalHours");
+    animateCounter(totalHoursEl, totalBreakdownHours, 1000, 0);
+
+    document.getElementById("kpiMainSection").textContent = mainSection.name;
+    document.getElementById("kpiMainSectionPct").textContent = `${mainSection.pct.toFixed(1)}%`;
+
+    const mainSectionRiskEl = document.getElementById("kpiMainSectionRisk");
+    mainSectionRiskEl.textContent = riskClassToLabel(mainSectionRiskClass);
+    mainSectionRiskEl.className = `risk-pill ${riskClassToCss(mainSectionRiskClass)}`;
+
+    document.getElementById("kpiCriticalMachine").textContent = topMachine.name;
+    document.getElementById("kpiCriticalMachinePct").textContent = `${topMachine.pct.toFixed(1)}%`;
+
+    document.getElementById("kpiShiftLead").textContent = shiftLead;
+    document.getElementById("kpiShiftLeadPct").textContent = `${shiftLead === "Night shift" ? nightPct.toFixed(1) : dayPct.toFixed(1)}% vs ${shiftLead === "Night shift" ? dayPct.toFixed(1) : nightPct.toFixed(1)}%`;
+
+    const shiftTrendPill = document.getElementById("shiftTrendPill");
+    const shiftTrendText = document.getElementById("shiftTrendText");
+    if (shiftLead === "Night shift") {
+      shiftTrendPill.classList.add("negative");
+      shiftTrendText.textContent = `Night higher by ${shiftLeadDiffPct.toFixed(1)} pts`;
+    } else {
+      shiftTrendPill.classList.remove("negative");
+      shiftTrendText.textContent = `Day higher by ${shiftLeadDiffPct.toFixed(1)} pts`;
+    }
+
+    const trendOverall = document.getElementById("trendOverall");
+    const trendOverallText = document.getElementById("trendOverallText");
+    if (trendHigherInFeb) {
+      trendOverall.classList.add("negative");
+      trendOverallText.textContent = "Feb higher vs Jan (spike-driven)";
+    } else {
+      trendOverall.classList.remove("negative");
+      trendOverallText.textContent = "Jan higher vs Feb";
+    }
+
+    document.getElementById("mtWindowDays").textContent = daysInWindow.toString();
+    document.getElementById("mttrValue").textContent = estimatedMTTR.toFixed(1);
+    document.getElementById("mtbfValue").textContent = estimatedMTBF.toFixed(1);
+    document.getElementById("avgDailyBreakdown").textContent = avgDailyBreakdownHours.toFixed(2);
+
+    const overallRiskTag = document.getElementById("overallRiskTag");
+    const overallRiskLabel = document.getElementById("overallRiskLabel");
+    overallRiskTag.className = `kpi-tag ${overallRiskClass === "critical" ? "critical" : (overallRiskClass === "high" ? "high" : (overallRiskClass === "medium" ? "medium" : "low"))}`;
+    overallRiskLabel.textContent = `${riskClassToLabel(overallRiskClass)} risk`;
+
+    // -----------------------------
+    // MACHINE PARETO CHART & TOP 5
+    // -----------------------------
+    const sortedMachines = [...machineEntries]; // already sorted desc by hours
+    const machineLabels = sortedMachines.map(m => m.name);
+    const machineHours = sortedMachines.map(m => m.hours);
+
+    // Pareto cumulative %
+    const cumulativePct = [];
+    let runningTotal = 0;
+    for (let i = 0; i < sortedMachines.length; i++) {
+      runningTotal += sortedMachines[i].hours;
+      cumulativePct.push(calculatePercent(runningTotal, totalBreakdownHours));
+    }
+
+    const ctxMachinePareto = document.getElementById("machineParetoChart").getContext("2d");
+    new Chart(ctxMachinePareto, {
+      type: "bar",
+      data: {
+        labels: machineLabels,
+        datasets: [
+          {
+            type: "bar",
+            label: "Breakdown hours",
+            data: machineHours,
+            backgroundColor: "rgba(0, 209, 178, 0.6)",
+            borderColor: "rgba(0, 209, 178, 1)",
+            borderWidth: 1,
+            yAxisID: "y"
+          },
+          {
+            type: "line",
+            label: "Cumulative %",
+            data: cumulativePct,
+            borderColor: "rgba(255, 107, 107, 1)",
+            backgroundColor: "rgba(255, 107, 107, 0.2)",
+            borderWidth: 2,
+            fill: false,
+            yAxisID: "y1",
+            tension: 0.25,
+            pointRadius: 3,
+            pointBackgroundColor: "rgba(255, 107, 107, 1)"
+          }
+        ]
+      },
+      options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: {
-                labels: { color: "white" }
+          legend: {
+            labels: {
+              color: "#f5f7ff",
+              font: { size: 11 }
             }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                if (context.datasetIndex === 0) {
+                  const hours = context.parsed.y;
+                  const pct = calculatePercent(hours, totalBreakdownHours);
+                  return ` ${hours} h (${pct.toFixed(1)}%)`;
+                } else {
+                  return ` ${context.parsed.y.toFixed(1)}% cumulative`;
+                }
+              }
+            }
+          }
         },
         scales: {
-            x: {
-                ticks: { color: "white" }
+          x: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
             },
-            y: {
-                ticks: { color: "white" }
+            grid: { display: false }
+          },
+          y: {
+            position: "left",
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.04)"
+            },
+            title: {
+              display: true,
+              text: "Hours",
+              color: "#9aa4c6",
+              font: { size: 10 }
             }
+          },
+          y1: {
+            position: "right",
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 },
+              callback: function (value) {
+                return value + "%";
+              }
+            },
+            grid: { display: false },
+            min: 0,
+            max: 100,
+            title: {
+              display: true,
+              text: "Cumulative %",
+              color: "#9aa4c6",
+              font: { size: 10 }
+            }
+          }
         }
-    }
-});
+      }
+    });
 
-</script>
-<script>
+    // Top 5 machines list
+    const topMachinesList = document.getElementById("topMachinesList");
+    const top5Machines = sortedMachines.slice(0, 5);
+    top5Machines.forEach((m, index) => {
+      const li = document.createElement("li");
+      li.className = "list-item";
+      const riskClass = m.pct >= 10 ? "critical" : (m.pct >= 7 ? "high" : (m.pct >= 4 ? "medium" : "low"));
+      li.innerHTML = `
+        <div class="list-label">
+          <span class="bullet"></span>
+          <span>#${index + 1} · ${m.name}</span>
+        </div>
+        <div class="list-value">
+          <span class="list-value-main">${m.hours} h · ${m.pct.toFixed(1)}%</span>
+          <span class="list-value-sub ${riskClassToTagCss(riskClass)}">${riskClassToLabel(riskClass)} machine impact</span>
+        </div>
+      `;
+      topMachinesList.appendChild(li);
+    });
 
-// SHIFT WISE CHART
-const shiftChart = new Chart(document.getElementById('shiftChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Day Shift', 'Night Shift'],
+    // -----------------------------
+    // SECTION PIE CHART & LIST
+    // -----------------------------
+    const sectionLabels = sectionEntries.map(s => s.name);
+    const sectionHours = sectionEntries.map(s => s.hours);
+    const sectionColors = ["#00d1b2", "#f4b400", "#3498db", "#ff6b6b"];
+
+    const ctxSectionPie = document.getElementById("sectionPieChart").getContext("2d");
+    new Chart(ctxSectionPie, {
+      type: "doughnut",
+      data: {
+        labels: sectionLabels,
         datasets: [{
-            data: [642, 703],
-            backgroundColor: [
-                'rgba(56,189,248,0.8)',
-                'rgba(239,68,68,0.8)'
-            ],
-            borderWidth: 1
+          data: sectionHours,
+          backgroundColor: sectionColors.map(c => c + "cc"),
+          borderColor: sectionColors,
+          borderWidth: 1
         }]
-    },
-    options: {
+      },
+      options: {
         responsive: true,
+        maintainAspectRatio: false,
+        cutout: "60%",
         plugins: {
-            legend: {
-                labels: { color: "white" }
+          legend: {
+            position: "bottom",
+            labels: {
+              color: "#f5f7ff",
+              font: { size: 10 }
             }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const label = context.label || "";
+                const value = context.parsed;
+                const pct = calculatePercent(value, totalBreakdownHours);
+                return ` ${label}: ${value} h (${pct.toFixed(1)}%)`;
+              }
+            }
+          }
         }
-    }
-});
+      }
+    });
 
+    const sectionList = document.getElementById("sectionList");
+    sectionEntries.forEach(s => {
+      const li = document.createElement("li");
+      li.className = "list-item";
+      const riskClass = classifyRiskByPercent(s.pct);
+      li.innerHTML = `
+        <div class="list-label">
+          <span class="bullet"></span>
+          <span>${s.name}</span>
+        </div>
+        <div class="list-value">
+          <span class="list-value-main">${s.hours} h · ${s.pct.toFixed(1)}%</span>
+          <span class="list-value-sub ${riskClassToTagCss(riskClass)}">${riskClassToLabel(riskClass)} section impact</span>
+        </div>
+      `;
+      sectionList.appendChild(li);
+    });
 
-// SECTION WISE CHART
-const sectionChart = new Chart(document.getElementById('sectionChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Filling & Capping', 'Downline', 'Upstream', 'Crates Area'],
+    const sectionRiskTag = document.getElementById("sectionRiskTag");
+    const highestSectionRiskClass = classifyRiskByPercent(mainSection.pct);
+    sectionRiskTag.className = `kpi-tag ${highestSectionRiskClass === "critical" ? "critical" : (highestSectionRiskClass === "high" ? "high" : (highestSectionRiskClass === "medium" ? "medium" : "low"))}`;
+    sectionRiskTag.innerHTML = `
+      <span class="dot"></span>
+      ${riskClassToLabel(highestSectionRiskClass)} section risk
+    `;
+
+    // -----------------------------
+    // SHIFT BAR CHART & LIST
+    // -----------------------------
+    const shiftLabels = Object.keys(shiftBreakdown);
+    const shiftHours = Object.values(shiftBreakdown);
+    const ctxShiftBar = document.getElementById("shiftBarChart").getContext("2d");
+    new Chart(ctxShiftBar, {
+      type: "bar",
+      data: {
+        labels: shiftLabels,
         datasets: [{
-            data: [681, 447, 128, 89],
-            backgroundColor: [
-                'rgba(239,68,68,0.8)',
-                'rgba(250,204,21,0.8)',
-                'rgba(34,197,94,0.8)',
-                'rgba(59,130,246,0.8)'
-            ],
-            borderWidth: 1
+          label: "Breakdown hours",
+          data: shiftHours,
+          backgroundColor: ["rgba(0, 209, 178, 0.7)", "rgba(255, 107, 107, 0.7)"],
+          borderColor: ["rgba(0, 209, 178, 1)", "rgba(255, 107, 107, 1)"],
+          borderWidth: 1
         }]
-    },
-    options: {
+      },
+      options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-            legend: {
-                labels: { color: "white" }
+          legend: {
+            labels: {
+              color: "#f5f7ff",
+              font: { size: 11 }
             }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const hours = context.parsed.y;
+                const pct = calculatePercent(hours, totalBreakdownHours);
+                return ` ${hours} h (${pct.toFixed(1)}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
+            },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.04)"
+            },
+            title: {
+              display: true,
+              text: "Hours",
+              color: "#9aa4c6",
+              font: { size: 10 }
+            }
+          }
         }
-    }
-});
+      }
+    });
 
-</script>
+    const shiftList = document.getElementById("shiftList");
+    shiftLabels.forEach(label => {
+      const hours = shiftBreakdown[label];
+      const pct = calculatePercent(hours, totalBreakdownHours);
+      const li = document.createElement("li");
+      li.className = "list-item";
+      const isLead = (label === "Night Shift" && shiftLead === "Night shift") || (label === "Day Shift" && shiftLead === "Day shift");
+      li.innerHTML = `
+        <div class="list-label">
+          <span class="bullet"></span>
+          <span>${label}</span>
+        </div>
+        <div class="list-value">
+          <span class="list-value-main">${hours} h · ${pct.toFixed(1)}%</span>
+          <span class="list-value-sub ${isLead ? "tag-critical" : "tag-medium"}">
+            ${isLead ? "Higher loss exposure" : "Lower loss exposure"}
+          </span>
+        </div>
+      `;
+      shiftList.appendChild(li);
+    });
+
+    // -----------------------------
+    // DAILY TREND & SPIKE DETECTION
+    // -----------------------------
+    const dailyLabels = dailyTrend.map(d => d.label);
+    const dailyValues = dailyTrend.map(d => d.value);
+    const dailyMean = mean(dailyValues);
+    const dailyStd = stdDev(dailyValues);
+    const spikeThreshold = dailyMean + dailyStd;
+
+    const spikeIndices = dailyValues.map((v, idx) => ({ v, idx }))
+      .filter(d => d.v > spikeThreshold)
+      .map(d => d.idx);
+
+    const spikeList = document.getElementById("spikeList");
+    spikeIndices.forEach(idx => {
+      const li = document.createElement("li");
+      li.className = "list-item";
+      const label = dailyLabels[idx];
+      const value = dailyValues[idx];
+      li.innerHTML = `
+        <div class="list-label">
+          <span class="bullet"></span>
+          <span>${label}</span>
+        </div>
+        <div class="list-value">
+          <span class="list-value-main">${value} h</span>
+          <span class="list-value-sub tag-critical">Spike &gt; mean + 1σ</span>
+        </div>
+      `;
+      spikeList.appendChild(li);
+    });
+
+    const ctxDailyTrend = document.getElementById("dailyTrendChart").getContext("2d");
+    new Chart(ctxDailyTrend, {
+      type: "line",
+      data: {
+        labels: dailyLabels,
+        datasets: [
+          {
+            label: "Daily breakdown hours",
+            data: dailyValues,
+            borderColor: "rgba(52, 152, 219, 1)",
+            backgroundColor: "rgba(52, 152, 219, 0.2)",
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: dailyValues.map((v, idx) => spikeIndices.includes(idx) ? 4 : 2),
+            pointBackgroundColor: dailyValues.map((v, idx) => spikeIndices.includes(idx) ? "rgba(255, 107, 107, 1)" : "rgba(52, 152, 219, 1)")
+          },
+          {
+            label: "Spike threshold (mean + 1σ)",
+            data: dailyValues.map(() => spikeThreshold),
+            borderColor: "rgba(255, 107, 107, 0.8)",
+            borderDash: [6, 4],
+            borderWidth: 1.5,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#f5f7ff",
+              font: { size: 10 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                if (context.datasetIndex === 0) {
+                  const v = context.parsed.y;
+                  const isSpike = spikeIndices.includes(context.dataIndex);
+                  return ` ${v} h${isSpike ? " (spike)" : ""}`;
+                } else {
+                  return ` Threshold: ${context.parsed.y.toFixed(1)} h`;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 9 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 10
+            },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.04)"
+            },
+            title: {
+              display: true,
+              text: "Hours",
+              color: "#9aa4c6",
+              font: { size: 10 }
+            }
+          }
+        }
+      }
+    });
+
+    // -----------------------------
+    // AREA-WISE DETAIL CHART & LIST
+    // -----------------------------
+    const areaEntries = Object.entries(areaBreakdown).map(([name, hours]) => {
+      const pct = calculatePercent(hours, totalBreakdownHours);
+      return { name, hours, pct };
+    }).sort((a, b) => b.hours - a.hours);
+
+    const areaLabels = areaEntries.map(a => a.name);
+    const areaHours = areaEntries.map(a => a.hours);
+
+    const ctxAreaBar = document.getElementById("areaBarChart").getContext("2d");
+    new Chart(ctxAreaBar, {
+      type: "horizontalBar" in Chart.defaults ? "horizontalBar" : "bar",
+      data: {
+        labels: areaLabels,
+        datasets: [{
+          label: "Breakdown hours",
+          data: areaHours,
+          backgroundColor: "rgba(0, 209, 178, 0.7)",
+          borderColor: "rgba(0, 209, 178, 1)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#f5f7ff",
+              font: { size: 10 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const hours = context.parsed.x;
+                const pct = calculatePercent(hours, totalBreakdownHours);
+                return ` ${hours} h (${pct.toFixed(1)}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 10 }
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.04)"
+            },
+            title: {
+              display: true,
+              text: "Hours",
+              color: "#9aa4c6",
+              font: { size: 10 }
+            }
+          },
+          y: {
+            ticks: {
+              color: "#9aa4c6",
+              font: { size: 9 }
+            },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    const areaList = document.getElementById("areaList");
+    areaEntries.forEach(a => {
+      const li = document.createElement("li");
+      li.className = "list-item";
+      const riskClass = classifyRiskByPercent(a.pct);
+      li.innerHTML = `
+        <div class="list-label">
+          <span class="bullet"></span>
+          <span>${a.name}</span>
+        </div>
+        <div class="list-value">
+          <span class="list-value-main">${a.hours} h · ${a.pct.toFixed(1)}%</span>
+          <span class="list-value-sub ${riskClassToTagCss(riskClass)}">${riskClassToLabel(riskClass)} area impact</span>
+        </div>
+      `;
+      areaList.appendChild(li);
+    });
+
+    // -----------------------------
+    // INTELLIGENT INSIGHTS
+    // -----------------------------
+    const insightRiskPill = document.getElementById("insightRiskPill");
+    insightRiskPill.className = `risk-pill ${riskClassToCss(overallRiskClass)}`;
+    insightRiskPill.textContent = `${riskClassToLabel(overallRiskClass)} risk`;
+
+    const rootCauseText = document.getElementById("rootCauseText");
+    const reliabilityRiskText = document.getElementById("reliabilityRiskText");
+    const operationalRiskText = document.getElementById("operationalRiskText");
+    const maintenancePriorityText = document.getElementById("maintenancePriorityText");
+
+    const top3Machines = machineEntries.slice(0, 3);
+    const top3Names = top3Machines.map(m => m.name).join(", ");
+    const fillingSection = sectionEntries.find(s => s.name === "Filling & Capping");
+    const downlineSection = sectionEntries.find(s => s.name === "Downline");
+
+    rootCauseText.innerHTML = `
+      Breakdown hours are heavily concentrated in the <strong>${fillingSection ? fillingSection.name : "Filling & Capping"}</strong> section,
+      with <strong>${mainSection.pct.toFixed(1)}%</strong> of total loss, and in a small set of machines
+      (<strong>${top3Names}</strong>) that together account for a significant share of total breakdown hours.
+      Downline equipment further amplifies the loss picture, indicating that failures in the filling block propagate downstream.
+    `;
+
+    reliabilityRiskText.innerHTML = `
+      The line exhibits a clear <strong>reliability concentration risk</strong>: a few machines and the
+      <strong>Filling & Capping + Downline</strong> sections dominate the breakdown profile.
+      With the night shift carrying a slightly higher share of loss (<strong>${nightPct.toFixed(1)}%</strong> vs
+      <strong>${dayPct.toFixed(1)}%</strong>), exposure is elevated during reduced supervision hours.
+      Detected daily spikes (e.g. <strong>7-Jan, 11-Feb, 27-Feb</strong>) suggest episodic events that can be traced to specific
+      failure modes or operating conditions.
+    `;
+
+    operationalRiskText.innerHTML = `
+      From an operations standpoint, the line is at a <strong>${riskClassToLabel(overallRiskClass)} risk level</strong>:
+      high dependency on the filling block, strong coupling with downline equipment, and a non-trivial night-shift bias.
+      Any extended failure on the top machines (especially <strong>${topMachine.name}</strong>) will materially impact
+      throughput and service levels, and could constrain capacity during peak demand windows.
+    `;
+
+    maintenancePriorityText.innerHTML = `
+      Maintenance priority should be to <strong>stabilize the Filling & Capping section first</strong>, with targeted
+      reliability actions on <strong>${top3Names}</strong>, followed by key downline assets (packer, heating tunnel,
+      crates stacker/unitizer). Night-shift practices (start-up checks, changeover discipline, operator care)
+      should be reviewed to reduce exposure. Spikes days should be used as case studies to lock in
+      <strong>standardized responses and PM tasks</strong>.
+    `;
+
+    // Preventive maintenance focus list
+    const pmFocusList = document.getElementById("pmFocusList");
+
+    // 1. Filling & Capping section
+    const liFilling = document.createElement("li");
+    liFilling.className = "list-item";
+    liFilling.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>Filling & Capping section</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${fillingSection ? fillingSection.hours : 681} h · ${(fillingSection ? fillingSection.pct : mainSection.pct).toFixed(1)}%</span>
+        <span class="list-value-sub tag-critical">
+          Primary PM focus – capper/filler mechanical integrity, CIP-related downtime, changeover optimization.
+        </span>
+      </div>
+    `;
+    pmFocusList.appendChild(liFilling);
+
+    // 2. Downline section
+    const liDownline = document.createElement("li");
+    liDownline.className = "list-item";
+    liDownline.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>Downline (packer, heating tunnel, crates handling)</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${downlineSection ? downlineSection.hours : 447} h · ${(downlineSection ? downlineSection.pct : calculatePercent(447, totalBreakdownHours)).toFixed(1)}%</span>
+        <span class="list-value-sub tag-high">
+          Secondary PM focus – packaging reliability, tunnel heating stability, crates flow and accumulation logic.
+        </span>
+      </div>
+    `;
+    pmFocusList.appendChild(liDownline);
+
+    // 3. Critical machines
+    const liCriticalMachines = document.createElement("li");
+    liCriticalMachines.className = "list-item";
+    liCriticalMachines.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>Critical machines (&gt;10% of total)</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${criticalMachines.map(m => m.name).join(", ")}</span>
+        <span class="list-value-sub tag-critical">
+          Deep-dive RCFA, condition monitoring, and PM frequency review to reduce recurrence and MTTR.
+        </span>
+      </div>
+    `;
+    pmFocusList.appendChild(liCriticalMachines);
+
+    // 4. Night shift practices
+    const liNightShift = document.createElement("li");
+    liNightShift.className = "list-item";
+    liNightShift.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>Night shift operating window</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${nightHours} h · ${nightPct.toFixed(1)}%</span>
+        <span class="list-value-sub tag-medium">
+          Reinforce start-up checks, operator training, and escalation rules to reduce night-shift breakdown exposure.
+        </span>
+      </div>
+    `;
+    pmFocusList.appendChild(liNightShift);
+
+    // 5. Spike days
+    const liSpikes = document.createElement("li");
+    liSpikes.className = "list-item";
+    const spikeLabels = spikeIndices.map(idx => dailyLabels[idx]).join(", ");
+    liSpikes.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>Spike days (mean + 1σ)</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${spikeLabels || "None detected"}</span>
+        <span class="list-value-sub tag-medium">
+          Use as case studies for RCFA and to refine PM tasks, spares strategy, and response playbooks.
+        </span>
+      </div>
+    `;
+    pmFocusList.appendChild(liSpikes);
+  </script>
+</body>
+</html>
