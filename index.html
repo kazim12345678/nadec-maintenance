@@ -1,297 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Maintenance Downtime – Management KPI Report</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Chart.js -->
+<title>Drinkable Section Maintenance Dashboard - Jan/Feb 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Font -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
 <style>
-:root{
-  --bg:#0b1220;
-  --panel:#111a2e;
-  --panel2:#0e1628;
-  --text:#e7eefc;
-  --muted:#a9b7d0;
-  --accent:#6aa6ff;
-  --good:#34d399;
-  --warn:#fbbf24;
-  --bad:#fb7185;
-  --border:rgba(255,255,255,.12);
-}
-*{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:Inter,system-ui,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin:0;
+    background:#0f172a;
+    color:white;
 }
-.container{
-  max-width:1500px;
-  margin:auto;
-  padding:28px;
+.header{
+    text-align:center;
+    padding:20px;
+    background:#1e293b;
 }
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  margin-bottom:28px;
-}
-h1{
-  margin:0;
-  font-size:30px;
-  font-weight:800;
-}
-.subtitle{
-  font-size:13px;
-  color:var(--muted);
-}
-.card{
-  background:linear-gradient(180deg,var(--panel),var(--panel2));
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:16px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(12,1fr);
-  gap:16px;
+.kpi-container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-around;
+    margin:20px;
 }
 .kpi{
-  grid-column:span 3;
+    background:#1e293b;
+    padding:20px;
+    border-radius:12px;
+    width:22%;
+    text-align:center;
+    margin:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);
 }
-.kpi h3{
-  margin:0;
-  font-size:12px;
-  color:var(--muted);
-}
-.kpi .value{
-  font-size:26px;
-  font-weight:800;
-  margin-top:6px;
+.kpi h2{
+    margin:10px 0;
+    font-size:28px;
+    color:#38bdf8;
 }
 .section{
-  margin-top:36px;
-}
-.section h2{
-  margin:0 0 14px 0;
-  font-size:20px;
-  font-weight:800;
+    background:#1e293b;
+    margin:20px;
+    padding:20px;
+    border-radius:12px;
 }
 canvas{
-  width:100%!important;
-  height:360px!important;
+    background:white;
+    border-radius:10px;
+    padding:10px;
 }
 table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
 }
 th,td{
-  padding:10px;
-  border-bottom:1px solid var(--border);
+    padding:8px;
+    text-align:left;
 }
 th{
-  color:var(--muted);
-  font-weight:600;
+    background:#334155;
 }
-.footer{
-  margin-top:36px;
-  font-size:12px;
-  color:var(--muted);
+tr:nth-child(even){
+    background:#1e293b;
 }
-@media(max-width:1100px){.kpi{grid-column:span 6}}
-@media(max-width:700px){.kpi{grid-column:span 12}}
+.critical{
+    color:#ef4444;
+    font-weight:bold;
+}
+.medium{
+    color:#facc15;
+}
+.low{
+    color:#22c55e;
+}
+@media(max-width:768px){
+    .kpi{width:90%;}
+}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<header>
-  <div>
-    <h1>Maintenance Downtime – KPI Management Report</h1>
-    <div class="subtitle">
-      Formal executive review • Downtime • Maintenance Planning • Reliability
+<div class="header">
+    <h1>Drinkable Section Maintenance Dashboard</h1>
+    <h3>January – February 2026 KPI Report</h3>
+</div>
+
+<div class="kpi-container">
+    <div class="kpi">
+        <h4>Total Breakdown Hours</h4>
+        <h2>1347</h2>
     </div>
-  </div>
-  <div class="subtitle" id="period"></div>
-</header>
+    <div class="kpi">
+        <h4>Highest Loss Area</h4>
+        <h2>Filling & Capping</h2>
+    </div>
+    <div class="kpi">
+        <h4>Critical Machine</h4>
+        <h2>M15</h2>
+    </div>
+    <div class="kpi">
+        <h4>2nd Critical Machine</h4>
+        <h2>M14</h2>
+    </div>
+</div>
 
-<!-- ===================== -->
-<!-- DATA (PASTE REAL DATA) -->
-<!-- ===================== -->
+<div class="section">
+    <h2>Machine Wise Breakdown (Hours)</h2>
+    <canvas id="machineChart"></canvas>
+</div>
+
+<div class="section">
+    <h2>Area Wise Breakdown (Hours)</h2>
+    <canvas id="areaChart"></canvas>
+</div>
+
+<div class="section">
+    <h2>Top 5 Critical Machines</h2>
+    <table>
+        <tr><th>Machine</th><th>Breakdown Hours</th><th>Status</th></tr>
+        <tr><td>M15</td><td class="critical">151</td><td class="critical">Critical</td></tr>
+        <tr><td>M14</td><td class="critical">143</td><td class="critical">Critical</td></tr>
+        <tr><td>M6</td><td class="medium">127</td><td class="medium">High</td></tr>
+        <tr><td>M7</td><td class="medium">127</td><td class="medium">High</td></tr>
+        <tr><td>M2</td><td class="medium">99</td><td class="medium">High</td></tr>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Top 5 Critical Areas</h2>
+    <table>
+        <tr><th>Area</th><th>Breakdown Hours</th><th>Status</th></tr>
+        <tr><td>Filling & Capping Machine</td><td class="critical">573</td><td class="critical">Critical</td></tr>
+        <tr><td>Packer Machine & Heating Tunnel</td><td class="critical">246</td><td class="critical">Critical</td></tr>
+        <tr><td>Crates Stacker & Unitizer</td><td class="medium">120</td><td class="medium">High</td></tr>
+        <tr><td>Crates Destacker & Washer</td><td class="medium">88</td><td class="medium">High</td></tr>
+        <tr><td>Bottle Line Conveyor</td><td class="medium">65</td><td class="medium">High</td></tr>
+    </table>
+</div>
+
 <script>
-// 1) Downtime_Raw (Sheet2 tidy)
-const downtimeData = [
-  {date:"2026-01-01", machine:"M1", hours:2.5},
-  {date:"2026-01-01", machine:"M2", hours:1.0},
-  {date:"2026-01-02", machine:"M1", hours:3.2},
-  {date:"2026-01-02", machine:"M3", hours:4.1}
-];
 
-// 2) Notifications_By_Date
-const notificationData = [
-  {date:"2026-01-01", with:27, without:4},
-  {date:"2026-01-02", with:22, without:5}
-];
+// MACHINE DATA
+const machineChart = new Chart(document.getElementById('machineChart'), {
+    type: 'bar',
+    data: {
+        labels: ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M12','M13','M14','M15','M16','M17','M18'],
+        datasets: [{
+            label: 'Breakdown Hours',
+            data: [74,99,73,93,3,127,127,86,5,31,55,143,151,70,56,63],
+            backgroundColor: 'rgba(59,130,246,0.7)'
+        }]
+    }
+});
 
-// 3) Job_Category_Summary
-const jobCategoryData = [
-  {category:"Breakdown", jobs:454, downtime:248.93},
-  {category:"Corrective", jobs:671, downtime:203.85}
-];
+// AREA DATA
+const areaChart = new Chart(document.getElementById('areaChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Filling & Capping','Packer','Crates Stacker','Crates Destacker','Bottle Conveyor','Ink Jet','Bottle Debagger'],
+        datasets: [{
+            label: 'Breakdown Hours',
+            data: [573,246,120,88,65,46,52],
+            backgroundColor: 'rgba(239,68,68,0.7)'
+        }]
+    }
+});
+
 </script>
 
-<!-- ===================== -->
-<!-- KPI CALCULATIONS -->
-<!-- ===================== -->
-<script>
-const sum=(a,f)=>a.reduce((x,y)=>x+f(y),0);
-
-// KPI 1
-const totalDowntime=sum(downtimeData,d=>d.hours);
-
-// KPI 2
-const days=[...new Set(downtimeData.map(d=>d.date))];
-const avgDaily=totalDowntime/days.length;
-
-// KPI 3 + 4
-const machineTotals={};
-downtimeData.forEach(d=>{
-  machineTotals[d.machine]=(machineTotals[d.machine]||0)+d.hours;
-});
-
-// KPI 5 + 6
-const totalJobs=sum(notificationData,d=>d.with+d.without);
-const jobsWith=sum(notificationData,d=>d.with);
-const jobsWithout=sum(notificationData,d=>d.without);
-
-// KPI 7 + 8
-const bd=jobCategoryData.find(d=>d.category==="Breakdown");
-const cr=jobCategoryData.find(d=>d.category==="Corrective");
-
-// KPI 9 + 10 + 11
-const dailyTotals={};
-downtimeData.forEach(d=>{
-  dailyTotals[d.date]=(dailyTotals[d.date]||0)+d.hours;
-});
-const sortedDays=Object.entries(dailyTotals).sort((a,b)=>b[1]-a[1]);
-const worstDay=sortedDays[0];
-const top5Contribution=(sortedDays.slice(0,5).reduce((a,b)=>a+b[1],0)/totalDowntime)*100;
-</script>
-
-<!-- ===================== -->
-<!-- KPI CARDS (ALL 11) -->
-<!-- ===================== -->
-<div class="grid">
-  <div class="card kpi"><h3>Total Downtime (hrs)</h3><div class="value" id="k1"></div></div>
-  <div class="card kpi"><h3>Average Daily Downtime</h3><div class="value" id="k2"></div></div>
-  <div class="card kpi"><h3>Worst Downtime Day</h3><div class="value" id="k10"></div></div>
-  <div class="card kpi"><h3>Top 5 Days Contribution</h3><div class="value" id="k11"></div></div>
-
-  <div class="card kpi"><h3>% Jobs With Notification</h3><div class="value" id="k5"></div></div>
-  <div class="card kpi"><h3>% Jobs Without Notification</h3><div class="value" id="k5b"></div></div>
-  <div class="card kpi"><h3>Breakdown Jobs %</h3><div class="value" id="k7"></div></div>
-  <div class="card kpi"><h3>Corrective Jobs %</h3><div class="value" id="k7b"></div></div>
-</div>
-
-<!-- ===================== -->
-<!-- CHARTS -->
-<!-- ===================== -->
-<div class="section card">
-  <h2>KPI 9 – Daily Downtime Trend</h2>
-  <canvas id="dailyChart"></canvas>
-</div>
-
-<div class="section card">
-  <h2>KPI 3 & 4 – Downtime by Machine (Pareto)</h2>
-  <canvas id="machineChart"></canvas>
-</div>
-
-<div class="section card">
-  <h2>KPI 6 – Notification Effectiveness Trend</h2>
-  <canvas id="notifChart"></canvas>
-</div>
-
-<!-- ===================== -->
-<!-- TABLES -->
-<!-- ===================== -->
-<div class="section card">
-  <h2>KPI 7 & 8 – Job Category Summary</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Job Category</th>
-        <th>Jobs</th>
-        <th>Downtime (hrs)</th>
-        <th>Downtime / Job</th>
-      </tr>
-    </thead>
-    <tbody id="jobTable"></tbody>
-  </table>
-</div>
-
-<div class="footer">
-  This report is based exclusively on validated downtime, notification, and job category data.
-  No cost, OEE, or planned/unplanned assumptions are applied.
-</div>
-
-<!-- ===================== -->
-<!-- RENDER -->
-<!-- ===================== -->
-<script>
-document.getElementById("period").textContent=`Period: ${days[0]} → ${days[days.length-1]}`;
-document.getElementById("k1").textContent=totalDowntime.toFixed(2);
-document.getElementById("k2").textContent=avgDaily.toFixed(2);
-document.getElementById("k10").textContent=`${worstDay[0]} (${worstDay[1].toFixed(2)}h)`;
-document.getElementById("k11").textContent=top5Contribution.toFixed(1)+"%";
-document.getElementById("k5").textContent=((jobsWith/totalJobs)*100).toFixed(1)+"%";
-document.getElementById("k5b").textContent=((jobsWithout/totalJobs)*100).toFixed(1)+"%";
-document.getElementById("k7").textContent=((bd.jobs/(bd.jobs+cr.jobs))*100).toFixed(1)+"%";
-document.getElementById("k7b").textContent=((cr.jobs/(bd.jobs+cr.jobs))*100).toFixed(1)+"%";
-
-// Charts
-new Chart(dailyChart,{
-  type:"line",
-  data:{labels:Object.keys(dailyTotals),
-        datasets:[{label:"Downtime (hrs)",data:Object.values(dailyTotals),borderColor:"#6aa6ff",tension:.25}]}
-});
-
-new Chart(machineChart,{
-  type:"bar",
-  data:{labels:Object.keys(machineTotals),
-        datasets:[{label:"Downtime (hrs)",data:Object.values(machineTotals),backgroundColor:"rgba(106,166,255,.6)"}]}
-});
-
-new Chart(notifChart,{
-  type:"line",
-  data:{
-    labels:notificationData.map(d=>d.date),
-    datasets:[
-      {label:"With Notification",data:notificationData.map(d=>d.with),borderColor:"#34d399"},
-      {label:"Without Notification",data:notificationData.map(d=>d.without),borderColor:"#fb7185"}
-    ]
-  }
-});
-
-// Table
-const tbody=document.getElementById("jobTable");
-jobCategoryData.forEach(r=>{
-  tbody.innerHTML+=`<tr>
-    <td>${r.category}</td>
-    <td>${r.jobs}</td>
-    <td>${r.downtime.toFixed(2)}</td>
-    <td>${(r.downtime/r.jobs).toFixed(2)}</td>
-  </tr>`;
-});
-</script>
-
-</div>
 </body>
 </html>
