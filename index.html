@@ -1,4 +1,13 @@
 <div class="section">
+    <h2>Shift Wise Breakdown Distribution</h2>
+    <canvas id="shiftChart"></canvas>
+</div>
+
+<div class="section">
+    <h2>Section Wise Breakdown Distribution</h2>
+    <canvas id="sectionChart"></canvas>
+</div>
+<div class="section">
     <h2>Daily Breakdown Trend – January & February 2026</h2>
     <canvas id="dailyTrendChart"></canvas>
 </div>
@@ -219,6 +228,60 @@ const dailyTrendChart = new Chart(document.getElementById('dailyTrendChart'), {
             },
             y: {
                 ticks: { color: "white" }
+            }
+        }
+    }
+});
+
+</script>
+<script>
+
+// SHIFT WISE CHART
+const shiftChart = new Chart(document.getElementById('shiftChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Day Shift', 'Night Shift'],
+        datasets: [{
+            data: [642, 703],
+            backgroundColor: [
+                'rgba(56,189,248,0.8)',
+                'rgba(239,68,68,0.8)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: "white" }
+            }
+        }
+    }
+});
+
+
+// SECTION WISE CHART
+const sectionChart = new Chart(document.getElementById('sectionChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Filling & Capping', 'Downline', 'Upstream', 'Crates Area'],
+        datasets: [{
+            data: [681, 447, 128, 89],
+            backgroundColor: [
+                'rgba(239,68,68,0.8)',
+                'rgba(250,204,21,0.8)',
+                'rgba(34,197,94,0.8)',
+                'rgba(59,130,246,0.8)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: "white" }
             }
         }
     }
