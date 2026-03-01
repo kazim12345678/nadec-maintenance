@@ -1,280 +1,1684 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Plant Maintenance Command Center</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body{
-    margin:0;
-    font-family:Segoe UI,Arial;
-    background:#0f172a;
-    color:#e2e8f0;
-}
-header{
-    padding:20px;
-    text-align:center;
-    background:#111827;
-    font-size:24px;
-    font-weight:600;
-    letter-spacing:1px;
-}
-.section{
-    padding:25px;
-}
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:20px;
-}
-.card{
-    background:#1e293b;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 0 15px rgba(0,0,0,0.4);
-}
-.card h3{
-    margin:0 0 10px;
-    font-size:15px;
-    color:#94a3b8;
-}
-.card .value{
-    font-size:28px;
-    font-weight:700;
-}
-canvas{
-    background:#1e293b;
-    padding:15px;
-    border-radius:12px;
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
-th,td{
-    padding:10px;
-    text-align:center;
-    border-bottom:1px solid #334155;
-}
-th{
-    background:#1e293b;
-}
-.highlight{
-    color:#facc15;
-}
-.warning{
-    color:#ef4444;
-}
-.success{
-    color:#22c55e;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Plant Maintenance Command Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-main: #0b1220;
+      --bg-header: #020617;
+      --bg-card: #020617;
+      --bg-card-alt: #020617;
+      --border-subtle: #1f2937;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --accent-1: #0ea5e9;
+      --accent-2: #6366f1;
+      --accent-3: #f97316;
+      --accent-4: #22c55e;
+      --accent-danger: #ef4444;
+      --accent-warning: #facc15;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
+      --radius-card: 10px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #020617 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--bg-header);
+      border-bottom: 1px solid #111827;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-title-main {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    .header-title-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .badge {
+      border-radius: var(--radius-pill);
+      border: 1px solid #1f2937;
+      padding: 4px 10px;
+      font-size: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #020617;
+      color: var(--text-muted);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-1);
+      box-shadow: 0 0 8px rgba(14, 165, 233, 0.9);
+    }
+
+    .badge-critical .badge-dot {
+      background: var(--accent-danger);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
+    }
+
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 14px 14px 24px;
+    }
+
+    .nav-tabs {
+      display: inline-flex;
+      border-radius: var(--radius-pill);
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 3px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+      margin-bottom: 14px;
+    }
+
+    .nav-tab {
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #1f2937;
+    }
+
+    .nav-tab.active {
+      background: #0b1120;
+      color: #e5e7eb;
+    }
+
+    .nav-tab.active span.dot {
+      background: var(--accent-1);
+      box-shadow: 0 0 6px rgba(14, 165, 233, 0.9);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .section-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 1200px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .app-shell {
+        padding: 10px;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .kpi-main {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      color: #f9fafb;
+    }
+
+    .kpi-main span.unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .kpi-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .kpi-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      border: 1px solid #1f2937;
+      color: var(--text-muted);
+      background: #020617;
+    }
+
+    .kpi-tag span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-1);
+    }
+
+    .kpi-tag.critical span.dot {
+      background: var(--accent-danger);
+    }
+
+    .kpi-tag.warning span.dot {
+      background: var(--accent-warning);
+    }
+
+    .kpi-tag.success span.dot {
+      background: var(--accent-4);
+    }
+
+    .trend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      border: 1px solid #1f2937;
+      background: rgba(34, 197, 94, 0.08);
+      color: var(--accent-4);
+    }
+
+    .trend-pill.negative {
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--accent-danger);
+    }
+
+    .trend-arrow {
+      font-size: 11px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 220px;
+      margin-top: 4px;
+    }
+
+    .chart-container-small {
+      height: 180px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(31, 41, 55, 0), rgba(55, 65, 81, 0.9), rgba(31, 41, 55, 0));
+      margin: 4px 0 6px;
+    }
+
+    .list {
+      list-style: none;
+      margin-top: 4px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 11px;
+      border-bottom: 1px dashed #1f2937;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .list-label span.bullet {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #020617;
+      border: 1px solid #1f2937;
+    }
+
+    .list-value {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+    }
+
+    .list-value-main {
+      font-size: 11px;
+      color: #f9fafb;
+      font-weight: 500;
+    }
+
+    .list-value-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .tag-critical {
+      color: var(--accent-danger);
+    }
+
+    .tag-warning {
+      color: var(--accent-warning);
+    }
+
+    .tag-good {
+      color: var(--accent-4);
+    }
+
+    .tag-info {
+      color: var(--accent-1);
+    }
+
+    .risk-pill {
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid #1f2937;
+    }
+
+    .risk-low {
+      color: var(--accent-4);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .risk-medium {
+      color: var(--accent-warning);
+      background: rgba(250, 204, 21, 0.08);
+    }
+
+    .risk-high {
+      color: var(--accent-2);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .risk-critical {
+      color: var(--accent-danger);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .insight-block {
+      background: var(--bg-card-alt);
+      border-radius: var(--radius-card);
+      border: 1px solid #1f2937;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .insight-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-1);
+      margin-bottom: 3px;
+      font-weight: 500;
+    }
+
+    .insight-text strong {
+      color: #f9fafb;
+      font-weight: 600;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .insight-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .footer-note {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .counter {
+      display: inline-block;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .table-wrapper {
+      margin-top: 6px;
+      border-radius: var(--radius-card);
+      border: 1px solid #1f2937;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid #111827;
+    }
+
+    th {
+      background: #020617;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 10px;
+    }
+
+    tr:nth-child(even) td {
+      background: #020617;
+    }
+
+    tr.highlight td {
+      color: var(--accent-warning);
+    }
+
+    tr.warning td {
+      color: var(--accent-danger);
+    }
+
+    .legend-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .legend-color.day {
+      background: var(--accent-1);
+    }
+
+    .legend-color.night {
+      background: var(--accent-danger);
+    }
+
+    .legend-color.area1 {
+      background: var(--accent-1);
+    }
+
+    .legend-color.area2 {
+      background: var(--accent-2);
+    }
+
+    .legend-color.area3 {
+      background: var(--accent-3);
+    }
+
+    .legend-color.area4 {
+      background: var(--accent-4);
+    }
+
+    .legend-color.bd {
+      background: var(--accent-danger);
+    }
+
+    .legend-color.corr {
+      background: var(--accent-1);
+    }
+  </style>
 </head>
 <body>
+<header>
+  <div class="header-title">
+    <div class="header-title-main">Plant Maintenance Command Center</div>
+    <div class="header-title-sub">Line Reliability & Technician Performance · Executive Industrial View</div>
+  </div>
+  <div class="header-badges">
+    <div class="badge badge-critical">
+      <span class="badge-dot"></span>
+      <span>High-density industrial layout</span>
+    </div>
+    <div class="badge">
+      <span class="badge-dot"></span>
+      <span>Chart.js · Roboto · Tetra Pak / Krones style</span>
+    </div>
+  </div>
+</header>
 
-<header>Plant Maintenance Intelligence Command Center</header>
+<div class="app-shell">
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-target="lineDashboard">
+      <span class="dot"></span>
+      <span>Line breakdown dashboard</span>
+    </button>
+    <button class="nav-tab" data-target="techDashboard">
+      <span class="dot"></span>
+      <span>Technician performance dashboard</span>
+    </button>
+  </div>
 
-<div class="section">
-<div class="grid" id="kpiCards"></div>
-</div>
+  <main>
+    <!-- LINE BREAKDOWN DASHBOARD -->
+    <section id="lineDashboard">
+      <!-- KPIs -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Line breakdown overview</div>
+            <div class="card-subtitle">Shift, area and hourly loss picture</div>
+          </div>
+          <div id="lineRiskPill" class="risk-pill risk-high">High risk</div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid grid-4">
+          <div>
+            <div class="kpi-label">Total shift breakdown</div>
+            <div class="kpi-main">
+              <span class="counter" id="kpiShiftTotal">0</span>
+              <span class="unit">hours</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Day + Night combined</span>
+              <span class="trend-pill negative" id="kpiShiftBiasPill">
+                <span class="trend-arrow">▲</span>
+                <span id="kpiShiftBiasText">Night higher</span>
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">Total area breakdown</div>
+            <div class="kpi-main">
+              <span class="counter" id="kpiAreaTotal">0</span>
+              <span class="unit">hours</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Filling, Downline, Upstream, Crates</span>
+              <span id="kpiMainAreaTag" class="kpi-tag">
+                <span class="dot"></span>
+                Main loss area
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">Total hourly breakdown</div>
+            <div class="kpi-main">
+              <span id="kpiHourTotal">0:00</span>
+              <span class="unit">hh:mm</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Sum of 24-hour profile</span>
+              <span id="kpiPeakHourTag" class="kpi-tag warning">
+                <span class="dot"></span>
+                Peak hour
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">Peak hour load</div>
+            <div class="kpi-main">
+              <span id="kpiPeakHourValue">0:00</span>
+              <span class="unit" id="kpiPeakHourLabel">hour</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Highest hourly breakdown</span>
+              <span class="kpi-tag">
+                <span class="dot"></span>
+                Use for staffing & coverage
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="footer-note">
+          <span>
+            <span class="badge-label">Executive view:</span>
+            Quickly shows where breakdown time concentrates by shift, area and hour of day.
+          </span>
+          <span>
+            <span class="badge-label">Interpretation:</span>
+            Night shift bias + dominant area + peak hour = primary reliability exposure.
+          </span>
+        </div>
+      </section>
 
-<div class="section">
-<h2>Shift & Area Distribution</h2>
-<div class="grid">
-<canvas id="shiftChart"></canvas>
-<canvas id="areaChart"></canvas>
-</div>
-</div>
+      <!-- SHIFT & AREA -->
+      <section>
+        <div class="section-title-row">
+          <div class="section-title">Shift & area distribution</div>
+          <div class="section-subtitle">How breakdown hours are split across shifts and major areas</div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Shift breakdown</div>
+                <div class="card-subtitle">Day vs Night share</div>
+              </div>
+              <div class="kpi-tag">
+                <span class="dot"></span>
+                % of total shift hours
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="chart-container chart-container-small">
+              <canvas id="shiftChart"></canvas>
+            </div>
+            <ul class="list" id="shiftList"></ul>
+            <div class="legend-inline">
+              <div class="legend-item">
+                <div class="legend-color day"></div>
+                <span>Day shift</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color night"></div>
+                <span>Night shift</span>
+              </div>
+            </div>
+          </div>
 
-<div class="section">
-<h2>Hourly Breakdown Trend</h2>
-<canvas id="hourChart"></canvas>
-</div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Area breakdown</div>
+                <div class="card-subtitle">Crates, Downline, Filling & Capping, Upstream</div>
+              </div>
+              <div class="kpi-tag">
+                <span class="dot"></span>
+                % of total area hours
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="chart-container chart-container-small">
+              <canvas id="areaChart"></canvas>
+            </div>
+            <ul class="list" id="areaList"></ul>
+            <div class="legend-inline">
+              <div class="legend-item">
+                <div class="legend-color area1"></div>
+                <span>Crates Area</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color area2"></div>
+                <span>Downline</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color area3"></div>
+                <span>Filling & Capping</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color area4"></div>
+                <span>Upstream</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<div class="section">
-<h2>Technician Performance Analysis</h2>
-<canvas id="techStackChart"></canvas>
-<div id="techTable"></div>
-</div>
+      <!-- HOURLY TREND -->
+      <section>
+        <div class="section-title-row">
+          <div class="section-title">Hourly breakdown trend</div>
+          <div class="section-subtitle">24-hour profile of breakdown consumption</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Hourly breakdown profile</div>
+              <div class="card-subtitle">Helps align staffing, coverage and PM windows</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              Hours converted from hh:mm
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="chart-container">
+            <canvas id="hourChart"></canvas>
+          </div>
+        </div>
+      </section>
 
-<div class="section">
-<h2>Executive Insights</h2>
-<div class="card" id="insightBox"></div>
+      <!-- LINE INSIGHTS -->
+      <section>
+        <div class="section-title-row">
+          <div class="section-title">Executive insights – line breakdown</div>
+          <div class="section-subtitle">Automatic interpretation of shift, area and hourly patterns</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Line reliability interpretation</div>
+              <div class="card-subtitle">Data-driven narrative for plant and maintenance managers</div>
+            </div>
+            <div id="lineInsightRiskPill" class="risk-pill risk-high">High risk</div>
+          </div>
+          <div class="divider"></div>
+          <div class="insight-grid">
+            <div class="insight-block">
+              <div class="insight-title">Shift exposure</div>
+              <div class="insight-text" id="lineShiftInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Area concentration</div>
+              <div class="insight-text" id="lineAreaInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Hourly pattern</div>
+              <div class="insight-text" id="lineHourInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Recommended actions</div>
+              <div class="insight-text" id="lineActionInsight"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- TECHNICIAN PERFORMANCE DASHBOARD -->
+    <section id="techDashboard" class="hidden">
+      <!-- KPIs -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Technician performance overview</div>
+            <div class="card-subtitle">Breakdown vs corrective workload and concentration</div>
+          </div>
+          <div id="techRiskPill" class="risk-pill risk-medium">Medium risk</div>
+        </div>
+        <div class="divider"></div>
+        <div class="grid grid-4">
+          <div>
+            <div class="kpi-label">Total technician hours</div>
+            <div class="kpi-main">
+              <span id="kpiTechTotal">0:00</span>
+              <span class="unit">hh:mm</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Breakdown + Corrective</span>
+              <span class="kpi-tag">
+                <span class="dot"></span>
+                Workload volume
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">Breakdown share</div>
+            <div class="kpi-main">
+              <span id="kpiTechBdShare">0%</span>
+              <span class="unit">of total</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Reactive vs planned balance</span>
+              <span id="kpiTechBdTag" class="kpi-tag warning">
+                <span class="dot"></span>
+                Reactive risk
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">Top technician</div>
+            <div class="kpi-main">
+              <span id="kpiTechTopName">-</span>
+              <span class="unit" id="kpiTechTopHours">0:00</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Highest total workload</span>
+              <span id="kpiTechTopTag" class="kpi-tag">
+                <span class="dot"></span>
+                Workload concentration
+              </span>
+            </div>
+          </div>
+          <div>
+            <div class="kpi-label">High reactive technicians</div>
+            <div class="kpi-main">
+              <span id="kpiTechReactiveCount">0</span>
+              <span class="unit">&gt; 60% BD</span>
+            </div>
+            <div class="kpi-meta">
+              <span>Technicians with high breakdown ratio</span>
+              <span class="kpi-tag warning">
+                <span class="dot"></span>
+                Training / PM opportunity
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TECH CHARTS -->
+      <section>
+        <div class="section-title-row">
+          <div class="section-title">Technician workload distribution</div>
+          <div class="section-subtitle">Breakdown vs corrective hours per technician</div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Stacked workload</div>
+                <div class="card-subtitle">Breakdown vs corrective per technician</div>
+              </div>
+              <div class="kpi-tag">
+                <span class="dot"></span>
+                Hours (hh:mm → decimal)
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="chart-container">
+              <canvas id="techStackChart"></canvas>
+            </div>
+            <div class="legend-inline">
+              <div class="legend-item">
+                <div class="legend-color bd"></div>
+                <span>Breakdown</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color corr"></div>
+                <span>Corrective</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Total workload ranking</div>
+                <div class="card-subtitle">Horizontal bar for quick comparison</div>
+              </div>
+              <div class="kpi-tag">
+                <span class="dot"></span>
+                Total hours per technician
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="chart-container">
+              <canvas id="techTotalChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TECH TABLE & INSIGHTS -->
+      <section>
+        <div class="section-title-row">
+          <div class="section-title">Technician detail & insights</div>
+          <div class="section-subtitle">Contribution, breakdown ratio and risk flags</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Technician table</div>
+              <div class="card-subtitle">Ranked by total workload</div>
+            </div>
+            <div class="kpi-tag">
+              <span class="dot"></span>
+              Highlighted by contribution & breakdown ratio
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="table-wrapper" id="techTable"></div>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Executive insights – technicians</div>
+              <div class="card-subtitle">Where to focus coaching, PM and workload balancing</div>
+            </div>
+            <div id="techInsightRiskPill" class="risk-pill risk-medium">Medium risk</div>
+          </div>
+          <div class="divider"></div>
+          <div class="insight-grid">
+            <div class="insight-block">
+              <div class="insight-title">Workload concentration</div>
+              <div class="insight-text" id="techWorkloadInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Reactive behavior</div>
+              <div class="insight-text" id="techReactiveInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Team balance</div>
+              <div class="insight-text" id="techTeamInsight"></div>
+            </div>
+            <div class="insight-block">
+              <div class="insight-title">Recommended actions</div>
+              <div class="insight-text" id="techActionInsight"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
 </div>
 
 <script>
-function timeToDecimal(t){
-    if(!t || t==="") return 0;
-    let parts=t.split(":");
-    return parseInt(parts[0]) + (parseInt(parts[1])/60);
-}
-function decimalToTime(d){
-    let h=Math.floor(d);
-    let m=Math.round((d-h)*60);
-    return h+":"+String(m).padStart(2,'0');
-}
+  // ---------- UTILITIES ----------
+  function timeToDecimal(t) {
+    if (!t || t === "") return 0;
+    const parts = t.split(":");
+    const h = parseInt(parts[0], 10) || 0;
+    const m = parseInt(parts[1], 10) || 0;
+    return h + m / 60;
+  }
 
-/* ---------------- SHIFT DATA ---------------- */
-const shiftData={
-    "Day":642,
-    "Night":703
-};
+  function decimalToTime(d) {
+    const h = Math.floor(d);
+    const m = Math.round((d - h) * 60);
+    return h + ":" + String(m).padStart(2, "0");
+  }
 
-/* ---------------- AREA DATA ---------------- */
-const areaData={
-    "Crates Area":89,
-    "Downline":447,
-    "Filling & Capping":681,
-    "Upstream":128
-};
+  function animateCounter(el, target, duration = 900, decimals = 0) {
+    const start = 0;
+    const startTime = performance.now();
+    function update(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const value = start + (target - start) * progress;
+      el.textContent = value.toFixed(decimals);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
 
-/* ---------------- HOUR DATA ---------------- */
-const hourData={
-0:"19:59",1:"28:00",2:"21:43",3:"21:21",4:"23:21",5:"5:14",
-6:"20:42",7:"53:39",8:"21:34",9:"20:24",10:"21:31",11:"6:48",
-12:"17:25",13:"31:42",14:"26:16",15:"31:08",16:"14:31",
-17:"13:39",18:"33:21",19:"6:13",20:"29:51",21:"26:19",
-22:"30:06",23:"24:51"
-};
+  function classifyRisk(pct) {
+    if (pct >= 60) return "critical";
+    if (pct >= 40) return "high";
+    if (pct >= 25) return "medium";
+    return "low";
+  }
 
-/* ---------------- TECHNICIAN RAW DATA ---------------- */
-const techRaw=[
-{name:"ali",bd:"41:09",corr:"38:08"},
-{name:"amgad",bd:"22:51",corr:"26:45"},
-{name:"dante",bd:"54:20",corr:"65:29"},
-{name:"day shift maint. team",bd:"69:05",corr:"25:16"},
-{name:"edgar",bd:"42:32",corr:"30:41"},
-{name:"gilbert",bd:"37:27",corr:"27:53"},
-{name:"husam",bd:"41:03",corr:"48:30"},
-{name:"jamal",bd:"18:35",corr:"15:12"},
-{name:"lito",bd:"15:29",corr:"13:10"},
-{name:"moneef",bd:"20:12",corr:"17:31"},
-{name:"nashwan",bd:"46:21",corr:"66:53"},
-{name:"night shift maint. team",bd:"55:09",corr:"18:55"},
-{name:"sameer",bd:"32:02",corr:"30:26"},
-{name:"sami",bd:"29:12",corr:"25:09"}
-];
+  function riskClassToCss(cls) {
+    if (cls === "critical") return "risk-critical";
+    if (cls === "high") return "risk-high";
+    if (cls === "medium") return "risk-medium";
+    return "risk-low";
+  }
 
-/* ---------------- CALCULATIONS ---------------- */
-let totalShift=shiftData.Day+shiftData.Night;
-let totalArea=Object.values(areaData).reduce((a,b)=>a+b,0);
-let totalHour=Object.values(hourData).reduce((a,b)=>a+timeToDecimal(b),0);
+  function riskClassToLabel(cls) {
+    if (cls === "critical") return "Critical";
+    if (cls === "high") return "High";
+    if (cls === "medium") return "Medium";
+    return "Low";
+  }
 
-let techProcessed=techRaw.map(t=>{
-    let bd=timeToDecimal(t.bd);
-    let corr=timeToDecimal(t.corr);
-    let total=bd+corr;
-    return {...t,bd,corr,total};
-});
-let totalTech=techProcessed.reduce((a,b)=>a+b.total,0);
+  // ---------- RAW DATA ----------
+  const shiftData = {
+    "Day": 642,
+    "Night": 703
+  };
 
-techProcessed.sort((a,b)=>b.total-a.total);
-let topTech=techProcessed[0];
+  const areaData = {
+    "Crates Area": 89,
+    "Downline": 447,
+    "Filling & Capping": 681,
+    "Upstream": 128
+  };
 
-/* ---------------- KPI ---------------- */
-const kpis=[
-{title:"Total Shift Hours",value:totalShift},
-{title:"Total Area Hours",value:totalArea},
-{title:"Total Hourly (549:38)",value:decimalToTime(totalHour)},
-{title:"Total Technician Hours",value:decimalToTime(totalTech)},
-{title:"Top Technician",value:topTech.name.toUpperCase()+" ("+decimalToTime(topTech.total)+")"}
-];
+  const hourData = {
+    0: "19:59", 1: "28:00", 2: "21:43", 3: "21:21", 4: "23:21", 5: "5:14",
+    6: "20:42", 7: "53:39", 8: "21:34", 9: "20:24", 10: "21:31", 11: "6:48",
+    12: "17:25", 13: "31:42", 14: "26:16", 15: "31:08", 16: "14:31",
+    17: "13:39", 18: "33:21", 19: "6:13", 20: "29:51", 21: "26:19",
+    22: "30:06", 23: "24:51"
+  };
 
-document.getElementById("kpiCards").innerHTML=
-kpis.map(k=>`
-<div class="card">
-<h3>${k.title}</h3>
-<div class="value">${k.value}</div>
-</div>
-`).join("");
+  const techRaw = [
+    { name: "ali", bd: "41:09", corr: "38:08" },
+    { name: "amgad", bd: "22:51", corr: "26:45" },
+    { name: "dante", bd: "54:20", corr: "65:29" },
+    { name: "day shift maint. team", bd: "69:05", corr: "25:16" },
+    { name: "edgar", bd: "42:32", corr: "30:41" },
+    { name: "gilbert", bd: "37:27", corr: "27:53" },
+    { name: "husam", bd: "41:03", corr: "48:30" },
+    { name: "jamal", bd: "18:35", corr: "15:12" },
+    { name: "lito", bd: "15:29", corr: "13:10" },
+    { name: "moneef", bd: "20:12", corr: "17:31" },
+    { name: "nashwan", bd: "46:21", corr: "66:53" },
+    { name: "night shift maint. team", bd: "55:09", corr: "18:55" },
+    { name: "sameer", bd: "32:02", corr: "30:26" },
+    { name: "sami", bd: "29:12", corr: "25:09" }
+  ];
 
-/* ---------------- CHARTS ---------------- */
+  // ---------- LINE DASHBOARD CALCULATIONS ----------
+  const totalShift = shiftData.Day + shiftData.Night;
+  const totalArea = Object.values(areaData).reduce((a, b) => a + b, 0);
+  const totalHourDecimal = Object.values(hourData).reduce((a, b) => a + timeToDecimal(b), 0);
+  const totalHourTime = decimalToTime(totalHourDecimal);
 
-new Chart(document.getElementById("shiftChart"),{
-type:'doughnut',
-data:{
-labels:Object.keys(shiftData),
-datasets:[{data:Object.values(shiftData)}]
-}
-});
+  const hourEntries = Object.entries(hourData).map(([h, t]) => ({
+    hour: parseInt(h, 10),
+    time: t,
+    dec: timeToDecimal(t)
+  }));
+  hourEntries.sort((a, b) => b.dec - a.dec);
+  const peakHour = hourEntries[0];
 
-new Chart(document.getElementById("areaChart"),{
-type:'doughnut',
-data:{
-labels:Object.keys(areaData),
-datasets:[{data:Object.values(areaData)}]
-}
-});
+  const mainAreaEntry = Object.entries(areaData)
+    .map(([name, val]) => ({ name, val }))
+    .sort((a, b) => b.val - a.val)[0];
 
-new Chart(document.getElementById("hourChart"),{
-type:'bar',
-data:{
-labels:Object.keys(hourData),
-datasets:[{
-label:"Hourly Consumption",
-data:Object.values(hourData).map(timeToDecimal)
-}]
-}
-});
+  const dayPct = (shiftData.Day / totalShift) * 100;
+  const nightPct = (shiftData.Night / totalShift) * 100;
+  const shiftLead = nightPct > dayPct ? "Night" : "Day";
+  const shiftDiff = Math.abs(nightPct - dayPct);
 
-new Chart(document.getElementById("techStackChart"),{
-type:'bar',
-data:{
-labels:techProcessed.map(t=>t.name),
-datasets:[
-{label:"Breakdown",data:techProcessed.map(t=>t.bd)},
-{label:"Corrective",data:techProcessed.map(t=>t.corr)}
-]
-},
-options:{responsive:true}
-});
+  const lineRiskScore =
+    (mainAreaEntry.val / totalArea > 0.45 ? 2 : 0) +
+    (shiftDiff > 5 ? 1 : 0) +
+    (peakHour.dec > totalHourDecimal / 24 * 1.3 ? 1 : 0);
+  const lineRiskClass =
+    lineRiskScore >= 3 ? "high" :
+    lineRiskScore >= 2 ? "medium" : "low";
 
-/* ---------------- TABLE ---------------- */
-let table=`
-<table>
-<tr>
-<th>Rank</th>
-<th>Name</th>
-<th>Total Hours</th>
-<th>% Contribution</th>
-<th>Breakdown %</th>
-</tr>
-`;
+  // ---------- TECH DASHBOARD CALCULATIONS ----------
+  const techProcessed = techRaw.map(t => {
+    const bd = timeToDecimal(t.bd);
+    const corr = timeToDecimal(t.corr);
+    const total = bd + corr;
+    return { ...t, bd, corr, total };
+  }).sort((a, b) => b.total - a.total);
 
-techProcessed.forEach((t,i)=>{
-let contribution=(t.total/totalTech*100).toFixed(1);
-let bdRatio=(t.bd/t.total*100).toFixed(1);
-let cls="";
-if(contribution>10) cls="highlight";
-if(bdRatio>60) cls="warning";
-table+=`
-<tr class="${cls}">
-<td>${i+1}</td>
-<td>${t.name}</td>
-<td>${decimalToTime(t.total)}</td>
-<td>${contribution}%</td>
-<td>${bdRatio}%</td>
-</tr>
-`;
-});
-table+="</table>";
-document.getElementById("techTable").innerHTML=table;
+  const totalTech = techProcessed.reduce((a, b) => a + b.total, 0);
+  const totalBd = techProcessed.reduce((a, b) => a + b.bd, 0);
+  const totalCorr = techProcessed.reduce((a, b) => a + b.corr, 0);
+  const bdShare = totalBd / totalTech * 100;
 
-/* ---------------- INSIGHTS ---------------- */
-let insights=[];
-if((topTech.total/totalTech*100)>15){
-insights.push("⚠ High workload concentration on "+topTech.name);
-}
-let reactive=techProcessed.filter(t=>(t.bd/t.total)>0.6);
-if(reactive.length>0){
-insights.push("⚠ Reactive risk detected in "+reactive.map(r=>r.name).join(", "));
-}
-let peakHour=Object.entries(hourData).sort((a,b)=>timeToDecimal(b[1])-timeToDecimal(a[1]))[0];
-insights.push("Peak hour: "+peakHour[0]+":00 with "+peakHour[1]+" hours");
+  const topTech = techProcessed[0];
+  const topTechShare = topTech.total / totalTech * 100;
 
-document.getElementById("insightBox").innerHTML=insights.join("<br><br>");
+  const reactiveTechs = techProcessed.filter(t => t.bd / t.total > 0.6);
+  const reactiveCount = reactiveTechs.length;
 
+  const techRiskScore =
+    (bdShare > 55 ? 2 : (bdShare > 45 ? 1 : 0)) +
+    (topTechShare > 15 ? 1 : 0) +
+    (reactiveCount >= 3 ? 1 : 0);
+  const techRiskClass =
+    techRiskScore >= 3 ? "high" :
+    techRiskScore >= 2 ? "medium" : "low";
+
+  // ---------- UPDATE LINE KPI UI ----------
+  document.getElementById("kpiShiftTotal").textContent = totalShift.toString();
+  animateCounter(document.getElementById("kpiShiftTotal"), totalShift, 900, 0);
+
+  document.getElementById("kpiAreaTotal").textContent = totalArea.toString();
+  animateCounter(document.getElementById("kpiAreaTotal"), totalArea, 900, 0);
+
+  document.getElementById("kpiHourTotal").textContent = totalHourTime;
+  document.getElementById("kpiPeakHourValue").textContent = peakHour.time;
+  document.getElementById("kpiPeakHourLabel").textContent = peakHour.hour + ":00";
+
+  const kpiShiftBiasPill = document.getElementById("kpiShiftBiasPill");
+  const kpiShiftBiasText = document.getElementById("kpiShiftBiasText");
+  if (shiftLead === "Night") {
+    kpiShiftBiasPill.classList.add("negative");
+    kpiShiftBiasText.textContent = `Night higher by ${shiftDiff.toFixed(1)} pts`;
+  } else {
+    kpiShiftBiasPill.classList.remove("negative");
+    kpiShiftBiasText.textContent = `Day higher by ${shiftDiff.toFixed(1)} pts`;
+  }
+
+  const kpiMainAreaTag = document.getElementById("kpiMainAreaTag");
+  kpiMainAreaTag.innerHTML = `
+    <span class="dot"></span>
+    Main loss area: ${mainAreaEntry.name}
+  `;
+
+  const lineRiskPill = document.getElementById("lineRiskPill");
+  lineRiskPill.className = `risk-pill ${riskClassToCss(lineRiskClass)}`;
+  lineRiskPill.textContent = `${riskClassToLabel(lineRiskClass)} risk`;
+
+  const lineInsightRiskPill = document.getElementById("lineInsightRiskPill");
+  lineInsightRiskPill.className = `risk-pill ${riskClassToCss(lineRiskClass)}`;
+  lineInsightRiskPill.textContent = `${riskClassToLabel(lineRiskClass)} risk`;
+
+  // ---------- LINE CHARTS ----------
+  const shiftCtx = document.getElementById("shiftChart").getContext("2d");
+  new Chart(shiftCtx, {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(shiftData),
+      datasets: [{
+        data: Object.values(shiftData),
+        backgroundColor: ["rgba(14,165,233,0.85)", "rgba(239,68,68,0.85)"],
+        borderColor: ["rgba(8,47,73,1)", "rgba(127,29,29,1)"],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "60%",
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed;
+              const pct = val / totalShift * 100;
+              return ` ${ctx.label}: ${val} h (${pct.toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const shiftList = document.getElementById("shiftList");
+  Object.entries(shiftData).forEach(([label, val]) => {
+    const pct = val / totalShift * 100;
+    const isLead = (label === "Night" && shiftLead === "Night") || (label === "Day" && shiftLead === "Day");
+    const li = document.createElement("li");
+    li.className = "list-item";
+    li.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>${label} shift</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${val} h · ${pct.toFixed(1)}%</span>
+        <span class="list-value-sub ${isLead ? "tag-warning" : "tag-good"}">
+          ${isLead ? "Higher exposure" : "Lower exposure"}
+        </span>
+      </div>
+    `;
+    shiftList.appendChild(li);
+  });
+
+  const areaCtx = document.getElementById("areaChart").getContext("2d");
+  const areaLabels = Object.keys(areaData);
+  const areaValues = Object.values(areaData);
+  new Chart(areaCtx, {
+    type: "doughnut",
+    data: {
+      labels: areaLabels,
+      datasets: [{
+        data: areaValues,
+        backgroundColor: [
+          "rgba(14,165,233,0.85)",
+          "rgba(99,102,241,0.85)",
+          "rgba(249,115,22,0.85)",
+          "rgba(34,197,94,0.85)"
+        ],
+        borderColor: [
+          "rgba(8,47,73,1)",
+          "rgba(49,46,129,1)",
+          "rgba(124,45,18,1)",
+          "rgba(22,101,52,1)"
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "60%",
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed;
+              const pct = val / totalArea * 100;
+              return ` ${ctx.label}: ${val} h (${pct.toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const areaList = document.getElementById("areaList");
+  Object.entries(areaData).forEach(([label, val]) => {
+    const pct = val / totalArea * 100;
+    const li = document.createElement("li");
+    li.className = "list-item";
+    const riskClass = classifyRisk(pct);
+    li.innerHTML = `
+      <div class="list-label">
+        <span class="bullet"></span>
+        <span>${label}</span>
+      </div>
+      <div class="list-value">
+        <span class="list-value-main">${val} h · ${pct.toFixed(1)}%</span>
+        <span class="list-value-sub ${riskClass === "critical" || riskClass === "high" ? "tag-warning" : "tag-good"}">
+          ${riskClassToLabel(riskClass)} area impact
+        </span>
+      </div>
+    `;
+    areaList.appendChild(li);
+  });
+
+  const hourCtx = document.getElementById("hourChart").getContext("2d");
+  const hourLabels = Object.keys(hourData).map(h => h + ":00");
+  const hourValues = Object.values(hourData).map(timeToDecimal);
+  new Chart(hourCtx, {
+    type: "bar",
+    data: {
+      labels: hourLabels,
+      datasets: [{
+        label: "Hourly breakdown (h)",
+        data: hourValues,
+        backgroundColor: "rgba(56,189,248,0.8)",
+        borderColor: "rgba(8,47,73,1)",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed.y;
+              return ` ${val.toFixed(2)} h (${decimalToTime(val)})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 9 }
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          },
+          grid: {
+            color: "rgba(31,41,55,0.7)"
+          },
+          title: {
+            display: true,
+            text: "Hours",
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        }
+      }
+    }
+  });
+
+  // ---------- LINE INSIGHTS ----------
+  const lineShiftInsight = document.getElementById("lineShiftInsight");
+  const lineAreaInsight = document.getElementById("lineAreaInsight");
+  const lineHourInsight = document.getElementById("lineHourInsight");
+  const lineActionInsight = document.getElementById("lineActionInsight");
+
+  lineShiftInsight.innerHTML = `
+    Breakdown hours are slightly biased towards the <strong>${shiftLead} shift</strong>
+    (${shiftLead === "Night" ? nightPct.toFixed(1) : dayPct.toFixed(1)}% vs
+    ${shiftLead === "Night" ? dayPct.toFixed(1) : nightPct.toFixed(1)}%). This indicates
+    higher exposure during that shift and suggests reviewing staffing, supervision and start-up routines.
+  `;
+
+  const mainAreaPct = mainAreaEntry.val / totalArea * 100;
+  lineAreaInsight.innerHTML = `
+    The <strong>${mainAreaEntry.name}</strong> area is the main contributor with
+    <strong>${mainAreaEntry.val} h</strong> (${mainAreaPct.toFixed(1)}% of total area breakdown).
+    This concentration means that reliability improvements in this area will have the largest impact
+    on overall line stability.
+  `;
+
+  lineHourInsight.innerHTML = `
+    The peak breakdown hour is <strong>${peakHour.hour}:00</strong> with
+    <strong>${peakHour.time}</strong> of accumulated breakdown. This hour should be treated as a
+    critical window for coverage, rapid response and possibly shifting PM tasks away from this period.
+  `;
+
+  lineActionInsight.innerHTML = `
+    Focus first on <strong>${mainAreaEntry.name}</strong> and the <strong>${shiftLead} shift</strong>,
+    ensuring that the peak hour (<strong>${peakHour.hour}:00</strong>) has adequate coverage and clear
+    escalation rules. Use this pattern to align PM scheduling, operator checks and spare readiness.
+  `;
+
+  // ---------- TECH KPI UI ----------
+  document.getElementById("kpiTechTotal").textContent = decimalToTime(totalTech);
+  document.getElementById("kpiTechBdShare").textContent = bdShare.toFixed(1) + "%";
+  document.getElementById("kpiTechTopName").textContent = topTech.name.toUpperCase();
+  document.getElementById("kpiTechTopHours").textContent = decimalToTime(topTech.total);
+  document.getElementById("kpiTechReactiveCount").textContent = reactiveCount.toString();
+
+  const kpiTechBdTag = document.getElementById("kpiTechBdTag");
+  if (bdShare > 55) {
+    kpiTechBdTag.classList.add("warning");
+    kpiTechBdTag.innerHTML = `<span class="dot"></span>High reactive load`;
+  } else if (bdShare > 45) {
+    kpiTechBdTag.classList.add("warning");
+    kpiTechBdTag.innerHTML = `<span class="dot"></span>Balanced but reactive`;
+  } else {
+    kpiTechBdTag.classList.add("success");
+    kpiTechBdTag.innerHTML = `<span class="dot"></span>Good preventive balance`;
+  }
+
+  const kpiTechTopTag = document.getElementById("kpiTechTopTag");
+  if (topTechShare > 18) {
+    kpiTechTopTag.classList.add("warning");
+    kpiTechTopTag.innerHTML = `<span class="dot"></span>High workload concentration`;
+  } else {
+    kpiTechTopTag.innerHTML = `<span class="dot"></span>Acceptable concentration`;
+  }
+
+  const techRiskPill = document.getElementById("techRiskPill");
+  techRiskPill.className = `risk-pill ${riskClassToCss(techRiskClass)}`;
+  techRiskPill.textContent = `${riskClassToLabel(techRiskClass)} risk`;
+
+  const techInsightRiskPill = document.getElementById("techInsightRiskPill");
+  techInsightRiskPill.className = `risk-pill ${riskClassToCss(techRiskClass)}`;
+  techInsightRiskPill.textContent = `${riskClassToLabel(techRiskClass)} risk`;
+
+  // ---------- TECH CHARTS ----------
+  const techStackCtx = document.getElementById("techStackChart").getContext("2d");
+  new Chart(techStackCtx, {
+    type: "bar",
+    data: {
+      labels: techProcessed.map(t => t.name),
+      datasets: [
+        {
+          label: "Breakdown (h)",
+          data: techProcessed.map(t => t.bd),
+          backgroundColor: "rgba(239,68,68,0.85)",
+          borderColor: "rgba(127,29,29,1)",
+          borderWidth: 1
+        },
+        {
+          label: "Corrective (h)",
+          data: techProcessed.map(t => t.corr),
+          backgroundColor: "rgba(14,165,233,0.85)",
+          borderColor: "rgba(8,47,73,1)",
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed.y;
+              return ` ${ctx.dataset.label}: ${val.toFixed(2)} h (${decimalToTime(val)})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 9 },
+            maxRotation: 45,
+            minRotation: 45
+          },
+          grid: { display: false }
+        },
+        y: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          },
+          grid: {
+            color: "rgba(31,41,55,0.7)"
+          },
+          title: {
+            display: true,
+            text: "Hours",
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        }
+      }
+    }
+  });
+
+  const techTotalCtx = document.getElementById("techTotalChart").getContext("2d");
+  new Chart(techTotalCtx, {
+    type: "bar",
+    data: {
+      labels: techProcessed.map(t => t.name),
+      datasets: [{
+        label: "Total workload (h)",
+        data: techProcessed.map(t => t.total),
+        backgroundColor: "rgba(129,140,248,0.85)",
+        borderColor: "rgba(55,48,163,1)",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed.x;
+              const pct = val / totalTech * 100;
+              return ` ${val.toFixed(2)} h (${decimalToTime(val)}) · ${pct.toFixed(1)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 10 }
+          },
+          grid: {
+            color: "rgba(31,41,55,0.7)"
+          },
+          title: {
+            display: true,
+            text: "Hours",
+            color: "#9ca3af",
+            font: { size: 10 }
+          }
+        },
+        y: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 9 }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // ---------- TECH TABLE ----------
+  const techTableWrapper = document.getElementById("techTable");
+  let tableHtml = `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Technician</th>
+          <th>Total (hh:mm)</th>
+          <th>% Contribution</th>
+          <th>Breakdown %</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  techProcessed.forEach((t, i) => {
+    const contribution = t.total / totalTech * 100;
+    const bdRatio = t.bd / t.total * 100;
+    let rowClass = "";
+    if (contribution > 10) rowClass = "highlight";
+    if (bdRatio > 60) rowClass = "warning";
+    tableHtml += `
+      <tr class="${rowClass}">
+        <td>${i + 1}</td>
+        <td>${t.name}</td>
+        <td>${decimalToTime(t.total)}</td>
+        <td>${contribution.toFixed(1)}%</td>
+        <td>${bdRatio.toFixed(1)}%</td>
+      </tr>
+    `;
+  });
+  tableHtml += "</tbody></table>";
+  techTableWrapper.innerHTML = tableHtml;
+
+  // ---------- TECH INSIGHTS ----------
+  const techWorkloadInsight = document.getElementById("techWorkloadInsight");
+  const techReactiveInsight = document.getElementById("techReactiveInsight");
+  const techTeamInsight = document.getElementById("techTeamInsight");
+  const techActionInsight = document.getElementById("techActionInsight");
+
+  techWorkloadInsight.innerHTML = `
+    Total technician workload is <strong>${decimalToTime(totalTech)}</strong>, with
+    <strong>${topTech.name.toUpperCase()}</strong> carrying the highest share
+    (<strong>${decimalToTime(topTech.total)}</strong>, ${topTechShare.toFixed(1)}% of total).
+    This indicates a potential workload concentration on a few key resources.
+  `;
+
+  techReactiveInsight.innerHTML = `
+    Breakdown hours represent <strong>${bdShare.toFixed(1)}%</strong> of total technician time.
+    ${reactiveCount > 0
+      ? `There are <strong>${reactiveCount}</strong> technicians with a breakdown ratio above 60%,
+         indicating a strong reactive pattern that can be reduced through better PM and planning.`
+      : `No technicians exceed a 60% breakdown ratio, suggesting a relatively balanced reactive/preventive mix.`}
+  `;
+
+  const teamNames = techProcessed.map(t => t.name).join(", ");
+  techTeamInsight.innerHTML = `
+    Workload is distributed across <strong>${techProcessed.length}</strong> technicians/teams:
+    <strong>${teamNames}</strong>. Use this view to ensure that both day and night maintenance teams
+    have balanced exposure and that key skills are not over-concentrated.
+  `;
+
+  techActionInsight.innerHTML = `
+    Prioritize coaching and PM support for technicians with high breakdown ratios, while monitoring
+    workload concentration on <strong>${topTech.name.toUpperCase()}</strong>. Use this dashboard in
+    weekly maintenance meetings to align staffing, training and PM scheduling with actual workload patterns.
+  `;
+
+  // ---------- TAB SWITCHING ----------
+  const tabs = document.querySelectorAll(".nav-tab");
+  const lineDashboard = document.getElementById("lineDashboard");
+  const techDashboard = document.getElementById("techDashboard");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const target = tab.getAttribute("data-target");
+      if (target === "lineDashboard") {
+        lineDashboard.classList.remove("hidden");
+        techDashboard.classList.add("hidden");
+      } else {
+        techDashboard.classList.remove("hidden");
+        lineDashboard.classList.add("hidden");
+      }
+    });
+  });
 </script>
 </body>
 </html>
