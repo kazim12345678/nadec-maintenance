@@ -1,1684 +1,1623 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Plant Maintenance Command Center</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drinkable Section – Breakdown KPI Dashboard (Jan–Feb 2026)</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    :root {
-      --bg-main: #0b1220;
-      --bg-header: #020617;
-      --bg-card: #020617;
-      --bg-card-alt: #020617;
-      --border-subtle: #1f2937;
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
-      --accent-1: #0ea5e9;
-      --accent-2: #6366f1;
-      --accent-3: #f97316;
-      --accent-4: #22c55e;
-      --accent-danger: #ef4444;
-      --accent-warning: #facc15;
-      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
-      --radius-card: 10px;
-      --radius-pill: 999px;
+    /* =========================
+       THEME (Dark Corporate FMCG)
+       ========================= */
+    :root{
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.10);
+      --stroke2: rgba(255,255,255,0.14);
+
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --muted2: rgba(255,255,255,0.48);
+
+      --brand: #22c55e;         /* FMCG green */
+      --brand2: #60a5fa;        /* info blue */
+      --warn: #fbbf24;          /* amber */
+      --danger: #fb7185;        /* rose */
+      --critical: #ef4444;      /* red */
+      --ok: #34d399;
+
+      --shadow: 0 12px 40px rgba(0,0,0,0.45);
+      --shadow2: 0 10px 22px rgba(0,0,0,0.35);
+
+      --radius: 16px;
+      --radius2: 12px;
+      --gap: 14px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    * {
-      box-sizing: border-box;
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
       margin: 0;
-      padding: 0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 15% 10%, rgba(34,197,94,0.14), transparent 60%),
+                  radial-gradient(900px 520px at 78% 20%, rgba(96,165,250,0.16), transparent 60%),
+                  radial-gradient(1100px 680px at 60% 90%, rgba(251,113,133,0.10), transparent 60%),
+                  linear-gradient(180deg, #070a14 0%, var(--bg) 100%);
+      color: var(--text);
+      overflow-x: hidden;
     }
 
-    body {
-      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #020617 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-
-    header {
-      background: var(--bg-header);
-      border-bottom: 1px solid #111827;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .header-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .header-title-main {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #f9fafb;
-    }
-
-    .header-title-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .header-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .badge {
-      border-radius: var(--radius-pill);
-      border: 1px solid #1f2937;
-      padding: 4px 10px;
-      font-size: 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #020617;
-      color: var(--text-muted);
-    }
-
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent-1);
-      box-shadow: 0 0 8px rgba(14, 165, 233, 0.9);
-    }
-
-    .badge-critical .badge-dot {
-      background: var(--accent-danger);
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
-    }
-
-    .app-shell {
-      max-width: 1320px;
+    /* =========================
+       LAYOUT
+       ========================= */
+    .wrap{
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 14px 14px 24px;
+      padding: 22px 16px 40px;
     }
 
-    .nav-tabs {
-      display: inline-flex;
-      border-radius: var(--radius-pill);
-      border: 1px solid #1f2937;
-      background: #020617;
-      padding: 3px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+    .topbar{
+      display:flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 14px;
     }
 
-    .nav-tab {
-      border-radius: var(--radius-pill);
-      padding: 6px 14px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .title{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      min-width: 0;
     }
 
-    .nav-tab span.dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #1f2937;
-    }
-
-    .nav-tab.active {
-      background: #0b1120;
-      color: #e5e7eb;
-    }
-
-    .nav-tab.active span.dot {
-      background: var(--accent-1);
-      box-shadow: 0 0 6px rgba(14, 165, 233, 0.9);
-    }
-
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .section-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 8px;
-    }
-
-    .section-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-    }
-
-    .section-subtitle {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .grid-4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .grid-3 {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .grid-2 {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    @media (max-width: 1200px) {
-      .grid-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .grid-3 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .grid-4,
-      .grid-3,
-      .grid-2 {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .app-shell {
-        padding: 10px;
-      }
-    }
-
-    .card {
-      background: var(--bg-card);
-      border-radius: var(--radius-card);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-soft);
-      padding: 10px 12px;
+    .badge{
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.9), rgba(96,165,250,0.9));
+      box-shadow: var(--shadow2);
       position: relative;
+      overflow:hidden;
+      flex: 0 0 auto;
+    }
+    .badge:before{
+      content:"";
+      position:absolute; inset:-30%;
+      background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.55), transparent 55%);
+      transform: rotate(18deg);
+    }
+
+    .title h1{
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: -0.02em;
+      font-weight: 800;
+      line-height: 1.1;
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
     }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .card-title {
+    .title .sub{
       font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-    }
-
-    .card-subtitle {
-      font-size: 11px;
-      color: var(--text-muted);
+      color: var(--muted);
       margin-top: 2px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
     }
 
-    .kpi-main {
-      font-size: 20px;
-      font-weight: 600;
-      margin-top: 4px;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-      color: #f9fafb;
-    }
-
-    .kpi-main span.unit {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    .kpi-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .kpi-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-    }
-
-    .kpi-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 10px;
-      border: 1px solid #1f2937;
-      color: var(--text-muted);
-      background: #020617;
-    }
-
-    .kpi-tag span.dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent-1);
-    }
-
-    .kpi-tag.critical span.dot {
-      background: var(--accent-danger);
-    }
-
-    .kpi-tag.warning span.dot {
-      background: var(--accent-warning);
-    }
-
-    .kpi-tag.success span.dot {
-      background: var(--accent-4);
-    }
-
-    .trend-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 10px;
-      border: 1px solid #1f2937;
-      background: rgba(34, 197, 94, 0.08);
-      color: var(--accent-4);
-    }
-
-    .trend-pill.negative {
-      background: rgba(239, 68, 68, 0.08);
-      color: var(--accent-danger);
-    }
-
-    .trend-arrow {
-      font-size: 11px;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 220px;
-      margin-top: 4px;
-    }
-
-    .chart-container-small {
-      height: 180px;
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, rgba(31, 41, 55, 0), rgba(55, 65, 81, 0.9), rgba(31, 41, 55, 0));
-      margin: 4px 0 6px;
-    }
-
-    .list {
-      list-style: none;
-      margin-top: 4px;
-    }
-
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 0;
-      font-size: 11px;
-      border-bottom: 1px dashed #1f2937;
-    }
-
-    .list-item:last-child {
-      border-bottom: none;
-    }
-
-    .list-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-    }
-
-    .list-label span.bullet {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #020617;
-      border: 1px solid #1f2937;
-    }
-
-    .list-value {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 1px;
-    }
-
-    .list-value-main {
-      font-size: 11px;
-      color: #f9fafb;
-      font-weight: 500;
-    }
-
-    .list-value-sub {
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-
-    .tag-critical {
-      color: var(--accent-danger);
-    }
-
-    .tag-warning {
-      color: var(--accent-warning);
-    }
-
-    .tag-good {
-      color: var(--accent-4);
-    }
-
-    .tag-info {
-      color: var(--accent-1);
-    }
-
-    .risk-pill {
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      border: 1px solid #1f2937;
-    }
-
-    .risk-low {
-      color: var(--accent-4);
-      background: rgba(34, 197, 94, 0.08);
-    }
-
-    .risk-medium {
-      color: var(--accent-warning);
-      background: rgba(250, 204, 21, 0.08);
-    }
-
-    .risk-high {
-      color: var(--accent-2);
-      background: rgba(99, 102, 241, 0.08);
-    }
-
-    .risk-critical {
-      color: var(--accent-danger);
-      background: rgba(239, 68, 68, 0.08);
-    }
-
-    .insight-block {
-      background: var(--bg-card-alt);
-      border-radius: var(--radius-card);
-      border: 1px solid #1f2937;
-      padding: 8px 10px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .insight-title {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent-1);
-      margin-bottom: 3px;
-      font-weight: 500;
-    }
-
-    .insight-text strong {
-      color: #f9fafb;
-      font-weight: 600;
-    }
-
-    .insight-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 768px) {
-      .insight-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .footer-note {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: 6px;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
+    .controls{
+      display:flex;
+      align-items:center;
+      gap: 10px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .badge-label {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 9px;
-      color: var(--text-muted);
-      margin-right: 4px;
+    .pill{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset;
+      user-select: none;
+    }
+    .pill label{
+      color: var(--muted);
+      font-size: 12px;
     }
 
-    .counter {
-      display: inline-block;
-      min-width: 40px;
-      text-align: right;
+    .toggle{
+      position: relative;
+      width: 56px; height: 30px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--stroke2);
+      cursor: pointer;
+      outline: none;
+    }
+    .toggle:focus{ box-shadow: 0 0 0 4px rgba(96,165,250,0.20); }
+    .toggle .knob{
+      position:absolute;
+      top: 3px; left: 3px;
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.65));
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+      transition: transform 220ms ease;
+    }
+    .toggle[data-on="true"] .knob{ transform: translateX(26px); }
+    .toggle[data-on="true"]{ background: rgba(34,197,94,0.22); border-color: rgba(34,197,94,0.35); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--gap);
+      margin-top: 14px;
     }
 
-    .hidden {
-      display: none;
-    }
-
-    .table-wrapper {
-      margin-top: 6px;
-      border-radius: var(--radius-card);
-      border: 1px solid #1f2937;
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.05) 100%);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
 
-    table {
+    .cardHeader{
+      padding: 14px 16px 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.12);
+    }
+    .cardHeader h2{
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.88);
+    }
+    .cardHeader .meta{
+      text-align:right;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .cardBody{ padding: 14px 16px 16px; }
+
+    .kpiRow{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .kpi{
+      border-radius: var(--radius2);
+      padding: 12px 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset;
+      min-height: 88px;
+      display:flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow:hidden;
+    }
+    .kpi:before{
+      content:"";
+      position:absolute; inset: -30% -40% auto auto;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle at 30% 30%, rgba(96,165,250,0.22), transparent 58%);
+      filter: blur(0px);
+      pointer-events: none;
+    }
+
+    .kpi .label{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: var(--brand2);
+      box-shadow: 0 0 0 6px rgba(96,165,250,0.12);
+      flex: 0 0 auto;
+    }
+
+    .kpi .value{
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      margin-top: 6px;
+      line-height: 1.05;
+    }
+    .kpi .sub{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 6px;
+      line-height: 1.25;
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .panel{
+      border-radius: var(--radius2);
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+      overflow:hidden;
+    }
+
+    .insight{
+      line-height: 1.45;
+      font-size: 13px;
+      color: rgba(255,255,255,0.86);
+    }
+    .insight strong{ color: rgba(255,255,255,0.95); }
+
+    .tags{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tag{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,0.10);
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .tag .chip{
+      width: 9px; height: 9px; border-radius: 999px;
+      background: var(--ok);
+      box-shadow: 0 0 0 6px rgba(52,211,153,0.12);
+    }
+    .tag[data-risk="Medium"] .chip{ background: var(--warn); box-shadow: 0 0 0 6px rgba(251,191,36,0.14); }
+    .tag[data-risk="High"] .chip{ background: var(--danger); box-shadow: 0 0 0 6px rgba(251,113,133,0.14); }
+    .tag[data-risk="Critical"] .chip{ background: var(--critical); box-shadow: 0 0 0 6px rgba(239,68,68,0.16); }
+
+    .chartWrap{
+      height: 320px;
+      position: relative;
+    }
+    .chartWrap.tall{ height: 360px; }
+    canvas{ max-width: 100%; }
+
+    .table{
       width: 100%;
       border-collapse: collapse;
-      font-size: 11px;
+      overflow:hidden;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,0.10);
     }
-
-    th, td {
-      padding: 6px 8px;
+    .table th, .table td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
       text-align: left;
-      border-bottom: 1px solid #111827;
     }
-
-    th {
-      background: #020617;
-      color: var(--text-muted);
+    .table th{
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .table tr:last-child td{ border-bottom: none; }
+    .table td.mono{ font-family: var(--mono); }
+    .right{ text-align: right; }
+    .center{ text-align: center; }
+
+    .riskPill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,0.04);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: rgba(255,255,255,0.90);
+      white-space: nowrap;
+    }
+    .riskPill:before{
+      content:"";
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: var(--ok);
+      box-shadow: 0 0 0 6px rgba(52,211,153,0.12);
+    }
+    .riskPill[data-risk="Medium"]:before{ background: var(--warn); box-shadow: 0 0 0 6px rgba(251,191,36,0.14); }
+    .riskPill[data-risk="High"]:before{ background: var(--danger); box-shadow: 0 0 0 6px rgba(251,113,133,0.14); }
+    .riskPill[data-risk="Critical"]:before{ background: var(--critical); box-shadow: 0 0 0 6px rgba(239,68,68,0.16); }
+
+    .foot{
+      margin-top: 14px;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+      padding: 10px 0 0;
     }
 
-    tr:nth-child(even) td {
-      background: #020617;
+    /* =========================
+       EXEC VIEW MODE (condense)
+       ========================= */
+    body.execMode .hideExec{
+      display:none !important;
+    }
+    body.execMode .grid{
+      grid-template-columns: 1fr;
+    }
+    body.execMode .kpiRow{
+      grid-template-columns: repeat(2, 1fr);
     }
 
-    tr.highlight td {
-      color: var(--accent-warning);
+    /* =========================
+       RESPONSIVE
+       ========================= */
+    @media (max-width: 1040px){
+      .grid{ grid-template-columns: 1fr; }
+      .kpiRow{ grid-template-columns: repeat(2, 1fr); }
+      .chartWrap{ height: 300px; }
+      .chartWrap.tall{ height: 340px; }
+    }
+    @media (max-width: 560px){
+      .kpiRow{ grid-template-columns: 1fr; }
+      .twoCol{ grid-template-columns: 1fr; }
+      .title h1{ font-size: 16px; }
     }
 
-    tr.warning td {
-      color: var(--accent-danger);
+    /* =========================
+       SUBTLE ANIMATIONS
+       ========================= */
+    .fadeIn{
+      animation: fadeIn 420ms ease forwards;
+      opacity: 0;
+      transform: translateY(6px);
     }
-
-    .legend-inline {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .legend-color {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-    }
-
-    .legend-color.day {
-      background: var(--accent-1);
-    }
-
-    .legend-color.night {
-      background: var(--accent-danger);
-    }
-
-    .legend-color.area1 {
-      background: var(--accent-1);
-    }
-
-    .legend-color.area2 {
-      background: var(--accent-2);
-    }
-
-    .legend-color.area3 {
-      background: var(--accent-3);
-    }
-
-    .legend-color.area4 {
-      background: var(--accent-4);
-    }
-
-    .legend-color.bd {
-      background: var(--accent-danger);
-    }
-
-    .legend-color.corr {
-      background: var(--accent-1);
+    @keyframes fadeIn{
+      to{ opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
+
 <body>
-<header>
-  <div class="header-title">
-    <div class="header-title-main">Plant Maintenance Command Center</div>
-    <div class="header-title-sub">Line Reliability & Technician Performance · Executive Industrial View</div>
-  </div>
-  <div class="header-badges">
-    <div class="badge badge-critical">
-      <span class="badge-dot"></span>
-      <span>High-density industrial layout</span>
+  <div class="wrap">
+    <!-- =========================
+         TOP BAR
+         ========================= -->
+    <div class="topbar fadeIn" style="animation-delay: 20ms;">
+      <div class="title">
+        <div class="badge" aria-hidden="true"></div>
+        <div style="min-width:0;">
+          <h1>Drinkable Section – Breakdown KPI Dashboard</h1>
+          <div class="sub">January–February 2026 • Executive Maintenance View • FMCG Operations</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="pill" title="Toggle Executive View Mode (condensed)">
+          <label for="execToggle">Executive View</label>
+          <button id="execToggle" class="toggle" type="button" aria-label="Executive view toggle" data-on="false">
+            <span class="knob" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="pill" title="Threshold rules are calculated dynamically from the provided data">
+          <label>Rules</label>
+          <div style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:700;">
+            Machine &gt; 10% = Critical • Section &gt; 40% = High • Spikes = Avg + 1σ
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="badge">
-      <span class="badge-dot"></span>
-      <span>Chart.js · Roboto · Tetra Pak / Krones style</span>
+
+    <!-- =========================
+         EXEC SUMMARY + KPI CARDS
+         ========================= -->
+    <div class="card fadeIn" style="animation-delay: 80ms;">
+      <div class="cardHeader">
+        <h2>Executive Summary</h2>
+        <div class="meta">
+          <div id="metaTotal">Total Breakdown Hours: —</div>
+          <div id="metaRisk">Operational Risk: —</div>
+        </div>
+      </div>
+
+      <div class="cardBody">
+        <div class="kpiRow" id="kpiRow">
+          <!-- KPI cards injected by JS -->
+        </div>
+
+        <div class="twoCol" style="margin-top: 12px;">
+          <div class="panel">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:800;letter-spacing:0.01em;">Plant Manager Readout</div>
+              <div id="summaryBadge" class="riskPill" data-risk="Medium">—</div>
+            </div>
+            <div id="execNarrative" class="insight" style="margin-top:10px;">
+              <!-- Narrative injected -->
+            </div>
+            <div class="tags" id="execTags">
+              <!-- Tag chips injected -->
+            </div>
+          </div>
+
+          <div class="panel">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:800;letter-spacing:0.01em;">Reliability Concentration</div>
+              <div id="concRisk" class="riskPill" data-risk="Medium">—</div>
+            </div>
+            <div id="concNarrative" class="insight" style="margin-top:10px;">
+              <!-- Concentration injected -->
+            </div>
+            <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="panel" style="padding:10px;">
+                <div style="font-size:12px;color:var(--muted);font-weight:700;">Top-3 Machines Share</div>
+                <div class="value" style="font-size:22px;font-weight:900;margin-top:6px;" id="top3Share">—</div>
+                <div class="sub" style="font-size:12px;color:var(--muted2);margin-top:6px;" id="top3ShareSub">—</div>
+              </div>
+              <div class="panel" style="padding:10px;">
+                <div style="font-size:12px;color:var(--muted);font-weight:700;">Top-5 Machines Share</div>
+                <div class="value" style="font-size:22px;font-weight:900;margin-top:6px;" id="top5Share">—</div>
+                <div class="sub" style="font-size:12px;color:var(--muted2);margin-top:6px;" id="top5ShareSub">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =========================
+         ANALYTICS GRID
+         ========================= -->
+    <div class="grid">
+      <!-- LEFT: Pareto + Daily Trend -->
+      <div class="card fadeIn" style="animation-delay: 140ms;">
+        <div class="cardHeader">
+          <h2>Machine Pareto (80/20) • Top Contributors</h2>
+          <div class="meta">
+            <div id="paretoMeta1">80% Threshold: —</div>
+            <div id="paretoMeta2">Critical Machines (&gt;10%): —</div>
+          </div>
+        </div>
+        <div class="cardBody">
+          <div class="chartWrap tall">
+            <canvas id="paretoChart"></canvas>
+          </div>
+
+          <div class="hideExec" style="margin-top: 12px;">
+            <table class="table" aria-label="Top 5 machine breakdown table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Machine</th>
+                  <th class="right">Hours</th>
+                  <th class="right">%</th>
+                  <th class="center">Risk</th>
+                </tr>
+              </thead>
+              <tbody id="topMachinesTbody">
+                <!-- Injected -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Section + Shift -->
+      <div class="card fadeIn" style="animation-delay: 180ms;">
+        <div class="cardHeader">
+          <h2>Section & Shift Distribution</h2>
+          <div class="meta">
+            <div id="sectionMeta">High-Risk Sections (&gt;40%): —</div>
+            <div id="shiftMeta">Night vs Day: —</div>
+          </div>
+        </div>
+        <div class="cardBody">
+          <div class="twoCol">
+            <div class="panel">
+              <div style="font-weight:800;letter-spacing:0.01em;">Section Contribution</div>
+              <div class="chartWrap" style="height:260px;margin-top:10px;">
+                <canvas id="sectionPie"></canvas>
+              </div>
+            </div>
+            <div class="panel">
+              <div style="font-weight:800;letter-spacing:0.01em;">Shift Comparison</div>
+              <div class="chartWrap" style="height:260px;margin-top:10px;">
+                <canvas id="shiftDonut"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="hideExec" style="margin-top: 12px;">
+            <div class="twoCol">
+              <div class="panel">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                  <div style="font-weight:800;letter-spacing:0.01em;">Area-wise Detailed Breakdown</div>
+                  <div id="areaRiskBadge" class="riskPill" data-risk="Medium">—</div>
+                </div>
+                <div class="chartWrap" style="height:260px;margin-top:10px;">
+                  <canvas id="areaBar"></canvas>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                  <div style="font-weight:800;letter-spacing:0.01em;">Risk Classification Logic</div>
+                </div>
+                <div class="insight" style="margin-top:10px;color:rgba(255,255,255,0.86);">
+                  <div><strong>Machines:</strong> Critical &gt; 10% contribution; High ≥ 7%; Medium ≥ 4%; Low &lt; 4%.</div>
+                  <div style="margin-top:10px;"><strong>Sections:</strong> Critical &gt; 50%; High &gt; 40%; Medium ≥ 25%; Low &lt; 25%.</div>
+                  <div style="margin-top:10px;"><strong>Daily spikes:</strong> Above average + 1 standard deviation (computed from available daily data).</div>
+                  <div style="margin-top:12px;color:var(--muted2);font-size:12px;">
+                    All status indicators are calculated dynamically from the provided dataset.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         DAILY TREND + INSIGHTS / RECOMMENDATIONS
+         ========================= -->
+    <div class="card fadeIn" style="animation-delay: 220ms; margin-top: var(--gap);">
+      <div class="cardHeader">
+        <h2>Daily Trend • Spike Detection • Reliability Signals</h2>
+        <div class="meta">
+          <div id="trendMeta1">Avg/Day: —</div>
+          <div id="trendMeta2">Detected Spikes: —</div>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="chartWrap tall">
+          <canvas id="dailyTrend"></canvas>
+        </div>
+
+        <div class="twoCol" style="margin-top: 12px;">
+          <div class="panel">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:800;letter-spacing:0.01em;">Intelligent Insights</div>
+              <div id="insightRiskBadge" class="riskPill" data-risk="High">—</div>
+            </div>
+            <div id="insightsText" class="insight" style="margin-top:10px;"></div>
+            <div class="tags" id="insightTags"></div>
+          </div>
+
+          <div class="panel">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="font-weight:800;letter-spacing:0.01em;">Maintenance Priority Recommendations</div>
+              <div id="maintPriorityBadge" class="riskPill" data-risk="High">—</div>
+            </div>
+            <div id="recommendText" class="insight" style="margin-top:10px;"></div>
+
+            <div class="hideExec" style="margin-top: 12px;">
+              <table class="table" aria-label="Action plan table">
+                <thead>
+                <tr>
+                  <th>Priority</th>
+                  <th>Focus Area</th>
+                  <th>Objective</th>
+                  <th class="center">Impact</th>
+                </tr>
+                </thead>
+                <tbody id="actionPlanTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div>© 2026 • Drinkable Section • KPI intelligence generated from provided breakdown dataset</div>
+          <div id="dataStamp">Data basis: Jan–Feb 2026 • Total: — hours</div>
+        </div>
+      </div>
     </div>
   </div>
-</header>
 
-<div class="app-shell">
-  <div class="nav-tabs">
-    <button class="nav-tab active" data-target="lineDashboard">
-      <span class="dot"></span>
-      <span>Line breakdown dashboard</span>
-    </button>
-    <button class="nav-tab" data-target="techDashboard">
-      <span class="dot"></span>
-      <span>Technician performance dashboard</span>
-    </button>
-  </div>
+  <script>
+    /* =========================================================
+       DATA INPUT (RAW PROVIDED)
+       ========================================================= */
 
-  <main>
-    <!-- LINE BREAKDOWN DASHBOARD -->
-    <section id="lineDashboard">
-      <!-- KPIs -->
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Line breakdown overview</div>
-            <div class="card-subtitle">Shift, area and hourly loss picture</div>
-          </div>
-          <div id="lineRiskPill" class="risk-pill risk-high">High risk</div>
-        </div>
-        <div class="divider"></div>
-        <div class="grid grid-4">
-          <div>
-            <div class="kpi-label">Total shift breakdown</div>
-            <div class="kpi-main">
-              <span class="counter" id="kpiShiftTotal">0</span>
-              <span class="unit">hours</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Day + Night combined</span>
-              <span class="trend-pill negative" id="kpiShiftBiasPill">
-                <span class="trend-arrow">▲</span>
-                <span id="kpiShiftBiasText">Night higher</span>
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">Total area breakdown</div>
-            <div class="kpi-main">
-              <span class="counter" id="kpiAreaTotal">0</span>
-              <span class="unit">hours</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Filling, Downline, Upstream, Crates</span>
-              <span id="kpiMainAreaTag" class="kpi-tag">
-                <span class="dot"></span>
-                Main loss area
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">Total hourly breakdown</div>
-            <div class="kpi-main">
-              <span id="kpiHourTotal">0:00</span>
-              <span class="unit">hh:mm</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Sum of 24-hour profile</span>
-              <span id="kpiPeakHourTag" class="kpi-tag warning">
-                <span class="dot"></span>
-                Peak hour
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">Peak hour load</div>
-            <div class="kpi-main">
-              <span id="kpiPeakHourValue">0:00</span>
-              <span class="unit" id="kpiPeakHourLabel">hour</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Highest hourly breakdown</span>
-              <span class="kpi-tag">
-                <span class="dot"></span>
-                Use for staffing & coverage
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="footer-note">
-          <span>
-            <span class="badge-label">Executive view:</span>
-            Quickly shows where breakdown time concentrates by shift, area and hour of day.
-          </span>
-          <span>
-            <span class="badge-label">Interpretation:</span>
-            Night shift bias + dominant area + peak hour = primary reliability exposure.
-          </span>
-        </div>
-      </section>
+    const TOTAL_HOURS = 1347;
 
-      <!-- SHIFT & AREA -->
-      <section>
-        <div class="section-title-row">
-          <div class="section-title">Shift & area distribution</div>
-          <div class="section-subtitle">How breakdown hours are split across shifts and major areas</div>
-        </div>
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Shift breakdown</div>
-                <div class="card-subtitle">Day vs Night share</div>
-              </div>
-              <div class="kpi-tag">
-                <span class="dot"></span>
-                % of total shift hours
-              </div>
-            </div>
-            <div class="divider"></div>
-            <div class="chart-container chart-container-small">
-              <canvas id="shiftChart"></canvas>
-            </div>
-            <ul class="list" id="shiftList"></ul>
-            <div class="legend-inline">
-              <div class="legend-item">
-                <div class="legend-color day"></div>
-                <span>Day shift</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color night"></div>
-                <span>Night shift</span>
-              </div>
-            </div>
-          </div>
+    const machineHours = {
+      "M1": 74, "M2": 99, "M3": 73, "M4": 93, "M5": 3, "M6": 127, "M7": 127,
+      "M8": 86, "M9": 5, "M12": 31, "M13": 55, "M14": 143, "M15": 151,
+      "M16": 70, "M17": 56, "M18": 63, "Crates Area": 89
+    };
 
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Area breakdown</div>
-                <div class="card-subtitle">Crates, Downline, Filling & Capping, Upstream</div>
-              </div>
-              <div class="kpi-tag">
-                <span class="dot"></span>
-                % of total area hours
-              </div>
-            </div>
-            <div class="divider"></div>
-            <div class="chart-container chart-container-small">
-              <canvas id="areaChart"></canvas>
-            </div>
-            <ul class="list" id="areaList"></ul>
-            <div class="legend-inline">
-              <div class="legend-item">
-                <div class="legend-color area1"></div>
-                <span>Crates Area</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color area2"></div>
-                <span>Downline</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color area3"></div>
-                <span>Filling & Capping</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color area4"></div>
-                <span>Upstream</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    const areaHours = {
+      "Filling & Capping Machine": 573,
+      "Packer Machine & Heating Tunnel": 246,
+      "Crates Stacker & Unitizer": 120,
+      "Crates Destacker / Washer": 88,
+      "Bottle Line Conveyor": 65,
+      "Ink Jet Printer": 46,
+      "Bottle Debagger": 52
+      // Others small contributors not itemized
+    };
 
-      <!-- HOURLY TREND -->
-      <section>
-        <div class="section-title-row">
-          <div class="section-title">Hourly breakdown trend</div>
-          <div class="section-subtitle">24-hour profile of breakdown consumption</div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Hourly breakdown profile</div>
-              <div class="card-subtitle">Helps align staffing, coverage and PM windows</div>
-            </div>
-            <div class="kpi-tag">
-              <span class="dot"></span>
-              Hours converted from hh:mm
-            </div>
-          </div>
-          <div class="divider"></div>
-          <div class="chart-container">
-            <canvas id="hourChart"></canvas>
-          </div>
-        </div>
-      </section>
+    const sectionHours = {
+      "Filling & Capping": 681,
+      "Downline": 447,
+      "Upstream": 128,
+      "Crates Area": 89
+    };
 
-      <!-- LINE INSIGHTS -->
-      <section>
-        <div class="section-title-row">
-          <div class="section-title">Executive insights – line breakdown</div>
-          <div class="section-subtitle">Automatic interpretation of shift, area and hourly patterns</div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Line reliability interpretation</div>
-              <div class="card-subtitle">Data-driven narrative for plant and maintenance managers</div>
-            </div>
-            <div id="lineInsightRiskPill" class="risk-pill risk-high">High risk</div>
-          </div>
-          <div class="divider"></div>
-          <div class="insight-grid">
-            <div class="insight-block">
-              <div class="insight-title">Shift exposure</div>
-              <div class="insight-text" id="lineShiftInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Area concentration</div>
-              <div class="insight-text" id="lineAreaInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Hourly pattern</div>
-              <div class="insight-text" id="lineHourInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Recommended actions</div>
-              <div class="insight-text" id="lineActionInsight"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </section>
+    const shiftHours = {
+      "Day Shift": 642,
+      "Night Shift": 703
+    };
 
-    <!-- TECHNICIAN PERFORMANCE DASHBOARD -->
-    <section id="techDashboard" class="hidden">
-      <!-- KPIs -->
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Technician performance overview</div>
-            <div class="card-subtitle">Breakdown vs corrective workload and concentration</div>
-          </div>
-          <div id="techRiskPill" class="risk-pill risk-medium">Medium risk</div>
-        </div>
-        <div class="divider"></div>
-        <div class="grid grid-4">
-          <div>
-            <div class="kpi-label">Total technician hours</div>
-            <div class="kpi-main">
-              <span id="kpiTechTotal">0:00</span>
-              <span class="unit">hh:mm</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Breakdown + Corrective</span>
-              <span class="kpi-tag">
-                <span class="dot"></span>
-                Workload volume
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">Breakdown share</div>
-            <div class="kpi-main">
-              <span id="kpiTechBdShare">0%</span>
-              <span class="unit">of total</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Reactive vs planned balance</span>
-              <span id="kpiTechBdTag" class="kpi-tag warning">
-                <span class="dot"></span>
-                Reactive risk
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">Top technician</div>
-            <div class="kpi-main">
-              <span id="kpiTechTopName">-</span>
-              <span class="unit" id="kpiTechTopHours">0:00</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Highest total workload</span>
-              <span id="kpiTechTopTag" class="kpi-tag">
-                <span class="dot"></span>
-                Workload concentration
-              </span>
-            </div>
-          </div>
-          <div>
-            <div class="kpi-label">High reactive technicians</div>
-            <div class="kpi-main">
-              <span id="kpiTechReactiveCount">0</span>
-              <span class="unit">&gt; 60% BD</span>
-            </div>
-            <div class="kpi-meta">
-              <span>Technicians with high breakdown ratio</span>
-              <span class="kpi-tag warning">
-                <span class="dot"></span>
-                Training / PM opportunity
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+    // Daily trend: only notable spikes were provided.
+    // Replace/extend this array with full Jan–Feb 2026 daily breakdowns for complete trend intelligence.
+    // Format: { date: "2026-01-07", hours: 37 }
+    const dailyTrend = [
+      { date: "2026-01-07", hours: 37 },
+      { date: "2026-02-11", hours: 35 },
+      { date: "2026-02-27", hours: 33 }
+    ];
 
-      <!-- TECH CHARTS -->
-      <section>
-        <div class="section-title-row">
-          <div class="section-title">Technician workload distribution</div>
-          <div class="section-subtitle">Breakdown vs corrective hours per technician</div>
-        </div>
-        <div class="grid grid-2">
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Stacked workload</div>
-                <div class="card-subtitle">Breakdown vs corrective per technician</div>
-              </div>
-              <div class="kpi-tag">
-                <span class="dot"></span>
-                Hours (hh:mm → decimal)
-              </div>
-            </div>
-            <div class="divider"></div>
-            <div class="chart-container">
-              <canvas id="techStackChart"></canvas>
-            </div>
-            <div class="legend-inline">
-              <div class="legend-item">
-                <div class="legend-color bd"></div>
-                <span>Breakdown</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color corr"></div>
-                <span>Corrective</span>
-              </div>
-            </div>
-          </div>
+    /* =========================================================
+       UTILITIES
+       ========================================================= */
+    const fmt = {
+      num: (n, d=0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d }),
+      pct: (v, total=TOTAL_HOURS, d=1) => total > 0 ? (100 * v / total) : 0,
+      pctStr: (v, total=TOTAL_HOURS, d=1) => `${fmt.num(fmt.pct(v,total,d), d)}%`,
+      clamp: (x, a, b) => Math.max(a, Math.min(b, x))
+    };
 
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Total workload ranking</div>
-                <div class="card-subtitle">Horizontal bar for quick comparison</div>
-              </div>
-              <div class="kpi-tag">
-                <span class="dot"></span>
-                Total hours per technician
-              </div>
-            </div>
-            <div class="divider"></div>
-            <div class="chart-container">
-              <canvas id="techTotalChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
+    const objToSeries = (obj) => Object.entries(obj).map(([k,v]) => ({ key: k, value: v }));
+    const sortDesc = (arr) => arr.slice().sort((a,b) => b.value - a.value);
 
-      <!-- TECH TABLE & INSIGHTS -->
-      <section>
-        <div class="section-title-row">
-          <div class="section-title">Technician detail & insights</div>
-          <div class="section-subtitle">Contribution, breakdown ratio and risk flags</div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Technician table</div>
-              <div class="card-subtitle">Ranked by total workload</div>
-            </div>
-            <div class="kpi-tag">
-              <span class="dot"></span>
-              Highlighted by contribution & breakdown ratio
-            </div>
-          </div>
-          <div class="divider"></div>
-          <div class="table-wrapper" id="techTable"></div>
-        </div>
+    const sumValues = (obj) => Object.values(obj).reduce((a,b)=>a+b,0);
 
-        <div class="card" style="margin-top:10px;">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Executive insights – technicians</div>
-              <div class="card-subtitle">Where to focus coaching, PM and workload balancing</div>
-            </div>
-            <div id="techInsightRiskPill" class="risk-pill risk-medium">Medium risk</div>
-          </div>
-          <div class="divider"></div>
-          <div class="insight-grid">
-            <div class="insight-block">
-              <div class="insight-title">Workload concentration</div>
-              <div class="insight-text" id="techWorkloadInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Reactive behavior</div>
-              <div class="insight-text" id="techReactiveInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Team balance</div>
-              <div class="insight-text" id="techTeamInsight"></div>
-            </div>
-            <div class="insight-block">
-              <div class="insight-title">Recommended actions</div>
-              <div class="insight-text" id="techActionInsight"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </section>
-  </main>
-</div>
+    const mean = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+    const std = (arr) => {
+      if (!arr.length) return 0;
+      const m = mean(arr);
+      const v = mean(arr.map(x => (x-m)**2));
+      return Math.sqrt(v);
+    };
 
-<script>
-  // ---------- UTILITIES ----------
-  function timeToDecimal(t) {
-    if (!t || t === "") return 0;
-    const parts = t.split(":");
-    const h = parseInt(parts[0], 10) || 0;
-    const m = parseInt(parts[1], 10) || 0;
-    return h + m / 60;
-  }
+    const riskFromPct = (p) => {
+      // p = percentage (0-100)
+      if (p > 10) return "Critical";
+      if (p >= 7) return "High";
+      if (p >= 4) return "Medium";
+      return "Low";
+    };
 
-  function decimalToTime(d) {
-    const h = Math.floor(d);
-    const m = Math.round((d - h) * 60);
-    return h + ":" + String(m).padStart(2, "0");
-  }
+    const sectionRiskFromPct = (p) => {
+      if (p > 50) return "Critical";
+      if (p > 40) return "High";
+      if (p >= 25) return "Medium";
+      return "Low";
+    };
 
-  function animateCounter(el, target, duration = 900, decimals = 0) {
-    const start = 0;
-    const startTime = performance.now();
-    function update(now) {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const value = start + (target - start) * progress;
-      el.textContent = value.toFixed(decimals);
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
-  }
+    const overallOperationalRisk = (sectionSeries, machineSeries) => {
+      // Weighted heuristic based on concentration + dominant section
+      const topSectionPct = sectionSeries[0]?.pct ?? 0;
+      const top3Pct = machineSeries.slice(0,3).reduce((a,x)=>a + x.pct, 0);
+      if (topSectionPct > 55 || top3Pct > 35) return "Critical";
+      if (topSectionPct > 45 || top3Pct > 28) return "High";
+      if (topSectionPct > 35 || top3Pct > 20) return "Medium";
+      return "Low";
+    };
 
-  function classifyRisk(pct) {
-    if (pct >= 60) return "critical";
-    if (pct >= 40) return "high";
-    if (pct >= 25) return "medium";
-    return "low";
-  }
+    const colorByRisk = (risk) => ({
+      Low: "rgba(52,211,153,0.95)",
+      Medium: "rgba(251,191,36,0.95)",
+      High: "rgba(251,113,133,0.95)",
+      Critical: "rgba(239,68,68,0.98)"
+    }[risk] || "rgba(96,165,250,0.95)");
 
-  function riskClassToCss(cls) {
-    if (cls === "critical") return "risk-critical";
-    if (cls === "high") return "risk-high";
-    if (cls === "medium") return "risk-medium";
-    return "risk-low";
-  }
+    const riskIcon = (risk) => ({
+      Low: "Stable",
+      Medium: "Watch",
+      High: "At Risk",
+      Critical: "Critical"
+    }[risk] || "Info");
 
-  function riskClassToLabel(cls) {
-    if (cls === "critical") return "Critical";
-    if (cls === "high") return "High";
-    if (cls === "medium") return "Medium";
-    return "Low";
-  }
+    const setRiskPill = (el, risk, text=null) => {
+      el.dataset.risk = risk;
+      el.textContent = text ?? risk;
+    };
 
-  // ---------- RAW DATA ----------
-  const shiftData = {
-    "Day": 642,
-    "Night": 703
-  };
+    /* =========================================================
+       PREPARE ANALYTIC SERIES
+       ========================================================= */
+    const machineSeries = sortDesc(objToSeries(machineHours)).map(x => ({
+      ...x,
+      pct: fmt.pct(x.value),
+      risk: riskFromPct(fmt.pct(x.value))
+    }));
 
-  const areaData = {
-    "Crates Area": 89,
-    "Downline": 447,
-    "Filling & Capping": 681,
-    "Upstream": 128
-  };
+    const sectionSeries = sortDesc(objToSeries(sectionHours)).map(x => ({
+      ...x,
+      pct: fmt.pct(x.value),
+      risk: sectionRiskFromPct(fmt.pct(x.value))
+    }));
 
-  const hourData = {
-    0: "19:59", 1: "28:00", 2: "21:43", 3: "21:21", 4: "23:21", 5: "5:14",
-    6: "20:42", 7: "53:39", 8: "21:34", 9: "20:24", 10: "21:31", 11: "6:48",
-    12: "17:25", 13: "31:42", 14: "26:16", 15: "31:08", 16: "14:31",
-    17: "13:39", 18: "33:21", 19: "6:13", 20: "29:51", 21: "26:19",
-    22: "30:06", 23: "24:51"
-  };
+    const shiftSeries = objToSeries(shiftHours).map(x => ({
+      ...x,
+      pct: fmt.pct(x.value),
+    }));
 
-  const techRaw = [
-    { name: "ali", bd: "41:09", corr: "38:08" },
-    { name: "amgad", bd: "22:51", corr: "26:45" },
-    { name: "dante", bd: "54:20", corr: "65:29" },
-    { name: "day shift maint. team", bd: "69:05", corr: "25:16" },
-    { name: "edgar", bd: "42:32", corr: "30:41" },
-    { name: "gilbert", bd: "37:27", corr: "27:53" },
-    { name: "husam", bd: "41:03", corr: "48:30" },
-    { name: "jamal", bd: "18:35", corr: "15:12" },
-    { name: "lito", bd: "15:29", corr: "13:10" },
-    { name: "moneef", bd: "20:12", corr: "17:31" },
-    { name: "nashwan", bd: "46:21", corr: "66:53" },
-    { name: "night shift maint. team", bd: "55:09", corr: "18:55" },
-    { name: "sameer", bd: "32:02", corr: "30:26" },
-    { name: "sami", bd: "29:12", corr: "25:09" }
-  ];
+    const areaSeries = sortDesc(objToSeries(areaHours)).map(x => ({
+      ...x,
+      pct: fmt.pct(x.value)
+    }));
 
-  // ---------- LINE DASHBOARD CALCULATIONS ----------
-  const totalShift = shiftData.Day + shiftData.Night;
-  const totalArea = Object.values(areaData).reduce((a, b) => a + b, 0);
-  const totalHourDecimal = Object.values(hourData).reduce((a, b) => a + timeToDecimal(b), 0);
-  const totalHourTime = decimalToTime(totalHourDecimal);
+    const criticalMachines = machineSeries.filter(x => x.risk === "Critical");
+    const highRiskSections = sectionSeries.filter(x => x.pct > 40);
 
-  const hourEntries = Object.entries(hourData).map(([h, t]) => ({
-    hour: parseInt(h, 10),
-    time: t,
-    dec: timeToDecimal(t)
-  }));
-  hourEntries.sort((a, b) => b.dec - a.dec);
-  const peakHour = hourEntries[0];
+    const top5Machines = machineSeries.slice(0,5);
+    const top3Machines = machineSeries.slice(0,3);
 
-  const mainAreaEntry = Object.entries(areaData)
-    .map(([name, val]) => ({ name, val }))
-    .sort((a, b) => b.val - a.val)[0];
+    const top3SharePct = top3Machines.reduce((a,x)=>a+x.pct,0);
+    const top5SharePct = top5Machines.reduce((a,x)=>a+x.pct,0);
 
-  const dayPct = (shiftData.Day / totalShift) * 100;
-  const nightPct = (shiftData.Night / totalShift) * 100;
-  const shiftLead = nightPct > dayPct ? "Night" : "Day";
-  const shiftDiff = Math.abs(nightPct - dayPct);
+    const night = shiftHours["Night Shift"] ?? 0;
+    const day = shiftHours["Day Shift"] ?? 0;
+    const nightPct = fmt.pct(night);
+    const dayPct = fmt.pct(day);
+    const nightDelta = nightPct - dayPct;
 
-  const lineRiskScore =
-    (mainAreaEntry.val / totalArea > 0.45 ? 2 : 0) +
-    (shiftDiff > 5 ? 1 : 0) +
-    (peakHour.dec > totalHourDecimal / 24 * 1.3 ? 1 : 0);
-  const lineRiskClass =
-    lineRiskScore >= 3 ? "high" :
-    lineRiskScore >= 2 ? "medium" : "low";
+    const opRisk = overallOperationalRisk(sectionSeries, machineSeries);
 
-  // ---------- TECH DASHBOARD CALCULATIONS ----------
-  const techProcessed = techRaw.map(t => {
-    const bd = timeToDecimal(t.bd);
-    const corr = timeToDecimal(t.corr);
-    const total = bd + corr;
-    return { ...t, bd, corr, total };
-  }).sort((a, b) => b.total - a.total);
+    /* =========================================================
+       DAILY TREND ANALYTICS (spike detection)
+       ========================================================= */
+    const dailyPoints = dailyTrend
+      .map(d => ({ ...d, t: new Date(d.date + "T00:00:00"), y: d.hours }))
+      .filter(d => Number.isFinite(d.y) && d.t.toString() !== "Invalid Date")
+      .sort((a,b)=>a.t-b.t);
 
-  const totalTech = techProcessed.reduce((a, b) => a + b.total, 0);
-  const totalBd = techProcessed.reduce((a, b) => a + b.bd, 0);
-  const totalCorr = techProcessed.reduce((a, b) => a + b.corr, 0);
-  const bdShare = totalBd / totalTech * 100;
+    const dailyValues = dailyPoints.map(d => d.y);
+    const dailyAvg = mean(dailyValues);
+    const dailyStd = std(dailyValues);
+    const spikeThreshold = dailyAvg + dailyStd;
 
-  const topTech = techProcessed[0];
-  const topTechShare = topTech.total / totalTech * 100;
+    const spikes = dailyPoints.filter(d => d.y > spikeThreshold).map(d => ({...d, reason: "Above Avg + 1σ"}));
 
-  const reactiveTechs = techProcessed.filter(t => t.bd / t.total > 0.6);
-  const reactiveCount = reactiveTechs.length;
+    const monthTotalsFromDaily = () => {
+      // Computes Jan vs Feb only if full daily series is present (multiple points per month).
+      if (!dailyPoints.length) return { jan: null, feb: null };
+      const acc = { jan: 0, feb: 0, janCount: 0, febCount: 0 };
+      dailyPoints.forEach(p => {
+        const m = p.t.getMonth(); // 0=Jan
+        if (m === 0){ acc.jan += p.y; acc.janCount++; }
+        if (m === 1){ acc.feb += p.y; acc.febCount++; }
+      });
+      // If the dataset is incomplete (e.g., only spikes), counts will be too low; still computed deterministically.
+      return { jan: acc.janCount ? acc.jan : null, feb: acc.febCount ? acc.feb : null, janCount: acc.janCount, febCount: acc.febCount };
+    };
 
-  const techRiskScore =
-    (bdShare > 55 ? 2 : (bdShare > 45 ? 1 : 0)) +
-    (topTechShare > 15 ? 1 : 0) +
-    (reactiveCount >= 3 ? 1 : 0);
-  const techRiskClass =
-    techRiskScore >= 3 ? "high" :
-    techRiskScore >= 2 ? "medium" : "low";
+    const monthAgg = monthTotalsFromDaily();
+    const janVsFeb = (() => {
+      if (monthAgg.jan == null || monthAgg.feb == null) return { dir: "Insufficient daily coverage", deltaPct: null };
+      const delta = monthAgg.feb - monthAgg.jan;
+      const deltaPct = monthAgg.jan > 0 ? (100 * delta / monthAgg.jan) : null;
+      const dir = delta > 0 ? "Feb ↑ vs Jan" : (delta < 0 ? "Feb ↓ vs Jan" : "Flat");
+      return { dir, deltaPct };
+    })();
 
-  // ---------- UPDATE LINE KPI UI ----------
-  document.getElementById("kpiShiftTotal").textContent = totalShift.toString();
-  animateCounter(document.getElementById("kpiShiftTotal"), totalShift, 900, 0);
+    /* =========================================================
+       UI: KPI CARDS + NARRATIVES
+       ========================================================= */
+    const buildKpis = () => {
+      const topSection = sectionSeries[0];
+      const topSectionPct = topSection?.pct ?? 0;
 
-  document.getElementById("kpiAreaTotal").textContent = totalArea.toString();
-  animateCounter(document.getElementById("kpiAreaTotal"), totalArea, 900, 0);
+      const maxMachine = machineSeries[0];
+      const maxMachinePct = maxMachine?.pct ?? 0;
 
-  document.getElementById("kpiHourTotal").textContent = totalHourTime;
-  document.getElementById("kpiPeakHourValue").textContent = peakHour.time;
-  document.getElementById("kpiPeakHourLabel").textContent = peakHour.hour + ":00";
-
-  const kpiShiftBiasPill = document.getElementById("kpiShiftBiasPill");
-  const kpiShiftBiasText = document.getElementById("kpiShiftBiasText");
-  if (shiftLead === "Night") {
-    kpiShiftBiasPill.classList.add("negative");
-    kpiShiftBiasText.textContent = `Night higher by ${shiftDiff.toFixed(1)} pts`;
-  } else {
-    kpiShiftBiasPill.classList.remove("negative");
-    kpiShiftBiasText.textContent = `Day higher by ${shiftDiff.toFixed(1)} pts`;
-  }
-
-  const kpiMainAreaTag = document.getElementById("kpiMainAreaTag");
-  kpiMainAreaTag.innerHTML = `
-    <span class="dot"></span>
-    Main loss area: ${mainAreaEntry.name}
-  `;
-
-  const lineRiskPill = document.getElementById("lineRiskPill");
-  lineRiskPill.className = `risk-pill ${riskClassToCss(lineRiskClass)}`;
-  lineRiskPill.textContent = `${riskClassToLabel(lineRiskClass)} risk`;
-
-  const lineInsightRiskPill = document.getElementById("lineInsightRiskPill");
-  lineInsightRiskPill.className = `risk-pill ${riskClassToCss(lineRiskClass)}`;
-  lineInsightRiskPill.textContent = `${riskClassToLabel(lineRiskClass)} risk`;
-
-  // ---------- LINE CHARTS ----------
-  const shiftCtx = document.getElementById("shiftChart").getContext("2d");
-  new Chart(shiftCtx, {
-    type: "doughnut",
-    data: {
-      labels: Object.keys(shiftData),
-      datasets: [{
-        data: Object.values(shiftData),
-        backgroundColor: ["rgba(14,165,233,0.85)", "rgba(239,68,68,0.85)"],
-        borderColor: ["rgba(8,47,73,1)", "rgba(127,29,29,1)"],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "60%",
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const val = ctx.parsed;
-              const pct = val / totalShift * 100;
-              return ` ${ctx.label}: ${val} h (${pct.toFixed(1)}%)`;
-            }
-          }
-        }
-      }
-    }
-  });
-
-  const shiftList = document.getElementById("shiftList");
-  Object.entries(shiftData).forEach(([label, val]) => {
-    const pct = val / totalShift * 100;
-    const isLead = (label === "Night" && shiftLead === "Night") || (label === "Day" && shiftLead === "Day");
-    const li = document.createElement("li");
-    li.className = "list-item";
-    li.innerHTML = `
-      <div class="list-label">
-        <span class="bullet"></span>
-        <span>${label} shift</span>
-      </div>
-      <div class="list-value">
-        <span class="list-value-main">${val} h · ${pct.toFixed(1)}%</span>
-        <span class="list-value-sub ${isLead ? "tag-warning" : "tag-good"}">
-          ${isLead ? "Higher exposure" : "Lower exposure"}
-        </span>
-      </div>
-    `;
-    shiftList.appendChild(li);
-  });
-
-  const areaCtx = document.getElementById("areaChart").getContext("2d");
-  const areaLabels = Object.keys(areaData);
-  const areaValues = Object.values(areaData);
-  new Chart(areaCtx, {
-    type: "doughnut",
-    data: {
-      labels: areaLabels,
-      datasets: [{
-        data: areaValues,
-        backgroundColor: [
-          "rgba(14,165,233,0.85)",
-          "rgba(99,102,241,0.85)",
-          "rgba(249,115,22,0.85)",
-          "rgba(34,197,94,0.85)"
-        ],
-        borderColor: [
-          "rgba(8,47,73,1)",
-          "rgba(49,46,129,1)",
-          "rgba(124,45,18,1)",
-          "rgba(22,101,52,1)"
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "60%",
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const val = ctx.parsed;
-              const pct = val / totalArea * 100;
-              return ` ${ctx.label}: ${val} h (${pct.toFixed(1)}%)`;
-            }
-          }
-        }
-      }
-    }
-  });
-
-  const areaList = document.getElementById("areaList");
-  Object.entries(areaData).forEach(([label, val]) => {
-    const pct = val / totalArea * 100;
-    const li = document.createElement("li");
-    li.className = "list-item";
-    const riskClass = classifyRisk(pct);
-    li.innerHTML = `
-      <div class="list-label">
-        <span class="bullet"></span>
-        <span>${label}</span>
-      </div>
-      <div class="list-value">
-        <span class="list-value-main">${val} h · ${pct.toFixed(1)}%</span>
-        <span class="list-value-sub ${riskClass === "critical" || riskClass === "high" ? "tag-warning" : "tag-good"}">
-          ${riskClassToLabel(riskClass)} area impact
-        </span>
-      </div>
-    `;
-    areaList.appendChild(li);
-  });
-
-  const hourCtx = document.getElementById("hourChart").getContext("2d");
-  const hourLabels = Object.keys(hourData).map(h => h + ":00");
-  const hourValues = Object.values(hourData).map(timeToDecimal);
-  new Chart(hourCtx, {
-    type: "bar",
-    data: {
-      labels: hourLabels,
-      datasets: [{
-        label: "Hourly breakdown (h)",
-        data: hourValues,
-        backgroundColor: "rgba(56,189,248,0.8)",
-        borderColor: "rgba(8,47,73,1)",
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const val = ctx.parsed.y;
-              return ` ${val.toFixed(2)} h (${decimalToTime(val)})`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 9 }
-          },
-          grid: { display: false }
-        },
-        y: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          },
-          grid: {
-            color: "rgba(31,41,55,0.7)"
-          },
-          title: {
-            display: true,
-            text: "Hours",
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
-        }
-      }
-    }
-  });
-
-  // ---------- LINE INSIGHTS ----------
-  const lineShiftInsight = document.getElementById("lineShiftInsight");
-  const lineAreaInsight = document.getElementById("lineAreaInsight");
-  const lineHourInsight = document.getElementById("lineHourInsight");
-  const lineActionInsight = document.getElementById("lineActionInsight");
-
-  lineShiftInsight.innerHTML = `
-    Breakdown hours are slightly biased towards the <strong>${shiftLead} shift</strong>
-    (${shiftLead === "Night" ? nightPct.toFixed(1) : dayPct.toFixed(1)}% vs
-    ${shiftLead === "Night" ? dayPct.toFixed(1) : nightPct.toFixed(1)}%). This indicates
-    higher exposure during that shift and suggests reviewing staffing, supervision and start-up routines.
-  `;
-
-  const mainAreaPct = mainAreaEntry.val / totalArea * 100;
-  lineAreaInsight.innerHTML = `
-    The <strong>${mainAreaEntry.name}</strong> area is the main contributor with
-    <strong>${mainAreaEntry.val} h</strong> (${mainAreaPct.toFixed(1)}% of total area breakdown).
-    This concentration means that reliability improvements in this area will have the largest impact
-    on overall line stability.
-  `;
-
-  lineHourInsight.innerHTML = `
-    The peak breakdown hour is <strong>${peakHour.hour}:00</strong> with
-    <strong>${peakHour.time}</strong> of accumulated breakdown. This hour should be treated as a
-    critical window for coverage, rapid response and possibly shifting PM tasks away from this period.
-  `;
-
-  lineActionInsight.innerHTML = `
-    Focus first on <strong>${mainAreaEntry.name}</strong> and the <strong>${shiftLead} shift</strong>,
-    ensuring that the peak hour (<strong>${peakHour.hour}:00</strong>) has adequate coverage and clear
-    escalation rules. Use this pattern to align PM scheduling, operator checks and spare readiness.
-  `;
-
-  // ---------- TECH KPI UI ----------
-  document.getElementById("kpiTechTotal").textContent = decimalToTime(totalTech);
-  document.getElementById("kpiTechBdShare").textContent = bdShare.toFixed(1) + "%";
-  document.getElementById("kpiTechTopName").textContent = topTech.name.toUpperCase();
-  document.getElementById("kpiTechTopHours").textContent = decimalToTime(topTech.total);
-  document.getElementById("kpiTechReactiveCount").textContent = reactiveCount.toString();
-
-  const kpiTechBdTag = document.getElementById("kpiTechBdTag");
-  if (bdShare > 55) {
-    kpiTechBdTag.classList.add("warning");
-    kpiTechBdTag.innerHTML = `<span class="dot"></span>High reactive load`;
-  } else if (bdShare > 45) {
-    kpiTechBdTag.classList.add("warning");
-    kpiTechBdTag.innerHTML = `<span class="dot"></span>Balanced but reactive`;
-  } else {
-    kpiTechBdTag.classList.add("success");
-    kpiTechBdTag.innerHTML = `<span class="dot"></span>Good preventive balance`;
-  }
-
-  const kpiTechTopTag = document.getElementById("kpiTechTopTag");
-  if (topTechShare > 18) {
-    kpiTechTopTag.classList.add("warning");
-    kpiTechTopTag.innerHTML = `<span class="dot"></span>High workload concentration`;
-  } else {
-    kpiTechTopTag.innerHTML = `<span class="dot"></span>Acceptable concentration`;
-  }
-
-  const techRiskPill = document.getElementById("techRiskPill");
-  techRiskPill.className = `risk-pill ${riskClassToCss(techRiskClass)}`;
-  techRiskPill.textContent = `${riskClassToLabel(techRiskClass)} risk`;
-
-  const techInsightRiskPill = document.getElementById("techInsightRiskPill");
-  techInsightRiskPill.className = `risk-pill ${riskClassToCss(techRiskClass)}`;
-  techInsightRiskPill.textContent = `${riskClassToLabel(techRiskClass)} risk`;
-
-  // ---------- TECH CHARTS ----------
-  const techStackCtx = document.getElementById("techStackChart").getContext("2d");
-  new Chart(techStackCtx, {
-    type: "bar",
-    data: {
-      labels: techProcessed.map(t => t.name),
-      datasets: [
+      const kpis = [
         {
-          label: "Breakdown (h)",
-          data: techProcessed.map(t => t.bd),
-          backgroundColor: "rgba(239,68,68,0.85)",
-          borderColor: "rgba(127,29,29,1)",
-          borderWidth: 1
+          label: "Total Breakdown Hours",
+          value: TOTAL_HOURS,
+          sub: "Jan–Feb 2026 combined",
+          dot: "var(--brand2)"
         },
         {
-          label: "Corrective (h)",
-          data: techProcessed.map(t => t.corr),
-          backgroundColor: "rgba(14,165,233,0.85)",
-          borderColor: "rgba(8,47,73,1)",
-          borderWidth: 1
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
+          label: "Dominant Section",
+          value: `${topSection.key}`,
+          sub: `${fmt.num(topSection.value)} hrs • ${fmt.num(topSectionPct,1)}% • ${topSection.risk} risk`,
+          dot: colorByRisk(topSection.risk)
         },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const val = ctx.parsed.y;
-              return ` ${ctx.dataset.label}: ${val.toFixed(2)} h (${decimalToTime(val)})`;
+        {
+          label: "Critical Machine Exposure",
+          value: `${fmt.num(maxMachinePct,1)}%`,
+          sub: `Top machine: ${maxMachine.key} • ${fmt.num(maxMachine.value)} hrs`,
+          dot: colorByRisk(riskFromPct(maxMachinePct))
+        },
+        {
+          label: "Night vs Day",
+          value: `${fmt.num(nightPct,1)}%`,
+          sub: `Night ${fmt.num(night)} hrs vs Day ${fmt.num(day)} hrs • Δ ${fmt.num(nightDelta,1)} pts`,
+          dot: nightDelta >= 0 ? "var(--danger)" : "var(--ok)"
+        }
+      ];
+
+      return kpis;
+    };
+
+    const renderKpis = (kpis) => {
+      const row = document.getElementById("kpiRow");
+      row.innerHTML = "";
+      kpis.forEach((k, idx) => {
+        const isNumeric = typeof k.value === "number";
+        const card = document.createElement("div");
+        card.className = "kpi";
+        card.style.animationDelay = `${120 + idx*40}ms`;
+        card.classList.add("fadeIn");
+        card.innerHTML = `
+          <div class="label">
+            <span class="dot" style="background:${k.dot}; box-shadow: 0 0 0 6px color-mix(in srgb, ${k.dot} 20%, transparent);"></span>
+            <span>${k.label}</span>
+          </div>
+          <div>
+            <div class="value" data-counter="${isNumeric ? "true":"false"}" data-target="${isNumeric ? k.value : ""}">
+              ${isNumeric ? "0" : k.value}
+            </div>
+            <div class="sub">${k.sub}</div>
+          </div>
+        `;
+        row.appendChild(card);
+      });
+    };
+
+    const animateCounters = () => {
+      const els = [...document.querySelectorAll('[data-counter="true"]')];
+      const duration = 900;
+      els.forEach(el => {
+        const target = Number(el.dataset.target || "0");
+        const start = performance.now();
+        const step = (t) => {
+          const p = fmt.clamp((t - start) / duration, 0, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const val = target * eased;
+          el.textContent = fmt.num(val, 0);
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = fmt.num(target, 0);
+        };
+        requestAnimationFrame(step);
+      });
+    };
+
+    const buildExecNarrative = () => {
+      const topSection = sectionSeries[0];
+      const secondSection = sectionSeries[1];
+      const dominantPair = (topSection.pct + secondSection.pct);
+
+      const topMachine = machineSeries[0];
+      const secondMachine = machineSeries[1];
+      const top2MachineShare = topMachine.pct + secondMachine.pct;
+
+      const secMsg = topSection.pct > 50
+        ? `The <strong>${topSection.key}</strong> section is the primary reliability risk at <strong>${fmt.num(topSection.pct,1)}%</strong> of total breakdown hours.`
+        : `The <strong>${topSection.key}</strong> section leads with <strong>${fmt.num(topSection.pct,1)}%</strong> contribution and should remain the first focus area.`;
+
+      const shiftMsg = nightDelta >= 0
+        ? `Night shift losses are higher by <strong>${fmt.num(nightDelta,1)}</strong> percentage points, indicating a response-capability and stability gap after hours.`
+        : `Day shift losses are higher by <strong>${fmt.num(Math.abs(nightDelta),1)}</strong> points; prioritize daytime execution discipline and changeover controls.`;
+
+      const machineMsg = topMachine.pct > 10
+        ? `Machine contribution is concentrated: <strong>${topMachine.key}</strong> alone contributes <strong>${fmt.num(topMachine.pct,1)}%</strong> (${fmt.num(topMachine.value)} hrs).`
+        : `Machine contributions are distributed; the largest contributor is <strong>${topMachine.key}</strong> at <strong>${fmt.num(topMachine.pct,1)}%</strong>.`;
+
+      const compMsg = `Combined, the top two sections account for <strong>${fmt.num(dominantPair,1)}%</strong>, confirming that <strong>${topSection.key} + ${secondSection.key}</strong> represent the majority loss pocket.`;
+
+      const trendMsg = (monthAgg.jan == null || monthAgg.feb == null)
+        ? `<span style="color:var(--muted);">Jan vs Feb trend requires full daily series to quantify direction.</span>`
+        : `Trend signal: <strong>${janVsFeb.dir}</strong>${janVsFeb.deltaPct == null ? "" : ` (${fmt.num(janVsFeb.deltaPct,1)}%)`}.`;
+
+      return `
+        ${secMsg} ${compMsg}<br><br>
+        ${shiftMsg}<br>
+        ${machineMsg}<br>
+        <span style="color:var(--muted);">${trendMsg}</span>
+      `;
+    };
+
+    const buildConcentrationNarrative = () => {
+      const concRisk =
+        top3SharePct > 35 ? "Critical" :
+        top3SharePct > 28 ? "High" :
+        top3SharePct > 20 ? "Medium" : "Low";
+
+      const msg = (concRisk === "Critical" || concRisk === "High")
+        ? `Breakdown hours are highly concentrated in a small number of assets. The top-3 machines contribute <strong>${fmt.num(top3SharePct,1)}%</strong> of all losses, increasing single-point-failure exposure and line instability risk.`
+        : `Breakdown hours show moderate distribution across assets. The top-3 machines contribute <strong>${fmt.num(top3SharePct,1)}%</strong>, suggesting improvement opportunities are spread across multiple machines.`;
+
+      const sub = `Top-5 machines contribute <strong>${fmt.num(top5SharePct,1)}%</strong>. Use the Pareto to focus corrective engineering and PM reinforcement on the dominant contributors.`;
+
+      return { concRisk, html: `${msg}<br><br><span style="color:var(--muted);">${sub}</span>` };
+    };
+
+    const buildInsights = () => {
+      const topSection = sectionSeries[0];
+      const secondSection = sectionSeries[1];
+      const topMachines = machineSeries.slice(0,3);
+
+      const focusMachines = topMachines.map(m => `${m.key} (${fmt.num(m.pct,1)}%)`).join(", ");
+      const shiftImbalance = nightDelta >= 0 ? "Night" : "Day";
+
+      // Root cause interpretation is generated from observed distribution signatures (not from unprovided failure codes).
+      const rootCause = (topSection.key.includes("Filling") || topSection.key.includes("Capping"))
+        ? "Losses concentrate in filling/capping where high-speed mechanical interfaces, alignment, and frequent micro-stops commonly dominate breakdown hours."
+        : "Losses concentrate in a core production section where changeover frequency, mechanical wear, and control stability typically drive downtime."
+
+      const reliabilityRisk = (top3SharePct > 28 || topSection.pct > 45)
+        ? "Reliability concentration risk is present: downtime is dominated by a few machines and a primary section, increasing the probability of repeat stoppages."
+        : "Reliability risk is distributed: downtime contributors are spread across machines; improvement requires structured multi-asset actions."
+
+      const operationalRiskLevel = opRisk;
+
+      const spikeText = spikes.length
+        ? `Spike pattern detected: <strong>${spikes.length}</strong> day(s) exceeded the statistical threshold (Avg + 1σ).`
+        : "No statistical spikes detected from available daily points; full daily series improves detection fidelity."
+
+      const insightsHTML = `
+        <div><strong>Root cause interpretation:</strong> ${rootCause}</div>
+        <div style="margin-top:10px;"><strong>Reliability risk statement:</strong> ${reliabilityRisk}</div>
+        <div style="margin-top:10px;"><strong>Operational risk level:</strong> <span style="color:${colorByRisk(operationalRiskLevel)};font-weight:900;">${operationalRiskLevel}</span> — driven by <strong>${topSection.key}</strong> contribution and machine concentration (${fmt.num(top3SharePct,1)}% in top-3).</div>
+        <div style="margin-top:10px;"><strong>Shift signal:</strong> ${shiftImbalance} shift shows higher losses; align coverage, spares readiness, and response practices accordingly.</div>
+        <div style="margin-top:10px;"><strong>Spike behavior:</strong> ${spikeText}</div>
+        <div style="margin-top:10px;color:var(--muted);"><strong>Immediate focus:</strong> ${topSection.key} + ${secondSection.key}, and machines: ${focusMachines}.</div>
+      `;
+
+      const tags = [
+        { label: `${topSection.key}: ${fmt.num(topSection.pct,1)}%`, risk: topSection.risk },
+        { label: `Top-3 Machines: ${fmt.num(top3SharePct,1)}%`, risk: (top3SharePct>35?"Critical":top3SharePct>28?"High":top3SharePct>20?"Medium":"Low") },
+        { label: `${shiftImbalance} shift higher`, risk: (Math.abs(nightDelta) >= 3 ? "High" : Math.abs(nightDelta) >= 1 ? "Medium" : "Low") },
+        { label: `Critical machines: ${criticalMachines.length}`, risk: (criticalMachines.length >= 3 ? "High" : criticalMachines.length >= 1 ? "Medium" : "Low") }
+      ];
+
+      return { insightsHTML, tags, operationalRiskLevel };
+    };
+
+    const buildRecommendations = () => {
+      const topSection = sectionSeries[0];
+      const topAreas = areaSeries.slice(0,3);
+      const topMachines = machineSeries.slice(0,5);
+
+      const highSectionFlag = topSection.pct > 40;
+      const priorityRisk = highSectionFlag || criticalMachines.length ? "High" : (opRisk === "Critical" ? "Critical" : opRisk);
+
+      const focusAreas = topAreas.map(a => `${a.key} (${fmt.num(a.pct,1)}%)`).join(", ");
+      const focusMachines = topMachines.map(m => `${m.key} (${fmt.num(m.pct,1)}%)`).join(", ");
+
+      const recommendHTML = `
+        <div><strong>Maintenance priority recommendation:</strong> Execute an 80/20 program targeting the highest-loss assets and the dominant section to reduce repeat breakdowns.</div>
+        <div style="margin-top:10px;"><strong>Preventive maintenance focus areas:</strong> ${focusAreas}.</div>
+        <div style="margin-top:10px;"><strong>Machine focus list (ranked):</strong> ${focusMachines}.</div>
+        <div style="margin-top:10px;"><strong>Execution moves:</strong> Standardize night-shift response (coverage, start-up checks, spare readiness) and deploy reliability fixes (alignment, wear points, sensors, lubrication routes) on top contributors.</div>
+        <div style="margin-top:10px;color:var(--muted);"><strong>Outcome goal:</strong> reduce dominant section contribution and lower top-3 concentration to de-risk line stability.</div>
+      `;
+
+      // Action plan table rows generated from analytics
+      const actionPlan = [
+        {
+          p: "P1",
+          area: `${topSection.key} (Primary)`,
+          obj: "Eliminate repeat stoppages on dominant loss pocket",
+          impact: topSection.pct > 50 ? "Critical" : "High"
+        },
+        {
+          p: "P2",
+          area: `Top-3 Machines (${top3Machines.map(x=>x.key).join(", ")})`,
+          obj: "Reliability retrofit + PM reinforcement on top contributors",
+          impact: top3SharePct > 35 ? "Critical" : "High"
+        },
+        {
+          p: "P3",
+          area: "Night Shift Readiness",
+          obj: "Reduce response latency and ensure spares availability",
+          impact: nightDelta >= 0 ? (nightDelta > 2 ? "High" : "Medium") : "Medium"
+        },
+        {
+          p: "P4",
+          area: "Secondary Sections (Downline/Upstream)",
+          obj: "Prevent migration of losses to downstream constraints",
+          impact: (sectionSeries[1]?.pct ?? 0) > 30 ? "High" : "Medium"
+        }
+      ];
+
+      return { recommendHTML, actionPlan, priorityRisk };
+    };
+
+    /* =========================================================
+       CHARTS (Chart.js)
+       ========================================================= */
+    const chartTheme = {
+      grid: "rgba(255,255,255,0.08)",
+      ticks: "rgba(255,255,255,0.72)",
+      tooltipBg: "rgba(6,10,20,0.92)",
+      tooltipBorder: "rgba(255,255,255,0.14)"
+    };
+
+    const makeGradient = (ctx, h, c1, c2) => {
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, c1);
+      g.addColorStop(1, c2);
+      return g;
+    };
+
+    const buildPareto = () => {
+      const labels = machineSeries.map(x => x.key);
+      const values = machineSeries.map(x => x.value);
+      const pct = machineSeries.map(x => x.pct);
+      const cumulative = [];
+      pct.reduce((acc, p, i) => (cumulative[i] = acc + p, acc + p), 0);
+
+      const idx80 = cumulative.findIndex(x => x >= 80);
+      const machinesTo80 = idx80 >= 0 ? (idx80 + 1) : machineSeries.length;
+
+      const el1 = document.getElementById("paretoMeta1");
+      el1.textContent = `80% captured by first ${machinesTo80} machine(s)`;
+
+      const el2 = document.getElementById("paretoMeta2");
+      el2.textContent = `Critical: ${criticalMachines.length}`;
+
+      const ctx = document.getElementById("paretoChart").getContext("2d");
+      const barGrad = makeGradient(ctx, 340, "rgba(96,165,250,0.55)", "rgba(96,165,250,0.12)");
+      const lineColor = "rgba(34,197,94,0.95)";
+
+      return new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              type: "bar",
+              label: "Breakdown Hours",
+              data: values,
+              backgroundColor: (context) => {
+                const i = context.dataIndex;
+                const r = machineSeries[i]?.risk ?? "Low";
+                const base = colorByRisk(r);
+                // soften for bar fill
+                return base.replace("0.98", "0.55").replace("0.95","0.50");
+              },
+              borderColor: "rgba(255,255,255,0.10)",
+              borderWidth: 1,
+              borderRadius: 10,
+              yAxisID: "y"
+            },
+            {
+              type: "line",
+              label: "Cumulative %",
+              data: cumulative,
+              yAxisID: "y1",
+              borderColor: lineColor,
+              backgroundColor: "rgba(34,197,94,0.12)",
+              fill: true,
+              tension: 0.25,
+              pointRadius: 2.6,
+              pointHoverRadius: 5,
+              pointBackgroundColor: "rgba(34,197,94,0.95)",
+              pointBorderColor: "rgba(0,0,0,0.35)",
+              borderWidth: 2
+            },
+            {
+              type: "line",
+              label: "80% Threshold",
+              data: labels.map(()=>80),
+              yAxisID: "y1",
+              borderColor: "rgba(251,191,36,0.85)",
+              borderDash: [6,6],
+              pointRadius: 0,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              labels: {
+                color: chartTheme.ticks,
+                font: { family: "Inter", weight: 700 }
+              }
+            },
+            tooltip: {
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderWidth: 1,
+              titleColor: "rgba(255,255,255,0.92)",
+              bodyColor: "rgba(255,255,255,0.84)",
+              padding: 12,
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.dataset.label === "Breakdown Hours"){
+                    const i = ctx.dataIndex;
+                    const m = machineSeries[i];
+                    return ` ${m.key}: ${fmt.num(m.value)} hrs (${fmt.num(m.pct,1)}%) • ${m.risk}`;
+                  }
+                  if (ctx.dataset.label === "Cumulative %"){
+                    return ` Cumulative: ${fmt.num(ctx.raw,1)}%`;
+                  }
+                  if (ctx.dataset.label === "80% Threshold"){
+                    return ` 80%`;
+                  }
+                  return ` ${ctx.dataset.label}: ${ctx.raw}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255,255,255,0.05)" },
+              ticks: {
+                color: chartTheme.ticks,
+                maxRotation: 0,
+                autoSkip: true
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: chartTheme.grid },
+              ticks: { color: chartTheme.ticks },
+              title: { display: true, text: "Hours", color: chartTheme.ticks, font: { family:"Inter", weight: 800 } }
+            },
+            y1: {
+              beginAtZero: true,
+              position: "right",
+              min: 0,
+              max: 100,
+              grid: { drawOnChartArea: false },
+              ticks: { color: chartTheme.ticks, callback: (v)=> v + "%" },
+              title: { display: true, text: "Cumulative %", color: chartTheme.ticks, font: { family:"Inter", weight: 800 } }
             }
           }
         }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 9 },
-            maxRotation: 45,
-            minRotation: 45
-          },
-          grid: { display: false }
-        },
-        y: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          },
-          grid: {
-            color: "rgba(31,41,55,0.7)"
-          },
-          title: {
-            display: true,
-            text: "Hours",
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
-        }
-      }
-    }
-  });
+      });
+    };
 
-  const techTotalCtx = document.getElementById("techTotalChart").getContext("2d");
-  new Chart(techTotalCtx, {
-    type: "bar",
-    data: {
-      labels: techProcessed.map(t => t.name),
-      datasets: [{
-        label: "Total workload (h)",
-        data: techProcessed.map(t => t.total),
-        backgroundColor: "rgba(129,140,248,0.85)",
-        borderColor: "rgba(55,48,163,1)",
-        borderWidth: 1
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
+    const buildSectionPie = () => {
+      const labels = sectionSeries.map(s => s.key);
+      const vals = sectionSeries.map(s => s.value);
+      const colors = sectionSeries.map(s => colorByRisk(s.risk).replace("0.98","0.78").replace("0.95","0.75"));
+
+      const ctx = document.getElementById("sectionPie").getContext("2d");
+      return new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels,
+          datasets: [{
+            data: vals,
+            backgroundColor: colors,
+            borderColor: "rgba(255,255,255,0.10)",
+            borderWidth: 1
+          }]
         },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              const val = ctx.parsed.x;
-              const pct = val / totalTech * 100;
-              return ` ${val.toFixed(2)} h (${decimalToTime(val)}) · ${pct.toFixed(1)}%`;
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: chartTheme.ticks, boxWidth: 10, font: { family:"Inter", weight: 700 } }
+            },
+            tooltip: {
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: (ctx) => {
+                  const k = sectionSeries[ctx.dataIndex];
+                  return ` ${k.key}: ${fmt.num(k.value)} hrs (${fmt.num(k.pct,1)}%) • ${k.risk}`;
+                }
+              }
             }
           }
         }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 10 }
-          },
-          grid: {
-            color: "rgba(31,41,55,0.7)"
-          },
-          title: {
-            display: true,
-            text: "Hours",
-            color: "#9ca3af",
-            font: { size: 10 }
-          }
+      });
+    };
+
+    const buildShiftDonut = () => {
+      const labels = shiftSeries.map(s => s.key);
+      const vals = shiftSeries.map(s => s.value);
+      const colors = [
+        "rgba(96,165,250,0.70)",
+        "rgba(251,113,133,0.70)"
+      ];
+
+      const ctx = document.getElementById("shiftDonut").getContext("2d");
+      return new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            data: vals,
+            backgroundColor: colors,
+            borderColor: "rgba(255,255,255,0.10)",
+            borderWidth: 1,
+            hoverOffset: 6
+          }]
         },
-        y: {
-          ticks: {
-            color: "#9ca3af",
-            font: { size: 9 }
-          },
-          grid: { display: false }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "62%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: chartTheme.ticks, boxWidth: 10, font: { family:"Inter", weight: 700 } }
+            },
+            tooltip: {
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: (ctx) => {
+                  const k = shiftSeries[ctx.dataIndex];
+                  return ` ${k.key}: ${fmt.num(k.value)} hrs (${fmt.num(k.pct,1)}%)`;
+                }
+              }
+            }
+          }
         }
+      });
+    };
+
+    const buildAreaBar = () => {
+      // Add "Others" remainder dynamically if not itemized
+      const known = sumValues(areaHours);
+      const others = Math.max(0, TOTAL_HOURS - known);
+      const series = objToSeries(areaHours);
+      if (others > 0) series.push({ key: "Others (Small Contributors)", value: others });
+
+      const sorted = sortDesc(series).map(x => ({...x, pct: fmt.pct(x.value)}));
+
+      const ctx = document.getElementById("areaBar").getContext("2d");
+      return new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: sorted.map(x => x.key),
+          datasets: [{
+            label: "Hours",
+            data: sorted.map(x => x.value),
+            backgroundColor: "rgba(96,165,250,0.40)",
+            borderColor: "rgba(255,255,255,0.10)",
+            borderWidth: 1,
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: (ctx) => {
+                  const i = ctx.dataIndex;
+                  const a = sorted[i];
+                  return ` ${a.key}: ${fmt.num(a.value)} hrs (${fmt.num(a.pct,1)}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255,255,255,0.05)" },
+              ticks: { color: chartTheme.ticks, maxRotation: 0, autoSkip: true }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: chartTheme.grid },
+              ticks: { color: chartTheme.ticks },
+              title: { display: true, text: "Hours", color: chartTheme.ticks, font: { family:"Inter", weight: 800 } }
+            }
+          }
+        }
+      });
+    };
+
+    const buildDailyTrend = () => {
+      const labels = dailyPoints.map(p => p.t.toISOString().slice(0,10));
+      const values = dailyPoints.map(p => p.y);
+
+      const spikeIdx = new Set(spikes.map(s => s.t.toISOString().slice(0,10)));
+      const pointColors = labels.map(d => spikeIdx.has(d) ? "rgba(239,68,68,0.95)" : "rgba(96,165,250,0.9)");
+      const pointRadii = labels.map(d => spikeIdx.has(d) ? 5 : 3);
+
+      const ctx = document.getElementById("dailyTrend").getContext("2d");
+      return new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Daily Breakdown (hrs)",
+              data: values,
+              borderColor: "rgba(96,165,250,0.85)",
+              backgroundColor: "rgba(96,165,250,0.12)",
+              fill: true,
+              tension: 0.25,
+              pointRadius: pointRadii,
+              pointHoverRadius: 6,
+              pointBackgroundColor: pointColors,
+              pointBorderColor: "rgba(0,0,0,0.35)",
+              borderWidth: 2
+            },
+            {
+              label: "Spike Threshold (Avg + 1σ)",
+              data: labels.map(()=>spikeThreshold),
+              borderColor: "rgba(251,191,36,0.85)",
+              borderDash: [6,6],
+              pointRadius: 0,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: chartTheme.ticks, font: { family:"Inter", weight: 700 } }
+            },
+            tooltip: {
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.dataset.label.startsWith("Daily")){
+                    const date = labels[ctx.dataIndex];
+                    const isSpike = spikeIdx.has(date);
+                    return ` ${date}: ${fmt.num(ctx.raw)} hrs${isSpike ? " • Spike" : ""}`;
+                  }
+                  return ` ${ctx.dataset.label}: ${fmt.num(ctx.raw,1)} hrs`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: "rgba(255,255,255,0.05)" },
+              ticks: { color: chartTheme.ticks, autoSkip: true, maxRotation: 0 }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: chartTheme.grid },
+              ticks: { color: chartTheme.ticks },
+              title: { display: true, text: "Hours", color: chartTheme.ticks, font: { family:"Inter", weight: 800 } }
+            }
+          }
+        }
+      });
+    };
+
+    /* =========================================================
+       RENDER TABLES & BADGES
+       ========================================================= */
+    const renderTopMachinesTable = () => {
+      const tb = document.getElementById("topMachinesTbody");
+      tb.innerHTML = "";
+      top5Machines.forEach((m, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono">${i+1}</td>
+          <td><strong>${m.key}</strong></td>
+          <td class="right mono">${fmt.num(m.value)}</td>
+          <td class="right mono">${fmt.num(m.pct,1)}%</td>
+          <td class="center"><span class="riskPill" data-risk="${m.risk}">${m.risk}</span></td>
+        `;
+        tb.appendChild(tr);
+      });
+    };
+
+    const renderActionPlanTable = (rows) => {
+      const tb = document.getElementById("actionPlanTbody");
+      tb.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono"><strong>${r.p}</strong></td>
+          <td>${r.area}</td>
+          <td>${r.obj}</td>
+          <td class="center"><span class="riskPill" data-risk="${r.impact}">${r.impact}</span></td>
+        `;
+        tb.appendChild(tr);
+      });
+    };
+
+    const renderTags = (containerId, items) => {
+      const el = document.getElementById(containerId);
+      el.innerHTML = "";
+      items.forEach(it => {
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.dataset.risk = it.risk;
+        tag.innerHTML = `<span class="chip" aria-hidden="true"></span><span>${it.label}</span>`;
+        el.appendChild(tag);
+      });
+    };
+
+    /* =========================================================
+       BOOTSTRAP UI
+       ========================================================= */
+    const init = () => {
+      // Meta
+      document.getElementById("metaTotal").textContent = `Total Breakdown Hours: ${fmt.num(TOTAL_HOURS)} hrs`;
+      document.getElementById("dataStamp").textContent = `Data basis: Jan–Feb 2026 • Total: ${fmt.num(TOTAL_HOURS)} hours`;
+
+      // Risk badges
+      setRiskPill(document.getElementById("metaRisk"), opRisk, `Operational Risk: ${opRisk}`);
+      setRiskPill(document.getElementById("summaryBadge"), opRisk, `${riskIcon(opRisk)} • ${opRisk}`);
+      setRiskPill(document.getElementById("insightRiskBadge"), opRisk, `${opRisk} Risk`);
+      setRiskPill(document.getElementById("concRisk"), "Medium", "—"); // updated below
+
+      // KPI cards
+      const kpis = buildKpis();
+      renderKpis(kpis);
+      animateCounters();
+
+      // Narrative
+      document.getElementById("execNarrative").innerHTML = buildExecNarrative();
+
+      // Concentration narrative + badge
+      const conc = buildConcentrationNarrative();
+      setRiskPill(document.getElementById("concRisk"), conc.concRisk, `${conc.concRisk}`);
+      document.getElementById("concNarrative").innerHTML = conc.html;
+      document.getElementById("top3Share").textContent = `${fmt.num(top3SharePct,1)}%`;
+      document.getElementById("top3ShareSub").textContent = `Machines: ${top3Machines.map(x=>x.key).join(", ")}`;
+      document.getElementById("top5Share").textContent = `${fmt.num(top5SharePct,1)}%`;
+      document.getElementById("top5ShareSub").textContent = `Machines: ${top5Machines.map(x=>x.key).join(", ")}`;
+
+      // Exec tags
+      const topSec = sectionSeries[0];
+      const execTags = [
+        { label: `Dominant: ${topSec.key} (${fmt.num(topSec.pct,1)}%)`, risk: topSec.risk },
+        { label: `Downline + Filling share: ${fmt.num((sectionHours["Filling & Capping"] + sectionHours["Downline"]) / TOTAL_HOURS * 100, 1)}%`, risk: ((sectionHours["Filling & Capping"] + sectionHours["Downline"]) / TOTAL_HOURS * 100 > 70 ? "High":"Medium") },
+        { label: `Critical machines: ${criticalMachines.length}`, risk: criticalMachines.length ? "Medium":"Low" },
+        { label: `Shift: Night ${fmt.num(nightPct,1)}% vs Day ${fmt.num(dayPct,1)}%`, risk: (Math.abs(nightDelta) >= 3 ? "High" : Math.abs(nightDelta) >= 1 ? "Medium" : "Low") }
+      ];
+      renderTags("execTags", execTags);
+
+      // Side metas
+      document.getElementById("sectionMeta").textContent = `High-Risk Sections: ${highRiskSections.length}`;
+      document.getElementById("shiftMeta").textContent = `Night ${fmt.num(nightPct,1)}% • Day ${fmt.num(dayPct,1)}%`;
+
+      // Trend meta
+      document.getElementById("trendMeta1").textContent = dailyValues.length ? `Avg/Day: ${fmt.num(dailyAvg,1)} hrs` : "Avg/Day: —";
+      document.getElementById("trendMeta2").textContent = dailyValues.length ? `Detected Spikes: ${spikes.length}` : "Detected Spikes: —";
+
+      // Area risk badge (based on top area concentration)
+      const topAreaPct = areaSeries[0]?.pct ?? 0;
+      const areaRisk = topAreaPct > 40 ? "High" : topAreaPct >= 25 ? "Medium" : "Low";
+      setRiskPill(document.getElementById("areaRiskBadge"), areaRisk, `${areaRisk}`);
+
+      // Tables
+      renderTopMachinesTable();
+
+      // Insights + recommendations
+      const insights = buildInsights();
+      setRiskPill(document.getElementById("insightRiskBadge"), insights.operationalRiskLevel, `${insights.operationalRiskLevel} Risk`);
+      document.getElementById("insightsText").innerHTML = insights.insightsHTML;
+      renderTags("insightTags", insights.tags);
+
+      const rec = buildRecommendations();
+      setRiskPill(document.getElementById("maintPriorityBadge"), rec.priorityRisk, `${rec.priorityRisk} Priority`);
+      document.getElementById("recommendText").innerHTML = rec.recommendHTML;
+      renderActionPlanTable(rec.actionPlan);
+
+      // Charts
+      buildPareto();
+      buildSectionPie();
+      buildShiftDonut();
+      buildAreaBar();
+      buildDailyTrend();
+    };
+
+    /* =========================================================
+       EXEC VIEW TOGGLE
+       ========================================================= */
+    const initExecToggle = () => {
+      const btn = document.getElementById("execToggle");
+      const apply = (on) => {
+        btn.dataset.on = on ? "true" : "false";
+        document.body.classList.toggle("execMode", !!on);
+      };
+      btn.addEventListener("click", () => {
+        const on = btn.dataset.on !== "true";
+        apply(on);
+      });
+      apply(false);
+    };
+
+    /* =========================================================
+       SAFETY CHECKS (data integrity)
+       ========================================================= */
+    const validate = () => {
+      // Machine totals include "Crates Area" as a pseudo-machine bucket.
+      const machineTotal = sumValues(machineHours);
+      const sectionTotal = sumValues(sectionHours);
+      const shiftTotal = sumValues(shiftHours);
+
+      // Update meta totals if mismatched; remain deterministic without manual overrides.
+      const okMachine = (machineTotal === TOTAL_HOURS);
+      const okSection = (sectionTotal === TOTAL_HOURS);
+      const okShift = (shiftTotal === TOTAL_HOURS);
+
+      const metaTotal = document.getElementById("metaTotal");
+      const warnings = [];
+      if (!okMachine) warnings.push(`Machine sum ${machineTotal}`);
+      if (!okSection) warnings.push(`Section sum ${sectionTotal}`);
+      if (!okShift) warnings.push(`Shift sum ${shiftTotal}`);
+      if (warnings.length){
+        metaTotal.textContent = `Total Breakdown Hours: ${fmt.num(TOTAL_HOURS)} hrs • Data check: ${warnings.join(" • ")}`;
       }
-    }
-  });
+    };
 
-  // ---------- TECH TABLE ----------
-  const techTableWrapper = document.getElementById("techTable");
-  let tableHtml = `
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Technician</th>
-          <th>Total (hh:mm)</th>
-          <th>% Contribution</th>
-          <th>Breakdown %</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-  techProcessed.forEach((t, i) => {
-    const contribution = t.total / totalTech * 100;
-    const bdRatio = t.bd / t.total * 100;
-    let rowClass = "";
-    if (contribution > 10) rowClass = "highlight";
-    if (bdRatio > 60) rowClass = "warning";
-    tableHtml += `
-      <tr class="${rowClass}">
-        <td>${i + 1}</td>
-        <td>${t.name}</td>
-        <td>${decimalToTime(t.total)}</td>
-        <td>${contribution.toFixed(1)}%</td>
-        <td>${bdRatio.toFixed(1)}%</td>
-      </tr>
-    `;
-  });
-  tableHtml += "</tbody></table>";
-  techTableWrapper.innerHTML = tableHtml;
-
-  // ---------- TECH INSIGHTS ----------
-  const techWorkloadInsight = document.getElementById("techWorkloadInsight");
-  const techReactiveInsight = document.getElementById("techReactiveInsight");
-  const techTeamInsight = document.getElementById("techTeamInsight");
-  const techActionInsight = document.getElementById("techActionInsight");
-
-  techWorkloadInsight.innerHTML = `
-    Total technician workload is <strong>${decimalToTime(totalTech)}</strong>, with
-    <strong>${topTech.name.toUpperCase()}</strong> carrying the highest share
-    (<strong>${decimalToTime(topTech.total)}</strong>, ${topTechShare.toFixed(1)}% of total).
-    This indicates a potential workload concentration on a few key resources.
-  `;
-
-  techReactiveInsight.innerHTML = `
-    Breakdown hours represent <strong>${bdShare.toFixed(1)}%</strong> of total technician time.
-    ${reactiveCount > 0
-      ? `There are <strong>${reactiveCount}</strong> technicians with a breakdown ratio above 60%,
-         indicating a strong reactive pattern that can be reduced through better PM and planning.`
-      : `No technicians exceed a 60% breakdown ratio, suggesting a relatively balanced reactive/preventive mix.`}
-  `;
-
-  const teamNames = techProcessed.map(t => t.name).join(", ");
-  techTeamInsight.innerHTML = `
-    Workload is distributed across <strong>${techProcessed.length}</strong> technicians/teams:
-    <strong>${teamNames}</strong>. Use this view to ensure that both day and night maintenance teams
-    have balanced exposure and that key skills are not over-concentrated.
-  `;
-
-  techActionInsight.innerHTML = `
-    Prioritize coaching and PM support for technicians with high breakdown ratios, while monitoring
-    workload concentration on <strong>${topTech.name.toUpperCase()}</strong>. Use this dashboard in
-    weekly maintenance meetings to align staffing, training and PM scheduling with actual workload patterns.
-  `;
-
-  // ---------- TAB SWITCHING ----------
-  const tabs = document.querySelectorAll(".nav-tab");
-  const lineDashboard = document.getElementById("lineDashboard");
-  const techDashboard = document.getElementById("techDashboard");
-
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      const target = tab.getAttribute("data-target");
-      if (target === "lineDashboard") {
-        lineDashboard.classList.remove("hidden");
-        techDashboard.classList.add("hidden");
-      } else {
-        techDashboard.classList.remove("hidden");
-        lineDashboard.classList.add("hidden");
-      }
-    });
-  });
-</script>
+    // Boot
+    initExecToggle();
+    init();
+    validate();
+  </script>
 </body>
 </html>
