@@ -4,30 +4,32 @@
   <meta charset="UTF-8" />
   <title>Drinkable Section Breakdown Dashboard – Jan–Feb 2026</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Chart.js CDN -->
+  <!-- Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg-main: #050814;
-      --bg-card: #101522;
-      --bg-card-soft: #151b2b;
-      --accent: #00d1b2;
-      --accent-soft: rgba(0, 209, 178, 0.2);
-      --accent-strong: #ff6b6b;
-      --accent-medium: #f4b400;
-      --text-main: #f5f7ff;
-      --text-muted: #9aa4c6;
-      --border-subtle: #22283a;
-      --danger: #ff4d4f;
-      --warning: #ffb020;
-      --success: #2ecc71;
-      --info: #3498db;
-      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
-      --radius-lg: 14px;
-      --radius-md: 10px;
+      --bg-main: #1f2430;
+      --bg-main-alt: #252b38;
+      --bg-card: #ffffff;
+      --bg-card-soft: #f5f7fb;
+      --border-subtle: #d7dbe5;
+      --border-strong: #c2c7d4;
+      --text-main: #1b2233;
+      --text-muted: #6b7280;
+      --accent-kpi: #0076ce;   /* Tetra Pak bright blue */
+      --accent-chart: #003b73; /* Krones deep blue */
+      --accent-amber: #f4b400;
+      --accent-red: #e53935;
+      --accent-green: #2e7d32;
+      --accent-soft-blue: rgba(0, 118, 206, 0.08);
+      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.35);
+      --radius-card: 0; /* sharp */
       --radius-pill: 999px;
       --transition-fast: 0.18s ease-out;
-      --transition-med: 0.25s ease-out;
     }
 
     * {
@@ -37,15 +39,15 @@
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1b2340 0, #050814 45%, #02030a 100%);
+      font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #2b3344 0, #1f2430 40%, #181c26 100%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 18px;
+      padding: 12px;
     }
 
     .app-shell {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
     }
 
@@ -54,67 +56,68 @@
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 18px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .title-block {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .title-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
+      gap: 6px;
+      padding: 3px 10px;
       border-radius: var(--radius-pill);
-      background: linear-gradient(90deg, rgba(0, 209, 178, 0.16), rgba(0, 209, 178, 0.02));
-      border: 1px solid rgba(0, 209, 178, 0.4);
+      background: rgba(0, 59, 115, 0.08);
+      border: 1px solid rgba(0, 59, 115, 0.4);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--accent);
+      color: var(--accent-chart);
     }
 
     .title-pill span.dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(0, 209, 178, 0.9);
+      background: var(--accent-kpi);
+      box-shadow: 0 0 8px rgba(0, 118, 206, 0.9);
     }
 
     h1 {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
+      color: #f9fafb;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     h1 span.sub {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 400;
-      color: var(--text-muted);
+      color: #cbd5f5;
     }
 
     .meta {
       font-size: 12px;
-      color: var(--text-muted);
+      color: #e5e7eb;
     }
 
     .meta strong {
-      color: var(--accent);
+      color: #ffffff;
       font-weight: 500;
     }
 
     .header-right {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -122,41 +125,34 @@
       padding: 4px 10px;
       border-radius: var(--radius-pill);
       font-size: 11px;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(9, 14, 30, 0.9);
+      background: rgba(15, 23, 42, 0.9);
     }
 
     .badge span.dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--success);
+      background: var(--accent-green);
     }
 
     .badge.critical span.dot {
-      background: var(--danger);
-    }
-
-    .badge-label {
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 10px;
-      color: var(--text-muted);
+      background: var(--accent-red);
     }
 
     main {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 10px;
     }
 
     .grid {
       display: grid;
-      gap: 14px;
+      gap: 8px;
     }
 
     .grid-4 {
@@ -171,7 +167,7 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    @media (max-width: 1100px) {
+    @media (max-width: 1200px) {
       .grid-4 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -190,44 +186,33 @@
         grid-template-columns: minmax(0, 1fr);
       }
       body {
-        padding: 12px;
+        padding: 10px;
       }
     }
 
     .card {
-      background: radial-gradient(circle at top left, rgba(0, 209, 178, 0.08), transparent 55%),
-                  radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.8), #050814 70%);
-      border-radius: var(--radius-lg);
-      border: 1px solid rgba(255, 255, 255, 0.03);
+      background: var(--bg-card);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border-subtle);
       box-shadow: var(--shadow-soft);
-      padding: 14px 16px;
+      padding: 10px 12px;
       position: relative;
       overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.04), transparent 55%);
-      opacity: 0.4;
-      pointer-events: none;
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 1;
+      margin-bottom: 6px;
     }
 
     .card-title {
-      font-size: 13px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--text-muted);
+      font-weight: 500;
     }
 
     .card-subtitle {
@@ -236,12 +221,13 @@
     }
 
     .kpi-main {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
-      margin-top: 4px;
+      margin-top: 2px;
       display: flex;
       align-items: baseline;
       gap: 4px;
+      color: var(--text-main);
     }
 
     .kpi-main span.unit {
@@ -254,40 +240,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 6px;
+      margin-top: 4px;
       font-size: 11px;
       color: var(--text-muted);
-    }
-
-    .trend-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 10px;
-      background: rgba(0, 209, 178, 0.12);
-      color: var(--accent);
-    }
-
-    .trend-pill.negative {
-      background: rgba(255, 77, 79, 0.12);
-      color: var(--danger);
-    }
-
-    .trend-arrow {
-      font-size: 12px;
     }
 
     .kpi-label {
       font-size: 11px;
       color: var(--text-muted);
-    }
-
-    .kpi-value {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     .kpi-tag {
@@ -297,58 +259,78 @@
       padding: 2px 8px;
       border-radius: var(--radius-pill);
       font-size: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
+      background: var(--bg-card-soft);
     }
 
     .kpi-tag span.dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--accent-kpi);
     }
 
     .kpi-tag.critical span.dot {
-      background: var(--danger);
+      background: var(--accent-red);
     }
 
     .kpi-tag.high span.dot {
-      background: var(--warning);
+      background: var(--accent-amber);
     }
 
     .kpi-tag.medium span.dot {
-      background: var(--info);
+      background: var(--accent-chart);
     }
 
     .kpi-tag.low span.dot {
-      background: var(--success);
+      background: var(--accent-green);
+    }
+
+    .trend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      background: rgba(0, 118, 206, 0.08);
+      color: var(--accent-chart);
+      border: 1px solid rgba(0, 118, 206, 0.4);
+    }
+
+    .trend-pill.negative {
+      background: rgba(229, 57, 53, 0.08);
+      color: var(--accent-red);
+      border-color: rgba(229, 57, 53, 0.5);
+    }
+
+    .trend-arrow {
+      font-size: 11px;
     }
 
     .chart-container {
       position: relative;
-      height: 220px;
+      height: 210px;
       margin-top: 4px;
-      z-index: 1;
     }
 
     .chart-container-small {
-      height: 180px;
+      height: 170px;
     }
 
     .list {
       list-style: none;
-      margin-top: 6px;
-      position: relative;
-      z-index: 1;
+      margin-top: 4px;
     }
 
     .list-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 4px 0;
-      font-size: 12px;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+      padding: 3px 0;
+      font-size: 11px;
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
     }
 
     .list-item:last-child {
@@ -363,27 +345,28 @@
     }
 
     .list-label span.bullet {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: var(--accent-soft);
-      border: 1px solid var(--accent);
+      background: var(--accent-soft-blue);
+      border: 1px solid var(--accent-chart);
     }
 
     .list-value {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 2px;
+      gap: 1px;
     }
 
     .list-value-main {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-main);
+      font-weight: 500;
     }
 
     .list-value-sub {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
     }
 
@@ -393,59 +376,59 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
     }
 
     .risk-low {
-      color: var(--success);
-      background: rgba(46, 204, 113, 0.08);
-      border-color: rgba(46, 204, 113, 0.4);
+      color: var(--accent-green);
+      background: rgba(46, 125, 50, 0.06);
+      border-color: rgba(46, 125, 50, 0.4);
     }
 
     .risk-medium {
-      color: var(--warning);
-      background: rgba(255, 176, 32, 0.08);
-      border-color: rgba(255, 176, 32, 0.4);
+      color: var(--accent-amber);
+      background: rgba(244, 180, 0, 0.06);
+      border-color: rgba(244, 180, 0, 0.4);
     }
 
     .risk-high {
-      color: var(--danger);
-      background: rgba(255, 77, 79, 0.08);
-      border-color: rgba(255, 77, 79, 0.4);
+      color: var(--accent-chart);
+      background: rgba(0, 59, 115, 0.06);
+      border-color: rgba(0, 59, 115, 0.5);
     }
 
     .risk-critical {
-      color: var(--danger);
-      background: rgba(255, 77, 79, 0.16);
-      border-color: rgba(255, 77, 79, 0.7);
-      box-shadow: 0 0 18px rgba(255, 77, 79, 0.35);
+      color: var(--accent-red);
+      background: rgba(229, 57, 53, 0.06);
+      border-color: rgba(229, 57, 53, 0.6);
     }
 
     .section-label {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .section-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 500;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
+      color: var(--text-main);
     }
 
     .section-subtitle {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .insight-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 6px;
+      gap: 8px;
+      margin-top: 4px;
     }
 
     @media (max-width: 768px) {
@@ -455,75 +438,44 @@
     }
 
     .insight-block {
-      background: rgba(5, 10, 25, 0.9);
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      padding: 8px 10px;
-      font-size: 12px;
+      background: var(--bg-card-soft);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 8px;
+      font-size: 11px;
       color: var(--text-muted);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .insight-block::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(0, 209, 178, 0.08), transparent 55%);
-      opacity: 0.7;
-      pointer-events: none;
     }
 
     .insight-title {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: var(--accent);
-      margin-bottom: 4px;
-      position: relative;
-      z-index: 1;
+      color: var(--accent-chart);
+      margin-bottom: 3px;
+      font-weight: 500;
     }
 
-    .insight-text {
-      position: relative;
-      z-index: 1;
-    }
-
-    .tagline {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 4px;
+    .insight-text strong {
+      color: var(--text-main);
+      font-weight: 600;
     }
 
     .footer-note {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
       margin-top: 6px;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
-    .footer-note span {
-      opacity: 0.8;
-    }
-
-    .pill-inline {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(5, 10, 25, 0.9);
+    .badge-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
       color: var(--text-muted);
-    }
-
-    .pill-inline strong {
-      color: var(--accent);
-      font-weight: 500;
+      margin-right: 4px;
     }
 
     .counter {
@@ -534,50 +486,51 @@
 
     .divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-      margin: 4px 0 8px;
-      opacity: 0.7;
+      background: linear-gradient(90deg, rgba(148, 163, 184, 0.1), rgba(148, 163, 184, 0.6), rgba(148, 163, 184, 0.1));
+      margin: 4px 0 6px;
     }
 
     .mt-kpi-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 6px;
-      font-size: 11px;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 10px;
       color: var(--text-muted);
     }
 
     .mt-kpi-chip {
       padding: 4px 8px;
       border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(5, 10, 25, 0.9);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card-soft);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
     .mt-kpi-chip span.label {
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      font-size: 10px;
+      font-size: 9px;
+      color: var(--text-muted);
     }
 
     .mt-kpi-chip span.value {
       color: var(--text-main);
       font-weight: 500;
+      font-size: 11px;
     }
 
     .mt-kpi-chip span.unit {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
     }
 
     .legend-inline {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       margin-top: 4px;
       font-size: 10px;
       color: var(--text-muted);
@@ -592,11 +545,11 @@
     .legend-color {
       width: 10px;
       height: 10px;
-      border-radius: 3px;
+      border-radius: 2px;
     }
 
     .legend-color.fill {
-      background: #00d1b2;
+      background: #0076ce;
     }
 
     .legend-color.downline {
@@ -604,62 +557,61 @@
     }
 
     .legend-color.upstream {
-      background: #3498db;
+      background: #003b73;
     }
 
     .legend-color.crates {
-      background: #ff6b6b;
+      background: #e53935;
     }
 
     .legend-color.day {
-      background: #00d1b2;
+      background: #0076ce;
     }
 
     .legend-color.night {
-      background: #ff6b6b;
+      background: #e53935;
     }
 
     .legend-color.spike {
-      background: #ff6b6b;
+      background: #e53935;
     }
 
     .legend-color.normal {
-      background: #3498db;
+      background: #003b73;
     }
 
     .tag-critical {
-      color: var(--danger);
+      color: var(--accent-red);
     }
 
     .tag-high {
-      color: var(--warning);
+      color: var(--accent-amber);
     }
 
     .tag-medium {
-      color: var(--info);
+      color: var(--accent-chart);
     }
 
     .tag-low {
-      color: var(--success);
+      color: var(--accent-green);
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- HEADER / EXECUTIVE CONTEXT -->
     <header>
       <div class="title-block">
         <div class="title-pill">
           <span class="dot"></span>
-          <span>Executive Maintenance View</span>
+          <span>Executive maintenance view</span>
         </div>
         <h1>
           Drinkable Section Breakdown – Jan–Feb 2026
-          <span class="sub">FMCG | Reliability & Loss Intelligence</span>
+          <span class="sub">FMCG · Reliability & Loss Intelligence</span>
         </h1>
         <div class="meta">
           Period: <strong>Jan–Feb 2026</strong> · Total Breakdown: <strong><span id="metaTotalHours">1347</span> h</strong> ·
-          Scope: <strong>Drinkable Section – Filling, Upstream, Downline, Crates</strong>
+          Scope: <strong>Filling, Upstream, Downline, Crates</strong>
         </div>
       </div>
       <div class="header-right">
@@ -669,13 +621,13 @@
         </div>
         <div class="badge">
           <span class="dot"></span>
-          <span>Executive mode · Summary first, analytics below</span>
+          <span>High-density engineering layout · Executive-ready</span>
         </div>
       </div>
     </header>
 
     <main>
-      <!-- EXECUTIVE SUMMARY PANEL -->
+      <!-- EXECUTIVE SUMMARY -->
       <section class="card">
         <div class="card-header">
           <div>
@@ -689,7 +641,6 @@
         </div>
         <div class="divider"></div>
         <div class="grid grid-4">
-          <!-- Total Breakdown Hours -->
           <div>
             <div class="kpi-label">Total breakdown hours</div>
             <div class="kpi-main">
@@ -705,7 +656,6 @@
             </div>
           </div>
 
-          <!-- Section Contribution -->
           <div>
             <div class="kpi-label">Main loss section</div>
             <div class="kpi-main">
@@ -718,7 +668,6 @@
             </div>
           </div>
 
-          <!-- Critical Machine -->
           <div>
             <div class="kpi-label">Critical machine</div>
             <div class="kpi-main">
@@ -729,12 +678,11 @@
               <span>Machine share of total breakdown</span>
               <span class="kpi-tag critical">
                 <span class="dot"></span>
-                > 10% = Critical
+                &gt; 10% = Critical
               </span>
             </div>
           </div>
 
-          <!-- Shift Comparison -->
           <div>
             <div class="kpi-label">Shift loss comparison</div>
             <div class="kpi-main">
@@ -777,18 +725,17 @@
         <div class="footer-note">
           <span>
             <span class="badge-label">Executive conclusion:</span>
-            Filling & Capping and Downline dominate losses; reliability is concentrated on a few machines and the night shift.
+            Filling & Capping and Downline dominate losses; a few machines and the night shift carry most of the risk.
           </span>
           <span>
-            <span class="badge-label">MTTR/MTBF note:</span>
-            Estimated assuming one breakdown event per day over the analysis window (600 minutes/day).
+            <span class="badge-label">MTTR/MTBF assumption:</span>
+            600 minutes/day over 59 days, assuming one breakdown event per day for estimation.
           </span>
         </div>
       </section>
 
-      <!-- ANALYTICAL KPI LAYER -->
+      <!-- ANALYTICAL KPIs -->
       <section class="grid grid-3">
-        <!-- Top Machines & Pareto -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -811,13 +758,12 @@
               <span>Machine breakdown hours</span>
             </div>
             <div class="legend-item">
-              <div class="legend-color spike" style="border-radius: 50%;"></div>
+              <div class="legend-color spike"></div>
               <span>Cumulative % (Pareto)</span>
             </div>
           </div>
         </div>
 
-        <!-- Section Contribution -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -854,7 +800,6 @@
           </div>
         </div>
 
-        <!-- Shift Comparison -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -884,7 +829,7 @@
         </div>
       </section>
 
-      <!-- DAILY TREND & SPIKES -->
+      <!-- DAILY TREND & AREA DETAIL -->
       <section class="grid grid-2">
         <div class="card">
           <div class="card-header">
@@ -914,7 +859,6 @@
           </div>
         </div>
 
-        <!-- Area-wise Detail -->
         <div class="card">
           <div class="card-header">
             <div>
@@ -934,7 +878,7 @@
         </div>
       </section>
 
-      <!-- INTELLIGENT INSIGHTS & MAINTENANCE RECOMMENDATIONS -->
+      <!-- INTELLIGENT INSIGHTS -->
       <section class="card">
         <div class="card-header">
           <div>
@@ -970,7 +914,7 @@
           </div>
         </div>
 
-        <div class="divider" style="margin-top: 10px;"></div>
+        <div class="divider" style="margin-top: 8px;"></div>
 
         <div class="section-label">Preventive maintenance focus</div>
         <div class="section-title">Where to focus PM effort next</div>
@@ -983,8 +927,8 @@
         <div class="footer-note">
           <span>
             <span class="badge-label">Summary for plant manager:</span>
-            Filling & Capping and Downline dominate losses; top machines (especially M15, M14, M6/M7) drive a large share of
-            breakdown hours, with a slightly higher exposure on the night shift.
+            Filling & Capping and Downline represent the majority of loss; top machines (M15, M14, M6/M7) and the night shift
+            are the main reliability bottlenecks.
           </span>
           <span>
             <span class="badge-label">Actionable next step:</span>
@@ -996,9 +940,7 @@
   </div>
 
   <script>
-    // -----------------------------
-    // RAW DATA (from user input)
-    // -----------------------------
+    // RAW DATA
     const totalBreakdownHours = 1347;
 
     const machineBreakdown = {
@@ -1029,7 +971,7 @@
       "Bottle Line Conveyor": 65,
       "Ink Jet Printer": 46,
       "Bottle Debagger": 52,
-      "Others small contributors": 157 // 573+246+120+88+65+46+52 = 1190; 1347-1190 = 157
+      "Others small contributors": 157 // 1347 - (573+246+120+88+65+46+52) = 157
     };
 
     const sectionBreakdown = {
@@ -1044,8 +986,7 @@
       "Night Shift": 703
     };
 
-    // Daily trend: only spikes explicitly provided; remaining days assumed 0 for spike detection logic.
-    // Period: Jan (31 days) + Feb (28 days) = 59 days.
+    // Daily trend: only spikes known; other days assumed 0 for spike detection
     const dailyTrend = (() => {
       const daysInJan = 31;
       const daysInFeb = 28;
@@ -1056,16 +997,13 @@
       for (let d = 1; d <= daysInFeb; d++) {
         data.push({ label: `Feb ${d}`, value: 0 });
       }
-      // Apply known spikes
-      data[6].value = 37;   // 7-Jan (index 6)
-      data[31 + 10].value = 35; // 11-Feb (index 41)
-      data[31 + 26].value = 33; // 27-Feb (index 57)
+      data[6].value = 37;        // 7-Jan
+      data[31 + 10].value = 35;  // 11-Feb
+      data[31 + 26].value = 33;  // 27-Feb
       return data;
     })();
 
-    // -----------------------------
-    // HELPER FUNCTIONS
-    // -----------------------------
+    // HELPERS
     function sumValues(obj) {
       return Object.values(obj).reduce((a, b) => a + b, 0);
     }
@@ -1117,9 +1055,7 @@
         const progress = Math.min(elapsed / duration, 1);
         const value = start + (target - start) * progress;
         element.textContent = value.toFixed(decimals);
-        if (progress < 1) {
-          requestAnimationFrame(update);
-        }
+        if (progress < 1) requestAnimationFrame(update);
       }
       requestAnimationFrame(update);
     }
@@ -1136,15 +1072,7 @@
       return Math.sqrt(variance);
     }
 
-    // -----------------------------
     // EXECUTIVE SUMMARY CALCULATIONS
-    // -----------------------------
-    const totalFromMachines = sumValues(machineBreakdown);
-    const totalFromSections = sumValues(sectionBreakdown);
-    const totalFromAreas = sumValues(areaBreakdown);
-    const totalFromShifts = sumValues(shiftBreakdown);
-
-    // Main section (highest contribution)
     const sectionEntries = Object.entries(sectionBreakdown).map(([name, hours]) => {
       const pct = calculatePercent(hours, totalBreakdownHours);
       return { name, hours, pct };
@@ -1153,7 +1081,6 @@
     const mainSection = sectionEntries[0];
     const mainSectionRiskClass = classifyRiskByPercent(mainSection.pct);
 
-    // Critical machine (>10% of total)
     const machineEntries = Object.entries(machineBreakdown).map(([name, hours]) => {
       const pct = calculatePercent(hours, totalBreakdownHours);
       return { name, hours, pct };
@@ -1162,7 +1089,6 @@
     const criticalMachines = machineEntries.filter(m => m.pct >= 10);
     const topMachine = machineEntries[0];
 
-    // Shift comparison
     const dayHours = shiftBreakdown["Day Shift"];
     const nightHours = shiftBreakdown["Night Shift"];
     const dayPct = calculatePercent(dayHours, totalBreakdownHours);
@@ -1170,37 +1096,30 @@
     const shiftLead = nightHours >= dayHours ? "Night shift" : "Day shift";
     const shiftLeadDiffPct = Math.abs(nightPct - dayPct);
 
-    // Jan vs Feb trend (approximate from daily trend)
     const janValues = dailyTrend.slice(0, 31).map(d => d.value);
     const febValues = dailyTrend.slice(31).map(d => d.value);
     const janTotal = janValues.reduce((a, b) => a + b, 0);
     const febTotal = febValues.reduce((a, b) => a + b, 0);
     const trendHigherInFeb = febTotal > janTotal;
 
-    // MTTR / MTBF estimation
     const daysInWindow = 59;
     const assumedMinutesPerDay = 600;
     const totalWindowMinutes = daysInWindow * assumedMinutesPerDay;
     const totalBreakdownMinutes = totalBreakdownHours * 60;
-    const assumedEvents = daysInWindow; // assumption: one breakdown event per day
+    const assumedEvents = daysInWindow;
     const estimatedMTTR = totalBreakdownMinutes / assumedEvents;
     const estimatedMTBF = (totalWindowMinutes - totalBreakdownMinutes) / assumedEvents;
     const avgDailyBreakdownHours = totalBreakdownHours / daysInWindow;
 
-    // Overall risk classification (based on main section + top machine + shift imbalance)
     let overallRiskScore = 0;
     overallRiskScore += mainSection.pct >= 50 ? 2 : (mainSection.pct >= 40 ? 1 : 0);
     overallRiskScore += topMachine.pct >= 10 ? 2 : 0;
     overallRiskScore += shiftLeadDiffPct >= 5 ? 1 : 0;
     const overallRiskClass = overallRiskScore >= 4 ? "critical" : (overallRiskScore >= 3 ? "high" : (overallRiskScore >= 2 ? "medium" : "low"));
 
-    // -----------------------------
     // UPDATE EXECUTIVE SUMMARY UI
-    // -----------------------------
     document.getElementById("metaTotalHours").textContent = totalBreakdownHours.toString();
-
-    const totalHoursEl = document.getElementById("kpiTotalHours");
-    animateCounter(totalHoursEl, totalBreakdownHours, 1000, 0);
+    animateCounter(document.getElementById("kpiTotalHours"), totalBreakdownHours, 900, 0);
 
     document.getElementById("kpiMainSection").textContent = mainSection.name;
     document.getElementById("kpiMainSectionPct").textContent = `${mainSection.pct.toFixed(1)}%`;
@@ -1213,7 +1132,8 @@
     document.getElementById("kpiCriticalMachinePct").textContent = `${topMachine.pct.toFixed(1)}%`;
 
     document.getElementById("kpiShiftLead").textContent = shiftLead;
-    document.getElementById("kpiShiftLeadPct").textContent = `${shiftLead === "Night shift" ? nightPct.toFixed(1) : dayPct.toFixed(1)}% vs ${shiftLead === "Night shift" ? dayPct.toFixed(1) : nightPct.toFixed(1)}%`;
+    document.getElementById("kpiShiftLeadPct").textContent =
+      `${shiftLead === "Night shift" ? nightPct.toFixed(1) : dayPct.toFixed(1)}% vs ${shiftLead === "Night shift" ? dayPct.toFixed(1) : nightPct.toFixed(1)}%`;
 
     const shiftTrendPill = document.getElementById("shiftTrendPill");
     const shiftTrendText = document.getElementById("shiftTrendText");
@@ -1245,14 +1165,11 @@
     overallRiskTag.className = `kpi-tag ${overallRiskClass === "critical" ? "critical" : (overallRiskClass === "high" ? "high" : (overallRiskClass === "medium" ? "medium" : "low"))}`;
     overallRiskLabel.textContent = `${riskClassToLabel(overallRiskClass)} risk`;
 
-    // -----------------------------
-    // MACHINE PARETO CHART & TOP 5
-    // -----------------------------
-    const sortedMachines = [...machineEntries]; // already sorted desc by hours
+    // MACHINE PARETO
+    const sortedMachines = [...machineEntries];
     const machineLabels = sortedMachines.map(m => m.name);
     const machineHours = sortedMachines.map(m => m.hours);
 
-    // Pareto cumulative %
     const cumulativePct = [];
     let runningTotal = 0;
     for (let i = 0; i < sortedMachines.length; i++) {
@@ -1270,8 +1187,8 @@
             type: "bar",
             label: "Breakdown hours",
             data: machineHours,
-            backgroundColor: "rgba(0, 209, 178, 0.6)",
-            borderColor: "rgba(0, 209, 178, 1)",
+            backgroundColor: "rgba(0, 118, 206, 0.7)",
+            borderColor: "rgba(0, 59, 115, 1)",
             borderWidth: 1,
             yAxisID: "y"
           },
@@ -1279,14 +1196,14 @@
             type: "line",
             label: "Cumulative %",
             data: cumulativePct,
-            borderColor: "rgba(255, 107, 107, 1)",
-            backgroundColor: "rgba(255, 107, 107, 0.2)",
+            borderColor: "rgba(229, 57, 53, 1)",
+            backgroundColor: "rgba(229, 57, 53, 0.15)",
             borderWidth: 2,
             fill: false,
             yAxisID: "y1",
             tension: 0.25,
             pointRadius: 3,
-            pointBackgroundColor: "rgba(255, 107, 107, 1)"
+            pointBackgroundColor: "rgba(229, 57, 53, 1)"
           }
         ]
       },
@@ -1296,8 +1213,8 @@
         plugins: {
           legend: {
             labels: {
-              color: "#f5f7ff",
-              font: { size: 11 }
+              color: "#4b5563",
+              font: { size: 10 }
             }
           },
           tooltip: {
@@ -1317,32 +1234,32 @@
         scales: {
           x: {
             ticks: {
-              color: "#9aa4c6",
-              font: { size: 10 }
+              color: "#6b7280",
+              font: { size: 9 }
             },
             grid: { display: false }
           },
           y: {
             position: "left",
             ticks: {
-              color: "#9aa4c6",
-              font: { size: 10 }
+              color: "#6b7280",
+              font: { size: 9 }
             },
             grid: {
-              color: "rgba(255, 255, 255, 0.04)"
+              color: "rgba(209, 213, 219, 0.5)"
             },
             title: {
               display: true,
               text: "Hours",
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             }
           },
           y1: {
             position: "right",
             ticks: {
-              color: "#9aa4c6",
-              font: { size: 10 },
+              color: "#6b7280",
+              font: { size: 9 },
               callback: function (value) {
                 return value + "%";
               }
@@ -1353,7 +1270,7 @@
             title: {
               display: true,
               text: "Cumulative %",
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             }
           }
@@ -1361,7 +1278,6 @@
       }
     });
 
-    // Top 5 machines list
     const topMachinesList = document.getElementById("topMachinesList");
     const top5Machines = sortedMachines.slice(0, 5);
     top5Machines.forEach((m, index) => {
@@ -1381,12 +1297,10 @@
       topMachinesList.appendChild(li);
     });
 
-    // -----------------------------
-    // SECTION PIE CHART & LIST
-    // -----------------------------
+    // SECTION PIE
     const sectionLabels = sectionEntries.map(s => s.name);
     const sectionHours = sectionEntries.map(s => s.hours);
-    const sectionColors = ["#00d1b2", "#f4b400", "#3498db", "#ff6b6b"];
+    const sectionColors = ["#0076ce", "#f4b400", "#003b73", "#e53935"];
 
     const ctxSectionPie = document.getElementById("sectionPieChart").getContext("2d");
     new Chart(ctxSectionPie, {
@@ -1408,7 +1322,7 @@
           legend: {
             position: "bottom",
             labels: {
-              color: "#f5f7ff",
+              color: "#4b5563",
               font: { size: 10 }
             }
           },
@@ -1452,9 +1366,7 @@
       ${riskClassToLabel(highestSectionRiskClass)} section risk
     `;
 
-    // -----------------------------
-    // SHIFT BAR CHART & LIST
-    // -----------------------------
+    // SHIFT BAR
     const shiftLabels = Object.keys(shiftBreakdown);
     const shiftHours = Object.values(shiftBreakdown);
     const ctxShiftBar = document.getElementById("shiftBarChart").getContext("2d");
@@ -1465,8 +1377,8 @@
         datasets: [{
           label: "Breakdown hours",
           data: shiftHours,
-          backgroundColor: ["rgba(0, 209, 178, 0.7)", "rgba(255, 107, 107, 0.7)"],
-          borderColor: ["rgba(0, 209, 178, 1)", "rgba(255, 107, 107, 1)"],
+          backgroundColor: ["rgba(0, 118, 206, 0.8)", "rgba(229, 57, 53, 0.8)"],
+          borderColor: ["rgba(0, 59, 115, 1)", "rgba(183, 28, 28, 1)"],
           borderWidth: 1
         }]
       },
@@ -1476,8 +1388,8 @@
         plugins: {
           legend: {
             labels: {
-              color: "#f5f7ff",
-              font: { size: 11 }
+              color: "#4b5563",
+              font: { size: 10 }
             }
           },
           tooltip: {
@@ -1493,23 +1405,23 @@
         scales: {
           x: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             },
             grid: { display: false }
           },
           y: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             },
             grid: {
-              color: "rgba(255, 255, 255, 0.04)"
+              color: "rgba(209, 213, 219, 0.5)"
             },
             title: {
               display: true,
               text: "Hours",
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             }
           }
@@ -1539,9 +1451,7 @@
       shiftList.appendChild(li);
     });
 
-    // -----------------------------
-    // DAILY TREND & SPIKE DETECTION
-    // -----------------------------
+    // DAILY TREND & SPIKES
     const dailyLabels = dailyTrend.map(d => d.label);
     const dailyValues = dailyTrend.map(d => d.value);
     const dailyMean = mean(dailyValues);
@@ -1580,17 +1490,17 @@
           {
             label: "Daily breakdown hours",
             data: dailyValues,
-            borderColor: "rgba(52, 152, 219, 1)",
-            backgroundColor: "rgba(52, 152, 219, 0.2)",
+            borderColor: "rgba(0, 59, 115, 1)",
+            backgroundColor: "rgba(0, 118, 206, 0.15)",
             borderWidth: 2,
             tension: 0.25,
             pointRadius: dailyValues.map((v, idx) => spikeIndices.includes(idx) ? 4 : 2),
-            pointBackgroundColor: dailyValues.map((v, idx) => spikeIndices.includes(idx) ? "rgba(255, 107, 107, 1)" : "rgba(52, 152, 219, 1)")
+            pointBackgroundColor: dailyValues.map((v, idx) => spikeIndices.includes(idx) ? "rgba(229, 57, 53, 1)" : "rgba(0, 59, 115, 1)")
           },
           {
             label: "Spike threshold (mean + 1σ)",
             data: dailyValues.map(() => spikeThreshold),
-            borderColor: "rgba(255, 107, 107, 0.8)",
+            borderColor: "rgba(229, 57, 53, 0.8)",
             borderDash: [6, 4],
             borderWidth: 1.5,
             pointRadius: 0
@@ -1603,7 +1513,7 @@
         plugins: {
           legend: {
             labels: {
-              color: "#f5f7ff",
+              color: "#4b5563",
               font: { size: 10 }
             }
           },
@@ -1624,7 +1534,7 @@
         scales: {
           x: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 9 },
               maxRotation: 0,
               autoSkip: true,
@@ -1634,16 +1544,16 @@
           },
           y: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             },
             grid: {
-              color: "rgba(255, 255, 255, 0.04)"
+              color: "rgba(209, 213, 219, 0.5)"
             },
             title: {
               display: true,
               text: "Hours",
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             }
           }
@@ -1651,9 +1561,7 @@
       }
     });
 
-    // -----------------------------
-    // AREA-WISE DETAIL CHART & LIST
-    // -----------------------------
+    // AREA DETAIL
     const areaEntries = Object.entries(areaBreakdown).map(([name, hours]) => {
       const pct = calculatePercent(hours, totalBreakdownHours);
       return { name, hours, pct };
@@ -1664,14 +1572,14 @@
 
     const ctxAreaBar = document.getElementById("areaBarChart").getContext("2d");
     new Chart(ctxAreaBar, {
-      type: "horizontalBar" in Chart.defaults ? "horizontalBar" : "bar",
+      type: "bar",
       data: {
         labels: areaLabels,
         datasets: [{
           label: "Breakdown hours",
           data: areaHours,
-          backgroundColor: "rgba(0, 209, 178, 0.7)",
-          borderColor: "rgba(0, 209, 178, 1)",
+          backgroundColor: "rgba(0, 118, 206, 0.8)",
+          borderColor: "rgba(0, 59, 115, 1)",
           borderWidth: 1
         }]
       },
@@ -1682,7 +1590,7 @@
         plugins: {
           legend: {
             labels: {
-              color: "#f5f7ff",
+              color: "#4b5563",
               font: { size: 10 }
             }
           },
@@ -1699,22 +1607,22 @@
         scales: {
           x: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             },
             grid: {
-              color: "rgba(255, 255, 255, 0.04)"
+              color: "rgba(209, 213, 219, 0.5)"
             },
             title: {
               display: true,
               text: "Hours",
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 10 }
             }
           },
           y: {
             ticks: {
-              color: "#9aa4c6",
+              color: "#6b7280",
               font: { size: 9 }
             },
             grid: { display: false }
@@ -1741,9 +1649,7 @@
       areaList.appendChild(li);
     });
 
-    // -----------------------------
     // INTELLIGENT INSIGHTS
-    // -----------------------------
     const insightRiskPill = document.getElementById("insightRiskPill");
     insightRiskPill.className = `risk-pill ${riskClassToCss(overallRiskClass)}`;
     insightRiskPill.textContent = `${riskClassToLabel(overallRiskClass)} risk`;
@@ -1761,17 +1667,16 @@
     rootCauseText.innerHTML = `
       Breakdown hours are heavily concentrated in the <strong>${fillingSection ? fillingSection.name : "Filling & Capping"}</strong> section,
       with <strong>${mainSection.pct.toFixed(1)}%</strong> of total loss, and in a small set of machines
-      (<strong>${top3Names}</strong>) that together account for a significant share of total breakdown hours.
+      (<strong>${top3Names}</strong>) that together account for a large share of total breakdown hours.
       Downline equipment further amplifies the loss picture, indicating that failures in the filling block propagate downstream.
     `;
 
     reliabilityRiskText.innerHTML = `
-      The line exhibits a clear <strong>reliability concentration risk</strong>: a few machines and the
+      The line shows a clear <strong>reliability concentration risk</strong>: a few machines and the
       <strong>Filling & Capping + Downline</strong> sections dominate the breakdown profile.
       With the night shift carrying a slightly higher share of loss (<strong>${nightPct.toFixed(1)}%</strong> vs
       <strong>${dayPct.toFixed(1)}%</strong>), exposure is elevated during reduced supervision hours.
-      Detected daily spikes (e.g. <strong>7-Jan, 11-Feb, 27-Feb</strong>) suggest episodic events that can be traced to specific
-      failure modes or operating conditions.
+      Detected daily spikes (e.g. <strong>7-Jan, 11-Feb, 27-Feb</strong>) suggest episodic events tied to specific failure modes or conditions.
     `;
 
     operationalRiskText.innerHTML = `
@@ -1785,14 +1690,12 @@
       Maintenance priority should be to <strong>stabilize the Filling & Capping section first</strong>, with targeted
       reliability actions on <strong>${top3Names}</strong>, followed by key downline assets (packer, heating tunnel,
       crates stacker/unitizer). Night-shift practices (start-up checks, changeover discipline, operator care)
-      should be reviewed to reduce exposure. Spikes days should be used as case studies to lock in
+      should be reviewed to reduce exposure. Spike days should be used as case studies to lock in
       <strong>standardized responses and PM tasks</strong>.
     `;
 
-    // Preventive maintenance focus list
     const pmFocusList = document.getElementById("pmFocusList");
 
-    // 1. Filling & Capping section
     const liFilling = document.createElement("li");
     liFilling.className = "list-item";
     liFilling.innerHTML = `
@@ -1809,7 +1712,6 @@
     `;
     pmFocusList.appendChild(liFilling);
 
-    // 2. Downline section
     const liDownline = document.createElement("li");
     liDownline.className = "list-item";
     liDownline.innerHTML = `
@@ -1826,7 +1728,6 @@
     `;
     pmFocusList.appendChild(liDownline);
 
-    // 3. Critical machines
     const liCriticalMachines = document.createElement("li");
     liCriticalMachines.className = "list-item";
     liCriticalMachines.innerHTML = `
@@ -1843,7 +1744,6 @@
     `;
     pmFocusList.appendChild(liCriticalMachines);
 
-    // 4. Night shift practices
     const liNightShift = document.createElement("li");
     liNightShift.className = "list-item";
     liNightShift.innerHTML = `
@@ -1860,7 +1760,6 @@
     `;
     pmFocusList.appendChild(liNightShift);
 
-    // 5. Spike days
     const liSpikes = document.createElement("li");
     liSpikes.className = "list-item";
     const spikeLabels = spikeIndices.map(idx => dailyLabels[idx]).join(", ");
