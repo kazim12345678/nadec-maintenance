@@ -1,1315 +1,316 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Drinkable Section • Breakdown KPI Dashboard (Jan–Feb 2026)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Drinkable Section – Breakdown KPI & Spare Usage Dashboard (Jan–Feb 2026)</title>
 
-  <!-- Typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <style>
-    :root{
-      --bg0:#070a14; --bg1:#0b1020;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.08);
-      --stroke:rgba(255,255,255,.10);
-      --stroke2:rgba(255,255,255,.14);
+<style>
+:root{
+  --bg:#0b1020;
+  --panel:rgba(255,255,255,.06);
+  --stroke:rgba(255,255,255,.12);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.6);
+  --brand:#22c55e;
+  --info:#60a5fa;
+  --warn:#fbbf24;
+  --high:#fb7185;
+  --crit:#ef4444;
+  --ok:#34d399;
+  --r:14px;
+  --shadow:0 12px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(180deg,#070a14,#0b1020);
+  color:var(--text);
+}
+.wrap{max-width:1400px;margin:auto;padding:20px}
+h1{margin:0;font-size:20px;font-weight:900}
+h2{margin:0;font-size:14px;font-weight:900;text-transform:uppercase;color:#fff}
+.sub{color:var(--muted);font-size:12px;margin-top:4px}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.05));
+  border:1px solid var(--stroke);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+.cardHeader{padding:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cardBody{padding:14px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  padding:12px;
+}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:700}
+.kpi .value{font-size:24px;font-weight:900;margin-top:6px}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.chartWrap{height:320px}
+.chartWrap.tall{height:380px}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.62);
-      --muted2:rgba(255,255,255,.48);
-
-      --brand:#22c55e;
-      --info:#60a5fa;
-      --warn:#fbbf24;
-      --high:#fb7185;
-      --crit:#ef4444;
-      --ok:#34d399;
-
-      --shadow:0 12px 40px rgba(0,0,0,.45);
-      --shadow2:0 10px 22px rgba(0,0,0,.35);
-
-      --r:16px; --r2:12px; --gap:14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 700px at 15% 10%, rgba(34,197,94,.14), transparent 60%),
-        radial-gradient(900px 520px at 78% 20%, rgba(96,165,250,.16), transparent 60%),
-        radial-gradient(1100px 680px at 60% 90%, rgba(251,113,133,.10), transparent 60%),
-        linear-gradient(180deg,var(--bg0),var(--bg1));
-      overflow-x:hidden;
-    }
-
-    .wrap{max-width:1280px;margin:0 auto;padding:22px 16px 40px}
-
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .title{display:flex;align-items:center;gap:12px;min-width:0}
-    .badge{
-      width:44px;height:44px;border-radius:12px;flex:0 0 auto;
-      background:linear-gradient(135deg, rgba(34,197,94,.92), rgba(96,165,250,.92));
-      box-shadow:var(--shadow2);position:relative;overflow:hidden;
-    }
-    .badge:before{
-      content:"";position:absolute;inset:-30%;
-      background:radial-gradient(circle at 25% 25%, rgba(255,255,255,.55), transparent 55%);
-      transform:rotate(18deg);
-    }
-    h1{margin:0;font-size:18px;font-weight:900;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .sub{margin-top:2px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-    .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .pill{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 12px;border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--stroke);
-      box-shadow:0 1px 0 rgba(255,255,255,.03) inset;
-      user-select:none;
-    }
-    .pill label{color:var(--muted);font-size:12px}
-    .toggle{
-      width:56px;height:30px;border-radius:999px;cursor:pointer;outline:none;
-      background:rgba(255,255,255,.08);
-      border:1px solid var(--stroke2);
-      position:relative;
-    }
-    .toggle:focus{box-shadow:0 0 0 4px rgba(96,165,250,.20)}
-    .toggle .knob{
-      width:24px;height:24px;border-radius:999px;position:absolute;top:3px;left:3px;
-      background:linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,255,255,.65));
-      box-shadow:0 8px 18px rgba(0,0,0,.35);
-      transition:transform 220ms ease;
-    }
-    .toggle[data-on="true"]{background:rgba(34,197,94,.22);border-color:rgba(34,197,94,.35)}
-    .toggle[data-on="true"] .knob{transform:translateX(26px)}
-
-    .card{
-      border-radius:var(--r);
-      border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .cardHeader{
-      padding:14px 16px 10px;
-      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background:rgba(0,0,0,.12);
-    }
-    .cardHeader h2{
-      margin:0;font-size:13px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;
-      color:rgba(255,255,255,.88);
-    }
-    .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.2;white-space:nowrap}
-    .cardBody{padding:14px 16px 16px}
-
-    .kpiRow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-    .kpi{
-      border-radius:var(--r2);padding:12px;border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      box-shadow:0 1px 0 rgba(255,255,255,.03) inset;
-      min-height:92px;display:flex;flex-direction:column;justify-content:space-between;
-      position:relative;overflow:hidden;
-    }
-    .kpi:before{
-      content:"";position:absolute;inset:-30% -40% auto auto;
-      width:180px;height:180px;
-      background:radial-gradient(circle at 30% 30%, rgba(96,165,250,.22), transparent 58%);
-      pointer-events:none;
-    }
-    .kpi .label{font-size:12px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--info);box-shadow:0 0 0 6px rgba(96,165,250,.12);flex:0 0 auto}
-    .kpi .value{font-size:24px;font-weight:900;letter-spacing:-.04em;margin-top:6px;line-height:1.05}
-    .kpi .sub{font-size:12px;color:var(--muted2);margin-top:6px;line-height:1.25}
-
-    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:var(--gap);margin-top:var(--gap)}
-    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .panel{
-      border-radius:var(--r2);
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.05);
-      padding:12px;
-      overflow:hidden;
-    }
-
-    .chartWrap{height:320px;position:relative}
-    .chartWrap.tall{height:360px}
-    canvas{max-width:100%}
-
-    .insight{font-size:13px;color:rgba(255,255,255,.86);line-height:1.45}
-    .insight strong{color:rgba(255,255,255,.95)}
-
-    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .tag{
-      padding:8px 10px;border-radius:999px;border:1px solid var(--stroke);
-      background:rgba(0,0,0,.10);font-size:12px;color:rgba(255,255,255,.85);
-      display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
-    }
-    .tag .chip{width:9px;height:9px;border-radius:999px;background:var(--ok);box-shadow:0 0 0 6px rgba(52,211,153,.12)}
-    .tag[data-risk="Medium"] .chip{background:var(--warn);box-shadow:0 0 0 6px rgba(251,191,36,.14)}
-    .tag[data-risk="High"] .chip{background:var(--high);box-shadow:0 0 0 6px rgba(251,113,133,.14)}
-    .tag[data-risk="Critical"] .chip{background:var(--crit);box-shadow:0 0 0 6px rgba(239,68,68,.16)}
-
-    .riskPill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);
-      background:rgba(255,255,255,.04);
-      font-weight:800;letter-spacing:.01em;color:rgba(255,255,255,.90);
-      white-space:nowrap;
-    }
-    .riskPill:before{
-      content:"";width:8px;height:8px;border-radius:999px;background:var(--ok);
-      box-shadow:0 0 0 6px rgba(52,211,153,.12);
-    }
-    .riskPill[data-risk="Medium"]:before{background:var(--warn);box-shadow:0 0 0 6px rgba(251,191,36,.14)}
-    .riskPill[data-risk="High"]:before{background:var(--high);box-shadow:0 0 0 6px rgba(251,113,133,.14)}
-    .riskPill[data-risk="Critical"]:before{background:var(--crit);box-shadow:0 0 0 6px rgba(239,68,68,.16)}
-
-    .table{
-      width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;
-      border:1px solid var(--stroke);background:rgba(0,0,0,.10);
-    }
-    .table th,.table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px;text-align:left}
-    .table th{
-      color:var(--muted);font-weight:800;letter-spacing:.02em;text-transform:uppercase;
-      background:rgba(255,255,255,.03);
-    }
-    .table tr:last-child td{border-bottom:none}
-    .mono{font-family:var(--mono)}
-    .right{text-align:right}
-    .center{text-align:center}
-
-    .foot{
-      margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;
-      color:var(--muted2);font-size:12px;padding-top:10px;
-    }
-
-    /* Executive view */
-    body.execMode .hideExec{display:none!important}
-    body.execMode .grid{grid-template-columns:1fr}
-    body.execMode .kpiRow{grid-template-columns:repeat(2,1fr)}
-
-    /* Responsive */
-    @media (max-width:1040px){
-      .grid{grid-template-columns:1fr}
-      .kpiRow{grid-template-columns:repeat(2,1fr)}
-      .chartWrap{height:300px}
-      .chartWrap.tall{height:340px}
-    }
-    @media (max-width:560px){
-      .kpiRow{grid-template-columns:1fr}
-      .twoCol{grid-template-columns:1fr}
-      h1{font-size:16px}
-    }
-
-    /* Micro-anim */
-    .fadeIn{opacity:0;transform:translateY(6px);animation:fadeIn 420ms ease forwards}
-    @keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
-  </style>
+.tableWrap{overflow:auto}
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:rgba(0,0,0,.12);
+  border-radius:12px;
+  overflow:hidden;
+}
+th,td{
+  padding:8px 10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:12px;
+}
+th{
+  background:rgba(255,255,255,.05);
+  color:var(--muted);
+  text-transform:uppercase;
+  font-weight:800;
+}
+tr:last-child td{border-bottom:none}
+.sectionTitle{
+  font-weight:900;
+  margin:14px 0 6px;
+  color:#fff;
+}
+.footer{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+}
+@media(max-width:1100px){
+  .grid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .kpis{grid-template-columns:1fr}
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar fadeIn" style="animation-delay:20ms">
-      <div class="title">
-        <div class="badge" aria-hidden="true"></div>
-        <div style="min-width:0">
-          <h1>Drinkable Section • Breakdown KPI Dashboard</h1>
-          <div class="sub">January–February 2026 • Executive Maintenance View • FMCG Operations</div>
-        </div>
-      </div>
+<div class="wrap">
 
-      <div class="controls">
-        <div class="pill" title="Condensed Executive View">
-          <label>Executive View</label>
-          <button id="execToggle" class="toggle" type="button" data-on="false" aria-label="Executive view toggle">
-            <span class="knob" aria-hidden="true"></span>
-          </button>
+<!-- HEADER -->
+<div class="card">
+  <div class="cardHeader">
+    <h1>Drinkable Section – Maintenance KPI & Spare Usage</h1>
+    <div class="sub">January–February 2026 • Executive Operations View</div>
+  </div>
+</div>
+
+<!-- KPI SUMMARY -->
+<div class="card">
+  <div class="cardHeader"><h2>Executive KPI Summary</h2></div>
+  <div class="cardBody">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Total Breakdown Hours</div>
+        <div class="value">1347</div>
+        <div class="sub">All sections combined</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Dominant Section</div>
+        <div class="value">Filling & Capping</div>
+        <div class="sub">50.6% of losses</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Top Machine Exposure</div>
+        <div class="value">M15</div>
+        <div class="sub">11.2% contribution</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Shift Loss Split</div>
+        <div class="value">Night 52.2%</div>
+        <div class="sub">+4.6 pts vs Day</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Overall Risk Level</div>
+        <div class="value" style="color:var(--high)">HIGH</div>
+        <div class="sub">Concentration risk present</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS -->
+<div class="grid">
+
+  <!-- LEFT -->
+  <div class="card">
+    <div class="cardHeader"><h2>Machine Pareto (80/20)</h2></div>
+    <div class="cardBody">
+      <div class="chartWrap tall">
+        <canvas id="paretoChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="card">
+    <div class="cardHeader"><h2>Section & Shift Distribution</h2></div>
+    <div class="cardBody">
+      <div class="twoCol">
+        <div class="chartWrap">
+          <canvas id="sectionPie"></canvas>
         </div>
-        <div class="pill" title="Dynamic rules applied to all assets/sections">
-          <label>Rules</label>
-          <div style="font-size:12px;color:rgba(255,255,255,.85);font-weight:800">
-            Machine &gt; 10% = Critical • Section &gt; 40% = High • Spikes = Avg + 1σ
-          </div>
+        <div class="chartWrap">
+          <canvas id="shiftDonut"></canvas>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Executive summary -->
-    <div class="card fadeIn" style="animation-delay:80ms">
-      <div class="cardHeader">
-        <h2>Executive Summary</h2>
-        <div class="meta">
-          <div id="metaTotal">Total Breakdown Hours: —</div>
-          <div id="metaRisk">Operational Risk: —</div>
-        </div>
-      </div>
-      <div class="cardBody">
-        <div class="kpiRow" id="kpiRow"></div>
+</div>
 
-        <div class="twoCol" style="margin-top:12px">
-          <div class="panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:900;letter-spacing:.01em">Plant Manager Readout</div>
-              <div id="summaryBadge" class="riskPill" data-risk="Medium">—</div>
-            </div>
-            <div id="execNarrative" class="insight" style="margin-top:10px"></div>
-            <div class="tags" id="execTags"></div>
-          </div>
+<!-- SPARE PARTS TABLES -->
+<div class="card">
+  <div class="cardHeader"><h2>Spare Parts & Materials Used (Detailed)</h2></div>
+  <div class="cardBody">
 
-          <div class="panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:900;letter-spacing:.01em">Reliability Concentration</div>
-              <div id="concRisk" class="riskPill" data-risk="Medium">—</div>
-            </div>
-            <div id="concNarrative" class="insight" style="margin-top:10px"></div>
-
-            <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div class="panel" style="padding:10px">
-                <div style="font-size:12px;color:var(--muted);font-weight:900">Top-3 Machines Share</div>
-                <div id="top3Share" style="font-size:22px;font-weight:900;margin-top:6px">—</div>
-                <div id="top3ShareSub" style="font-size:12px;color:var(--muted2);margin-top:6px">—</div>
-              </div>
-              <div class="panel" style="padding:10px">
-                <div style="font-size:12px;color:var(--muted);font-weight:900">Top-5 Machines Share</div>
-                <div id="top5Share" style="font-size:22px;font-weight:900;margin-top:6px">—</div>
-                <div id="top5ShareSub" style="font-size:12px;color:var(--muted2);margin-top:6px">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+    <!-- EXAMPLE MACHINE TABLE -->
+    <div class="sectionTitle">Crates Area / Line</div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item Description</th>
+            <th>Quantity / Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cable</td><td>1 pc</td></tr>
+          <tr><td>Flange bearing</td><td>1 pc</td></tr>
+          <tr><td>MAC solenoid valve</td><td>1 pc</td></tr>
+          <tr><td>Plastic guide</td><td>3 mtrs</td></tr>
+          <tr><td>606 ball bearing</td><td>4 pcs</td></tr>
+          <tr><td>Motor</td><td>1 unit</td></tr>
+          <tr><td>Spare conveyor</td><td>10 mtrs</td></tr>
+          <tr><td>As per IR</td><td>IR#1129477</td></tr>
+          <tr><td>n/a</td><td>—</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Analytics -->
-    <div class="grid">
-      <div class="card fadeIn" style="animation-delay:140ms">
-        <div class="cardHeader">
-          <h2>Machine Pareto (80/20) • Top Contributors</h2>
-          <div class="meta">
-            <div id="paretoMeta1">80% Threshold: —</div>
-            <div id="paretoMeta2">Critical Machines (&gt;10%): —</div>
-          </div>
-        </div>
-        <div class="cardBody">
-          <div class="chartWrap tall">
-            <canvas id="paretoChart"></canvas>
-          </div>
-
-          <div class="hideExec" style="margin-top:12px">
-            <table class="table" aria-label="Top machines table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Asset</th>
-                  <th class="right">Hours</th>
-                  <th class="right">%</th>
-                  <th class="center">Risk</th>
-                </tr>
-              </thead>
-              <tbody id="topMachinesTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="card fadeIn" style="animation-delay:180ms">
-        <div class="cardHeader">
-          <h2>Section • Shift • Area Distribution</h2>
-          <div class="meta">
-            <div id="sectionMeta">High-Risk Sections (&gt;40%): —</div>
-            <div id="shiftMeta">Night vs Day: —</div>
-          </div>
-        </div>
-
-        <div class="cardBody">
-          <div class="twoCol">
-            <div class="panel">
-              <div style="font-weight:900;letter-spacing:.01em">Section Contribution</div>
-              <div class="chartWrap" style="height:260px;margin-top:10px">
-                <canvas id="sectionPie"></canvas>
-              </div>
-            </div>
-            <div class="panel">
-              <div style="font-weight:900;letter-spacing:.01em">Shift Comparison</div>
-              <div class="chartWrap" style="height:260px;margin-top:10px">
-                <canvas id="shiftDonut"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <div class="hideExec" style="margin-top:12px">
-            <div class="twoCol">
-              <div class="panel">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-                  <div style="font-weight:900;letter-spacing:.01em">Area-wise Detailed Breakdown</div>
-                  <div id="areaRiskBadge" class="riskPill" data-risk="Medium">—</div>
-                </div>
-                <div class="chartWrap" style="height:260px;margin-top:10px">
-                  <canvas id="areaBar"></canvas>
-                </div>
-              </div>
-
-              <div class="panel">
-                <div style="font-weight:900;letter-spacing:.01em">Dynamic Risk Logic</div>
-                <div class="insight" style="margin-top:10px">
-                  <div><strong>Machine risk:</strong> Critical &gt; 10%; High ≥ 7%; Medium ≥ 4%; Low &lt; 4%.</div>
-                  <div style="margin-top:10px"><strong>Section risk:</strong> Critical &gt; 50%; High &gt; 40%; Medium ≥ 25%; Low &lt; 25%.</div>
-                  <div style="margin-top:10px"><strong>Spike detection:</strong> Above average + 1 standard deviation (computed from available daily points).</div>
-                  <div style="margin-top:12px;color:var(--muted2);font-size:12px">
-                    Unclassified (blank) hours are reported separately and excluded from asset ranking.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
+    <div class="sectionTitle">Machine M15</div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item Description</th>
+            <th>Quantity / Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Breaker</td><td>1 pc</td></tr>
+          <tr><td>Multiflow</td><td>1 pc</td></tr>
+          <tr><td>Encoder</td><td>1 pc</td></tr>
+          <tr><td>Belt</td><td>2 pcs</td></tr>
+          <tr><td>Capper fingers</td><td>6 pcs</td></tr>
+          <tr><td>Filters</td><td>8 pcs</td></tr>
+          <tr><td>Spare bushing / spring / fork</td><td>—</td></tr>
+          <tr><td>n/a</td><td>—</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Trend + Insights -->
-    <div class="card fadeIn" style="animation-delay:220ms;margin-top:var(--gap)">
-      <div class="cardHeader">
-        <h2>Daily Trend • Spike Detection • Reliability Signals</h2>
-        <div class="meta">
-          <div id="trendMeta1">Avg/Day: —</div>
-          <div id="trendMeta2">Detected Spikes: —</div>
-        </div>
-      </div>
-      <div class="cardBody">
-        <div class="chartWrap tall">
-          <canvas id="dailyTrend"></canvas>
-        </div>
-
-        <div class="twoCol" style="margin-top:12px">
-          <div class="panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:900;letter-spacing:.01em">Intelligent Insights</div>
-              <div id="insightRiskBadge" class="riskPill" data-risk="High">—</div>
-            </div>
-            <div id="insightsText" class="insight" style="margin-top:10px"></div>
-            <div class="tags" id="insightTags"></div>
-          </div>
-
-          <div class="panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-weight:900;letter-spacing:.01em">Maintenance Priority Recommendations</div>
-              <div id="maintPriorityBadge" class="riskPill" data-risk="High">—</div>
-            </div>
-            <div id="recommendText" class="insight" style="margin-top:10px"></div>
-
-            <div class="hideExec" style="margin-top:12px">
-              <table class="table" aria-label="Action plan table">
-                <thead>
-                  <tr>
-                    <th>Priority</th>
-                    <th>Focus Area</th>
-                    <th>Objective</th>
-                    <th class="center">Impact</th>
-                  </tr>
-                </thead>
-                <tbody id="actionPlanTbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="foot">
-          <div>© 2026 • Drinkable Section • KPI intelligence generated from breakdown pivots</div>
-          <div id="dataStamp">Data basis: Jan–Feb 2026 • Total: — hours</div>
-        </div>
-      </div>
+    <div class="sectionTitle">Machine M7</div>
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item Description</th>
+            <th>Quantity / Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>MAC solenoid valve</td><td>2 pcs</td></tr>
+          <tr><td>Siemens Micromaster 420</td><td>1 pc</td></tr>
+          <tr><td>Profibus cable</td><td>15 mtrs</td></tr>
+          <tr><td>Finger cam sets</td><td>Multiple</td></tr>
+          <tr><td>Vacuum / suction cups</td><td>Multiple</td></tr>
+          <tr><td>n/a</td><td>—</td></tr>
+        </tbody>
+      </table>
     </div>
 
   </div>
-
-  <script>
-    ;(() => {
-      /* =========================================================
-         MODULE: DATA (from your pivots)
-         ========================================================= */
-      const DATA = {
-        totalHours: 1347,
-
-        // Machine-wise (pivot) — keep blank separate
-        machines: {
-          "Crates Area/Line": 89,
-          "M1": 74,
-          "M12": 31,
-          "M13": 55,
-          "M14": 143,
-          "M15": 151,
-          "M16": 70,
-          "M17": 56,
-          "M18": 63,
-          "M2": 99,
-          "M3": 73,
-          "M4": 93,
-          "M5": 3,
-          "M6": 127,
-          "M7": 127,
-          "M8": 86,
-          "M9": 5,
-          "(blank)": 2
-        },
-
-        // Area-wise (pivot)
-        areas: {
-          "Bottle Debagger, Bottle Unscrambler": 52,
-          "Bottle Inspection Machine, Bottle Invert Cleaner": 10,
-          "Bottle Line Conveyor,Overhead Bottle Conveyor, Air Conveyor": 65,
-          "Cap Hooper / Elevator Unit": 6,
-          "Cap Sorter / Cap Conveyor Unit": 8,
-          "Cap Top Sticker Unit": 1,
-          "C-loop Crates Chute / Overhead Crates Conveyor": 26,
-          "Crates Destacker / Crates Washer / Crates lines": 88,
-          "Crates Stacker & Unitizer Unit": 120,
-          "Downline Conveyor Bottles, Wraps & Case Handling Line": 10,
-          "Filling and Capping Machine": 573,
-          "Filling Machine Infeed Conveyor": 8,
-          "Filling Machine Outfeed Conveyor": 8,
-          "Ink Jet Printer Unit": 46,
-          "Labelling Machine": 7,
-          "Packer Machine & Heating Tunnel": 246,
-          "Pallet Wrapping Machine": 5,
-          "Palletizer Machine": 19,
-          "Sleeve Applicator & Heating Tunnel": 14,
-          "Turret Bottle Cleaner / Rinser": 33,
-          "(blank)": 2
-        },
-
-        // Shift-wise (pivot)
-        shifts: {
-          "Day": 642,
-          "Night": 703,
-          "(blank)": 2
-        },
-
-        // Section-wise (pivot)
-        sections: {
-          "Crates Area /Line": 89,
-          "Downline": 447,
-          "Filling & Capping": 681,
-          "Upstream": 128,
-          "(blank)": 2
-        },
-
-        // Daily trend: you only provided spikes earlier.
-        // Keep this list and extend with full daily points when available.
-        daily: [
-          { date: "2026-01-07", hours: 37 },
-          { date: "2026-02-11", hours: 35 },
-          { date: "2026-02-27", hours: 33 }
-        ]
-      };
-
-      /* =========================================================
-         MODULE: UTIL
-         ========================================================= */
-      const UTIL = (() => {
-        const fmtNum = (n, d=0) => Number(n).toLocaleString(undefined, { maximumFractionDigits:d, minimumFractionDigits:d });
-        const pct = (v, total) => total > 0 ? (100 * v / total) : 0;
-        const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
-
-        const sum = (obj) => Object.values(obj).reduce((a,b)=>a+b,0);
-        const entries = (obj) => Object.entries(obj).map(([k,v]) => ({ key:k, value:v }));
-        const desc = (arr) => arr.slice().sort((a,b)=>b.value-a.value);
-
-        const mean = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-        const std = (arr) => {
-          if (!arr.length) return 0;
-          const m = mean(arr);
-          const v = mean(arr.map(x => (x-m)**2));
-          return Math.sqrt(v);
-        };
-
-        const machineRisk = (p) => (p > 10) ? "Critical" : (p >= 7) ? "High" : (p >= 4) ? "Medium" : "Low";
-        const sectionRisk = (p) => (p > 50) ? "Critical" : (p > 40) ? "High" : (p >= 25) ? "Medium" : "Low";
-
-        const colorByRisk = (risk) => ({
-          Low: "rgba(52,211,153,0.98)",
-          Medium: "rgba(251,191,36,0.98)",
-          High: "rgba(251,113,133,0.98)",
-          Critical: "rgba(239,68,68,0.99)"
-        }[risk] || "rgba(96,165,250,0.98)");
-
-        const riskIcon = (risk) => ({ Low:"Stable", Medium:"Watch", High:"At Risk", Critical:"Critical" }[risk] || "Info");
-
-        return { fmtNum, pct, clamp, sum, entries, desc, mean, std, machineRisk, sectionRisk, colorByRisk, riskIcon };
-      })();
-
-      /* =========================================================
-         MODULE: CALC (analytics intelligence)
-         ========================================================= */
-      const CALC = (() => {
-        const total = DATA.totalHours;
-        const unclassified = (DATA.machines["(blank)"] ?? 0);
-
-        // Exclude "(blank)" from ranking lists but keep it in totals & KPI reporting
-        const stripBlank = (obj) => {
-          const o = { ...obj };
-          delete o["(blank)"];
-          return o;
-        };
-
-        const machinesRanked = UTIL.desc(UTIL.entries(stripBlank(DATA.machines))).map(x => {
-          const p = UTIL.pct(x.value, total);
-          return { ...x, pct: p, risk: UTIL.machineRisk(p) };
-        });
-
-        const sectionsRanked = UTIL.desc(UTIL.entries(stripBlank(DATA.sections))).map(x => {
-          const p = UTIL.pct(x.value, total);
-          return { ...x, pct: p, risk: UTIL.sectionRisk(p) };
-        });
-
-        const shiftsSeries = UTIL.entries(stripBlank(DATA.shifts)).map(x => ({ ...x, pct: UTIL.pct(x.value, total) }));
-
-        const areasRanked = UTIL.desc(UTIL.entries(stripBlank(DATA.areas))).map(x => ({ ...x, pct: UTIL.pct(x.value, total) }));
-
-        const criticalMachines = machinesRanked.filter(x => x.risk === "Critical");
-        const highRiskSections = sectionsRanked.filter(x => x.pct > 40);
-
-        const top3 = machinesRanked.slice(0,3);
-        const top5 = machinesRanked.slice(0,5);
-        const top3Share = top3.reduce((a,x)=>a+x.pct,0);
-        const top5Share = top5.reduce((a,x)=>a+x.pct,0);
-
-        const fill = sectionsRanked.find(s => s.key.includes("Filling")) || sectionsRanked[0];
-        const down = sectionsRanked.find(s => s.key.includes("Downline"));
-        const fillDownShare = (fill?.value ?? 0) + (down?.value ?? 0);
-        const fillDownPct = UTIL.pct(fillDownShare, total);
-
-        const day = DATA.shifts["Day"] ?? 0;
-        const night = DATA.shifts["Night"] ?? 0;
-        const dayPct = UTIL.pct(day, total);
-        const nightPct = UTIL.pct(night, total);
-        const shiftDeltaPts = nightPct - dayPct;
-
-        const overallRisk = (() => {
-          const topSectionPct = sectionsRanked[0]?.pct ?? 0;
-          if (topSectionPct > 55 || top3Share > 35) return "Critical";
-          if (topSectionPct > 45 || top3Share > 28) return "High";
-          if (topSectionPct > 35 || top3Share > 20) return "Medium";
-          return "Low";
-        })();
-
-        // Pareto
-        const pareto = (() => {
-          const labels = machinesRanked.map(x => x.key);
-          const hours = machinesRanked.map(x => x.value);
-          const pct = machinesRanked.map(x => x.pct);
-          const cum = [];
-          pct.reduce((acc,p,i)=> (cum[i] = acc + p, acc + p), 0);
-          const idx80 = cum.findIndex(v => v >= 80);
-          const nTo80 = idx80 >= 0 ? idx80 + 1 : machinesRanked.length;
-          return { labels, hours, pct, cum, nTo80 };
-        })();
-
-        // Daily spikes (avg + 1σ)
-        const daily = (() => {
-          const pts = (DATA.daily || [])
-            .map(d => ({ ...d, t: new Date(d.date + "T00:00:00"), y: Number(d.hours) }))
-            .filter(p => Number.isFinite(p.y) && p.t.toString() !== "Invalid Date")
-            .sort((a,b)=>a.t-b.t);
-
-          const vals = pts.map(p=>p.y);
-          const avg = UTIL.mean(vals);
-          const sd = UTIL.std(vals);
-          const thr = avg + sd;
-          const spikes = pts.filter(p => p.y > thr).map(p => ({...p, reason:"Above Avg + 1σ"}));
-
-          // Jan vs Feb direction only if there is coverage
-          const monthAgg = (() => {
-            const acc = { jan:0, feb:0, janCount:0, febCount:0 };
-            pts.forEach(p => {
-              const m = p.t.getMonth(); // 0 Jan, 1 Feb
-              if (m===0){acc.jan+=p.y; acc.janCount++;}
-              if (m===1){acc.feb+=p.y; acc.febCount++;}
-            });
-            return acc;
-          })();
-
-          const janVsFeb = (() => {
-            if (!monthAgg.janCount || !monthAgg.febCount) return { label:"Insufficient daily coverage", deltaPct:null };
-            const delta = monthAgg.feb - monthAgg.jan;
-            const deltaPct = monthAgg.jan ? (100*delta/monthAgg.jan) : null;
-            const label = delta > 0 ? "Feb ↑ vs Jan" : (delta < 0 ? "Feb ↓ vs Jan" : "Flat");
-            return { label, deltaPct };
-          })();
-
-          return { pts, vals, avg, sd, thr, spikes, monthAgg, janVsFeb };
-        })();
-
-        return {
-          total, unclassified,
-          machinesRanked, sectionsRanked, shiftsSeries, areasRanked,
-          criticalMachines, highRiskSections,
-          top3, top5, top3Share, top5Share,
-          fillDownPct, fillDownShare,
-          day, night, dayPct, nightPct, shiftDeltaPts,
-          overallRisk,
-          pareto,
-          daily
-        };
-      })();
-
-      /* =========================================================
-         MODULE: UI (rendering + counters)
-         ========================================================= */
-      const UI = (() => {
-        const setRiskPill = (el, risk, text) => {
-          el.dataset.risk = risk;
-          el.textContent = text ?? risk;
-        };
-
-        const renderKpis = () => {
-          const total = CALC.total;
-          const unc = CALC.unclassified;
-          const uncPct = UTIL.pct(unc, total);
-
-          const topSection = CALC.sectionsRanked[0];
-          const topMachine = CALC.machinesRanked[0];
-
-          const kpis = [
-            {
-              label:"Total Breakdown Hours",
-              value: total,
-              sub:"Jan–Feb 2026 combined",
-              dot:"var(--info)",
-              numeric:true
-            },
-            {
-              label:"Unclassified (Blank)",
-              value: unc,
-              sub:`${UTIL.fmtNum(uncPct,2)}% of total • Data quality bucket`,
-              dot:"rgba(251,191,36,.95)",
-              numeric:true
-            },
-            {
-              label:"Dominant Section",
-              value: topSection.key,
-              sub:`${UTIL.fmtNum(topSection.value)} hrs • ${UTIL.fmtNum(topSection.pct,1)}% • ${topSection.risk}`,
-              dot: UTIL.colorByRisk(topSection.risk),
-              numeric:false
-            },
-            {
-              label:"Critical Machine Exposure",
-              value: `${UTIL.fmtNum(topMachine.pct,1)}%`,
-              sub:`Top asset: ${topMachine.key} • ${UTIL.fmtNum(topMachine.value)} hrs`,
-              dot: UTIL.colorByRisk(topMachine.risk),
-              numeric:false
-            },
-            {
-              label:"Night vs Day",
-              value: `${UTIL.fmtNum(CALC.nightPct,1)}%`,
-              sub:`Night ${UTIL.fmtNum(CALC.night)} vs Day ${UTIL.fmtNum(CALC.day)} hrs • Δ ${UTIL.fmtNum(CALC.shiftDeltaPts,1)} pts`,
-              dot: CALC.shiftDeltaPts >= 0 ? "rgba(251,113,133,.95)" : "rgba(52,211,153,.95)",
-              numeric:false
-            }
-          ];
-
-          const row = document.getElementById("kpiRow");
-          row.innerHTML = "";
-          kpis.forEach((k,i) => {
-            const card = document.createElement("div");
-            card.className = "kpi fadeIn";
-            card.style.animationDelay = `${120 + i*40}ms`;
-            card.innerHTML = `
-              <div class="label">
-                <span class="dot" style="background:${k.dot}; box-shadow:0 0 0 6px color-mix(in srgb, ${k.dot} 20%, transparent)"></span>
-                <span>${k.label}</span>
-              </div>
-              <div>
-                <div class="value" ${k.numeric ? `data-counter="true" data-target="${k.value}"` : ""}>${k.numeric ? "0" : k.value}</div>
-                <div class="sub">${k.sub}</div>
-              </div>
-            `;
-            row.appendChild(card);
-          });
-        };
-
-        const animateCounters = () => {
-          const els = [...document.querySelectorAll('[data-counter="true"]')];
-          const duration = 900;
-          els.forEach(el => {
-            const target = Number(el.dataset.target || "0");
-            const start = performance.now();
-            const step = (t) => {
-              const p = UTIL.clamp((t - start) / duration, 0, 1);
-              const eased = 1 - Math.pow(1 - p, 3);
-              const val = target * eased;
-              el.textContent = UTIL.fmtNum(val, 0);
-              if (p < 1) requestAnimationFrame(step);
-              else el.textContent = UTIL.fmtNum(target, 0);
-            };
-            requestAnimationFrame(step);
-          });
-        };
-
-        const renderNarratives = () => {
-          const topSection = CALC.sectionsRanked[0];
-          const secondSection = CALC.sectionsRanked[1];
-          const dominantPair = (topSection?.pct ?? 0) + (secondSection?.pct ?? 0);
-
-          const topMachine = CALC.machinesRanked[0];
-          const shiftMsg = CALC.shiftDeltaPts >= 0
-            ? `Night shift losses are higher by <strong>${UTIL.fmtNum(CALC.shiftDeltaPts,1)}</strong> percentage points, indicating after-hours response/stability vulnerability.`
-            : `Day shift losses are higher by <strong>${UTIL.fmtNum(Math.abs(CALC.shiftDeltaPts),1)}</strong> points, indicating daytime execution-control vulnerability.`;
-
-          const secMsg = topSection.pct > 50
-            ? `The <strong>${topSection.key}</strong> section is the primary reliability risk at <strong>${UTIL.fmtNum(topSection.pct,1)}%</strong> of total breakdown hours.`
-            : `The <strong>${topSection.key}</strong> section leads at <strong>${UTIL.fmtNum(topSection.pct,1)}%</strong> and remains the first priority area.`;
-
-          const machineMsg = topMachine.pct > 10
-            ? `Machine contribution is concentrated: <strong>${topMachine.key}</strong> alone contributes <strong>${UTIL.fmtNum(topMachine.pct,1)}%</strong> (${UTIL.fmtNum(topMachine.value)} hrs).`
-            : `Largest machine contributor is <strong>${topMachine.key}</strong> at <strong>${UTIL.fmtNum(topMachine.pct,1)}%</strong>.`;
-
-          const compMsg = `Combined, the top two sections account for <strong>${UTIL.fmtNum(dominantPair,1)}%</strong> — confirming a dominant loss pocket in <strong>${topSection.key} + ${secondSection.key}</strong>.`;
-
-          const trendMsg = (CALC.daily.janVsFeb.label === "Insufficient daily coverage")
-            ? `<span style="color:var(--muted)">Jan vs Feb trend: insufficient daily coverage (extend daily points to enable).</span>`
-            : `<span style="color:var(--muted)">Jan vs Feb trend: <strong>${CALC.daily.janVsFeb.label}</strong>${CALC.daily.janVsFeb.deltaPct==null ? "" : ` (${UTIL.fmtNum(CALC.daily.janVsFeb.deltaPct,1)}%)`}.</span>`;
-
-          document.getElementById("execNarrative").innerHTML = `
-            ${secMsg} ${compMsg}<br><br>
-            ${shiftMsg}<br>
-            ${machineMsg}<br>
-            ${trendMsg}
-          `;
-
-          // Concentration block
-          const concRisk =
-            CALC.top3Share > 35 ? "Critical" :
-            CALC.top3Share > 28 ? "High" :
-            CALC.top3Share > 20 ? "Medium" : "Low";
-
-          document.getElementById("concNarrative").innerHTML = `
-            Breakdown hours are concentrated: the top-3 machines contribute <strong>${UTIL.fmtNum(CALC.top3Share,1)}%</strong> and top-5 contribute <strong>${UTIL.fmtNum(CALC.top5Share,1)}%</strong>.
-            <br><br><span style="color:var(--muted)">Use Pareto targeting to reduce repeat failures and de-risk line stability.</span>
-          `;
-
-          setRiskPill(document.getElementById("concRisk"), concRisk, concRisk);
-          document.getElementById("top3Share").textContent = `${UTIL.fmtNum(CALC.top3Share,1)}%`;
-          document.getElementById("top3ShareSub").textContent = `Machines: ${CALC.top3.map(x=>x.key).join(", ")}`;
-          document.getElementById("top5Share").textContent = `${UTIL.fmtNum(CALC.top5Share,1)}%`;
-          document.getElementById("top5ShareSub").textContent = `Machines: ${CALC.top5.map(x=>x.key).join(", ")}`;
-        };
-
-        const renderTags = (id, items) => {
-          const el = document.getElementById(id);
-          el.innerHTML = "";
-          items.forEach(it => {
-            const tag = document.createElement("div");
-            tag.className = "tag";
-            tag.dataset.risk = it.risk;
-            tag.innerHTML = `<span class="chip" aria-hidden="true"></span><span>${it.label}</span>`;
-            el.appendChild(tag);
-          });
-        };
-
-        const renderMeta = () => {
-          document.getElementById("metaTotal").textContent = `Total Breakdown Hours: ${UTIL.fmtNum(CALC.total)} hrs`;
-          document.getElementById("dataStamp").textContent = `Data basis: Jan–Feb 2026 • Total: ${UTIL.fmtNum(CALC.total)} hours`;
-
-          setRiskPill(document.getElementById("metaRisk"), CALC.overallRisk, `Operational Risk: ${CALC.overallRisk}`);
-          setRiskPill(document.getElementById("summaryBadge"), CALC.overallRisk, `${UTIL.riskIcon(CALC.overallRisk)} • ${CALC.overallRisk}`);
-
-          document.getElementById("sectionMeta").textContent = `High-Risk Sections: ${CALC.highRiskSections.length}`;
-          document.getElementById("shiftMeta").textContent = `Night ${UTIL.fmtNum(CALC.nightPct,1)}% • Day ${UTIL.fmtNum(CALC.dayPct,1)}%`;
-
-          document.getElementById("paretoMeta1").textContent = `80% captured by first ${CALC.pareto.nTo80} asset(s)`;
-          document.getElementById("paretoMeta2").textContent = `Critical assets (>10%): ${CALC.criticalMachines.length}`;
-
-          const avg = CALC.daily.vals.length ? `${UTIL.fmtNum(CALC.daily.avg,1)} hrs` : "—";
-          const spikes = CALC.daily.vals.length ? `${CALC.daily.spikes.length}` : "—";
-          document.getElementById("trendMeta1").textContent = `Avg/Day: ${avg}`;
-          document.getElementById("trendMeta2").textContent = `Detected Spikes: ${spikes}`;
-        };
-
-        const renderTopMachinesTable = () => {
-          const tb = document.getElementById("topMachinesTbody");
-          tb.innerHTML = "";
-          CALC.top5.forEach((m,i) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td class="mono">${i+1}</td>
-              <td><strong>${m.key}</strong></td>
-              <td class="right mono">${UTIL.fmtNum(m.value)}</td>
-              <td class="right mono">${UTIL.fmtNum(m.pct,1)}%</td>
-              <td class="center"><span class="riskPill" data-risk="${m.risk}">${m.risk}</span></td>
-            `;
-            tb.appendChild(tr);
-          });
-        };
-
-        const renderInsightsAndRecommendations = () => {
-          const topSection = CALC.sectionsRanked[0];
-          const secondSection = CALC.sectionsRanked[1];
-          const shiftImbalance = CALC.shiftDeltaPts >= 0 ? "Night" : "Day";
-
-          const rootCause = (topSection.key.includes("Filling") || topSection.key.includes("Capping"))
-            ? "Losses concentrate in filling/capping where high-speed mechanical interfaces, alignment, wear points, and frequent micro-stops typically dominate downtime."
-            : "Losses concentrate in the dominant production section where wear mechanisms, changeover variability, and control stability typically drive downtime.";
-
-          const reliabilityRisk = (CALC.top3Share > 28 || topSection.pct > 45)
-            ? "Reliability concentration risk is present: downtime is dominated by a primary section and a small number of assets, increasing repeat-stoppage probability."
-            : "Reliability risk is distributed: contributors are spread; improvement requires structured multi-asset execution.";
-
-          const spikeText = CALC.daily.vals.length
-            ? (CALC.daily.spikes.length
-                ? `Spike pattern detected: <strong>${CALC.daily.spikes.length}</strong> day(s) exceeded threshold (Avg + 1σ).`
-                : "No statistical spikes detected from available daily points.")
-            : "Daily series not provided; spike detection activates automatically once daily points are added.";
-
-          const insightsHTML = `
-            <div><strong>Root cause interpretation:</strong> ${rootCause}</div>
-            <div style="margin-top:10px"><strong>Reliability risk statement:</strong> ${reliabilityRisk}</div>
-            <div style="margin-top:10px"><strong>Operational risk level:</strong> <span style="font-weight:900;color:${UTIL.colorByRisk(CALC.overallRisk)}">${CALC.overallRisk}</span> — driven by <strong>${topSection.key}</strong> (${UTIL.fmtNum(topSection.pct,1)}%) and asset concentration (Top-3 ${UTIL.fmtNum(CALC.top3Share,1)}%).</div>
-            <div style="margin-top:10px"><strong>Shift signal:</strong> ${shiftImbalance} shift shows higher loss share; align coverage, spares readiness, and response standards.</div>
-            <div style="margin-top:10px"><strong>Spike behavior:</strong> ${spikeText}</div>
-            <div style="margin-top:10px;color:var(--muted)"><strong>Immediate focus:</strong> ${topSection.key} + ${secondSection.key}, and assets ${CALC.top3.map(m=>m.key).join(", ")}.</div>
-          `;
-          document.getElementById("insightsText").innerHTML = insightsHTML;
-
-          // Tags
-          const concRisk =
-            CALC.top3Share > 35 ? "Critical" :
-            CALC.top3Share > 28 ? "High" :
-            CALC.top3Share > 20 ? "Medium" : "Low";
-
-          const tags = [
-            { label: `${topSection.key}: ${UTIL.fmtNum(topSection.pct,1)}%`, risk: topSection.risk },
-            { label: `Filling + Downline: ${UTIL.fmtNum(CALC.fillDownPct,1)}%`, risk: CALC.fillDownPct > 70 ? "High" : "Medium" },
-            { label: `Top-3 assets: ${UTIL.fmtNum(CALC.top3Share,1)}%`, risk: concRisk },
-            { label: `${shiftImbalance} shift higher`, risk: Math.abs(CALC.shiftDeltaPts) >= 3 ? "High" : (Math.abs(CALC.shiftDeltaPts) >= 1 ? "Medium" : "Low") },
-            { label: `Critical assets: ${CALC.criticalMachines.length}`, risk: CALC.criticalMachines.length >= 2 ? "High" : (CALC.criticalMachines.length ? "Medium" : "Low") }
-          ];
-          renderTags("insightTags", tags);
-
-          // Badges
-          setRiskPill(document.getElementById("insightRiskBadge"), CALC.overallRisk, `${CALC.overallRisk} Risk`);
-
-          // Recommendations
-          const topAreas = CALC.areasRanked.slice(0,3);
-          const focusAreas = topAreas.map(a => `${a.key} (${UTIL.fmtNum(a.pct,1)}%)`).join(", ");
-          const focusAssets = CALC.top5.map(m => `${m.key} (${UTIL.fmtNum(m.pct,1)}%)`).join(", ");
-
-          const priorityRisk = (topSection.pct > 40 || CALC.criticalMachines.length) ? "High" : CALC.overallRisk;
-          setRiskPill(document.getElementById("maintPriorityBadge"), priorityRisk, `${priorityRisk} Priority`);
-
-          document.getElementById("recommendText").innerHTML = `
-            <div><strong>Maintenance priority recommendation:</strong> Execute an 80/20 reliability program targeting the dominant section and top-contributing assets to reduce repeat breakdowns.</div>
-            <div style="margin-top:10px"><strong>Preventive maintenance focus areas:</strong> ${focusAreas}.</div>
-            <div style="margin-top:10px"><strong>Asset focus list (ranked):</strong> ${focusAssets}.</div>
-            <div style="margin-top:10px"><strong>Execution moves:</strong> Standardize ${shiftImbalance.toLowerCase()}-shift response (coverage, start-up checks, spares readiness) and deploy reliability fixes (alignment, wear points, sensors, lubrication routes) on top contributors.</div>
-            <div style="margin-top:10px;color:var(--muted)"><strong>Outcome goal:</strong> reduce dominant section share and lower top-3 concentration to de-risk line stability.</div>
-          `;
-
-          // Action plan
-          const actionPlan = [
-            {
-              p:"P1",
-              area:`${topSection.key} (Primary)`,
-              obj:"Eliminate repeat stoppages in dominant loss pocket",
-              impact: topSection.pct > 50 ? "Critical" : "High"
-            },
-            {
-              p:"P2",
-              area:`Top-3 Assets (${CALC.top3.map(x=>x.key).join(", ")})`,
-              obj:"Reliability retrofit + PM reinforcement on key contributors",
-              impact: concRisk === "Critical" ? "Critical" : "High"
-            },
-            {
-              p:"P3",
-              area:`${shiftImbalance} Shift Readiness`,
-              obj:"Reduce response latency and improve spares availability",
-              impact: Math.abs(CALC.shiftDeltaPts) >= 3 ? "High" : "Medium"
-            },
-            {
-              p:"P4",
-              area:"Downline / Upstream Loss Containment",
-              obj:"Prevent migration of losses to constraint equipment",
-              impact: (CALC.sectionsRanked[1]?.pct ?? 0) > 30 ? "High" : "Medium"
-            }
-          ];
-
-          const tb = document.getElementById("actionPlanTbody");
-          tb.innerHTML = "";
-          actionPlan.forEach(r => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td class="mono"><strong>${r.p}</strong></td>
-              <td>${r.area}</td>
-              <td>${r.obj}</td>
-              <td class="center"><span class="riskPill" data-risk="${r.impact}">${r.impact}</span></td>
-            `;
-            tb.appendChild(tr);
-          });
-
-          // Area risk badge from top area concentration
-          const topAreaPct = CALC.areasRanked[0]?.pct ?? 0;
-          const areaRisk = topAreaPct > 40 ? "High" : (topAreaPct >= 25 ? "Medium" : "Low");
-          setRiskPill(document.getElementById("areaRiskBadge"), areaRisk, areaRisk);
-
-          // Exec tags
-          const execTags = [
-            { label:`Dominant: ${topSection.key} (${UTIL.fmtNum(topSection.pct,1)}%)`, risk: topSection.risk },
-            { label:`Downline + Filling: ${UTIL.fmtNum(CALC.fillDownPct,1)}%`, risk: CALC.fillDownPct > 70 ? "High" : "Medium" },
-            { label:`Critical assets: ${CALC.criticalMachines.length}`, risk: CALC.criticalMachines.length >= 2 ? "High" : (CALC.criticalMachines.length ? "Medium" : "Low") },
-            { label:`Shift split: Night ${UTIL.fmtNum(CALC.nightPct,1)}%`, risk: Math.abs(CALC.shiftDeltaPts) >= 3 ? "High" : "Medium" }
-          ];
-          renderTags("execTags", execTags);
-        };
-
-        return {
-          setRiskPill,
-          renderKpis,
-          animateCounters,
-          renderNarratives,
-          renderMeta,
-          renderTopMachinesTable,
-          renderInsightsAndRecommendations,
-          renderTags
-        };
-      })();
-
-      /* =========================================================
-         MODULE: CHARTS (Chart.js)
-         ========================================================= */
-      const CHARTS = (() => {
-        const theme = {
-          grid:"rgba(255,255,255,.08)",
-          ticks:"rgba(255,255,255,.72)",
-          tipBg:"rgba(6,10,20,.92)",
-          tipBorder:"rgba(255,255,255,.14)"
-        };
-
-        const buildPareto = () => {
-          const ctx = document.getElementById("paretoChart").getContext("2d");
-
-          return new Chart(ctx, {
-            type:"bar",
-            data:{
-              labels: CALC.pareto.labels,
-              datasets:[
-                {
-                  type:"bar",
-                  label:"Breakdown Hours",
-                  data: CALC.pareto.hours,
-                  backgroundColor:(c)=>{
-                    const i = c.dataIndex;
-                    const r = CALC.machinesRanked[i]?.risk || "Low";
-                    return UTIL.colorByRisk(r).replace("0.99","0.55").replace("0.98","0.50");
-                  },
-                  borderColor:"rgba(255,255,255,.10)",
-                  borderWidth:1,
-                  borderRadius:10,
-                  yAxisID:"y"
-                },
-                {
-                  type:"line",
-                  label:"Cumulative %",
-                  data: CALC.pareto.cum,
-                  yAxisID:"y1",
-                  borderColor:"rgba(34,197,94,.95)",
-                  backgroundColor:"rgba(34,197,94,.12)",
-                  fill:true,
-                  tension:.25,
-                  pointRadius:2.6,
-                  pointHoverRadius:5,
-                  pointBackgroundColor:"rgba(34,197,94,.95)",
-                  pointBorderColor:"rgba(0,0,0,.35)",
-                  borderWidth:2
-                },
-                {
-                  type:"line",
-                  label:"80% Threshold",
-                  data: CALC.pareto.labels.map(()=>80),
-                  yAxisID:"y1",
-                  borderColor:"rgba(251,191,36,.85)",
-                  borderDash:[6,6],
-                  pointRadius:0,
-                  borderWidth:2
-                }
-              ]
-            },
-            options:{
-              responsive:true,
-              maintainAspectRatio:false,
-              interaction:{mode:"index",intersect:false},
-              plugins:{
-                legend:{
-                  labels:{color:theme.ticks,font:{family:"Inter",weight:800}}
-                },
-                tooltip:{
-                  backgroundColor:theme.tipBg,
-                  borderColor:theme.tipBorder,
-                  borderWidth:1,
-                  titleColor:"rgba(255,255,255,.92)",
-                  bodyColor:"rgba(255,255,255,.84)",
-                  padding:12,
-                  callbacks:{
-                    label:(t)=>{
-                      if (t.dataset.label==="Breakdown Hours"){
-                        const m = CALC.machinesRanked[t.dataIndex];
-                        return ` ${m.key}: ${UTIL.fmtNum(m.value)} hrs (${UTIL.fmtNum(m.pct,1)}%) • ${m.risk}`;
-                      }
-                      if (t.dataset.label==="Cumulative %") return ` Cumulative: ${UTIL.fmtNum(t.raw,1)}%`;
-                      return ` ${t.dataset.label}: ${t.raw}`;
-                    }
-                  }
-                }
-              },
-              scales:{
-                x:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:theme.ticks,maxRotation:0,autoSkip:true}},
-                y:{
-                  beginAtZero:true,
-                  grid:{color:theme.grid},
-                  ticks:{color:theme.ticks},
-                  title:{display:true,text:"Hours",color:theme.ticks,font:{family:"Inter",weight:900}}
-                },
-                y1:{
-                  beginAtZero:true,position:"right",min:0,max:100,
-                  grid:{drawOnChartArea:false},
-                  ticks:{color:theme.ticks,callback:(v)=>v+"%"},
-                  title:{display:true,text:"Cumulative %",color:theme.ticks,font:{family:"Inter",weight:900}}
-                }
-              }
-            }
-          });
-        };
-
-        const buildSectionPie = () => {
-          const ctx = document.getElementById("sectionPie").getContext("2d");
-          const labels = CALC.sectionsRanked.map(s=>s.key);
-          const vals = CALC.sectionsRanked.map(s=>s.value);
-          const colors = CALC.sectionsRanked.map(s => UTIL.colorByRisk(s.risk).replace("0.99","0.78").replace("0.98","0.75"));
-
-          return new Chart(ctx,{
-            type:"pie",
-            data:{labels,datasets:[{data:vals,backgroundColor:colors,borderColor:"rgba(255,255,255,.10)",borderWidth:1}]},
-            options:{
-              responsive:true,maintainAspectRatio:false,
-              plugins:{
-                legend:{position:"bottom",labels:{color:theme.ticks,boxWidth:10,font:{family:"Inter",weight:800}}},
-                tooltip:{
-                  backgroundColor:theme.tipBg,borderColor:theme.tipBorder,borderWidth:1,padding:12,
-                  callbacks:{ label:(t)=> {
-                    const s = CALC.sectionsRanked[t.dataIndex];
-                    return ` ${s.key}: ${UTIL.fmtNum(s.value)} hrs (${UTIL.fmtNum(s.pct,1)}%) • ${s.risk}`;
-                  }}
-                }
-              }
-            }
-          });
-        };
-
-        const buildShiftDonut = () => {
-          const ctx = document.getElementById("shiftDonut").getContext("2d");
-          const labels = CALC.shiftsSeries.map(s=>s.key);
-          const vals = CALC.shiftsSeries.map(s=>s.value);
-          const colors = ["rgba(96,165,250,.70)","rgba(251,113,133,.70)"];
-
-          return new Chart(ctx,{
-            type:"doughnut",
-            data:{labels,datasets:[{data:vals,backgroundColor:colors,borderColor:"rgba(255,255,255,.10)",borderWidth:1,hoverOffset:6}]},
-            options:{
-              responsive:true,maintainAspectRatio:false,cutout:"62%",
-              plugins:{
-                legend:{position:"bottom",labels:{color:theme.ticks,boxWidth:10,font:{family:"Inter",weight:800}}},
-                tooltip:{
-                  backgroundColor:theme.tipBg,borderColor:theme.tipBorder,borderWidth:1,padding:12,
-                  callbacks:{ label:(t)=> {
-                    const s = CALC.shiftsSeries[t.dataIndex];
-                    return ` ${s.key}: ${UTIL.fmtNum(s.value)} hrs (${UTIL.fmtNum(s.pct,1)}%)`;
-                  }}
-                }
-              }
-            }
-          });
-        };
-
-        const buildAreaBar = () => {
-          const ctx = document.getElementById("areaBar").getContext("2d");
-          const labels = CALC.areasRanked.map(a=>a.key);
-          const vals = CALC.areasRanked.map(a=>a.value);
-
-          return new Chart(ctx,{
-            type:"bar",
-            data:{labels,datasets:[{
-              label:"Hours",
-              data:vals,
-              backgroundColor:"rgba(96,165,250,.40)",
-              borderColor:"rgba(255,255,255,.10)",
-              borderWidth:1,
-              borderRadius:10
-            }]},
-            options:{
-              responsive:true,maintainAspectRatio:false,
-              plugins:{
-                legend:{display:false},
-                tooltip:{
-                  backgroundColor:theme.tipBg,borderColor:theme.tipBorder,borderWidth:1,padding:12,
-                  callbacks:{ label:(t)=> {
-                    const a = CALC.areasRanked[t.dataIndex];
-                    return ` ${a.key}: ${UTIL.fmtNum(a.value)} hrs (${UTIL.fmtNum(a.pct,1)}%)`;
-                  }}
-                }
-              },
-              scales:{
-                x:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:theme.ticks,autoSkip:true,maxRotation:0}},
-                y:{
-                  beginAtZero:true,
-                  grid:{color:theme.grid},
-                  ticks:{color:theme.ticks},
-                  title:{display:true,text:"Hours",color:theme.ticks,font:{family:"Inter",weight:900}}
-                }
-              }
-            }
-          });
-        };
-
-        const buildDailyTrend = () => {
-          const ctx = document.getElementById("dailyTrend").getContext("2d");
-          const pts = CALC.daily.pts;
-
-          // If only spikes are provided, show them as series; spike detection still works deterministically.
-          const labels = pts.map(p => p.t.toISOString().slice(0,10));
-          const values = pts.map(p => p.y);
-
-          const spikeDates = new Set(CALC.daily.spikes.map(s => s.t.toISOString().slice(0,10)));
-          const pointColors = labels.map(d => spikeDates.has(d) ? "rgba(239,68,68,.95)" : "rgba(96,165,250,.90)");
-          const pointR = labels.map(d => spikeDates.has(d) ? 5 : 3);
-
-          return new Chart(ctx,{
-            type:"line",
-            data:{
-              labels,
-              datasets:[
-                {
-                  label:"Daily Breakdown (hrs)",
-                  data:values,
-                  borderColor:"rgba(96,165,250,.85)",
-                  backgroundColor:"rgba(96,165,250,.12)",
-                  fill:true,
-                  tension:.25,
-                  pointRadius:pointR,
-                  pointHoverRadius:6,
-                  pointBackgroundColor:pointColors,
-                  pointBorderColor:"rgba(0,0,0,.35)",
-                  borderWidth:2
-                },
-                {
-                  label:"Spike Threshold (Avg + 1σ)",
-                  data:labels.map(()=>CALC.daily.thr || 0),
-                  borderColor:"rgba(251,191,36,.85)",
-                  borderDash:[6,6],
-                  pointRadius:0,
-                  borderWidth:2
-                }
-              ]
-            },
-            options:{
-              responsive:true,maintainAspectRatio:false,
-              interaction:{mode:"index",intersect:false},
-              plugins:{
-                legend:{labels:{color:theme.ticks,font:{family:"Inter",weight:800}}},
-                tooltip:{
-                  backgroundColor:theme.tipBg,borderColor:theme.tipBorder,borderWidth:1,padding:12,
-                  callbacks:{
-                    label:(t)=>{
-                      if (t.dataset.label.startsWith("Daily")){
-                        const d = labels[t.dataIndex];
-                        const s = spikeDates.has(d);
-                        return ` ${d}: ${UTIL.fmtNum(t.raw)} hrs${s ? " • Spike" : ""}`;
-                      }
-                      return ` ${t.dataset.label}: ${UTIL.fmtNum(t.raw,1)} hrs`;
-                    }
-                  }
-                }
-              },
-              scales:{
-                x:{grid:{color:"rgba(255,255,255,.05)"},ticks:{color:theme.ticks,autoSkip:true,maxRotation:0}},
-                y:{
-                  beginAtZero:true,
-                  grid:{color:theme.grid},
-                  ticks:{color:theme.ticks},
-                  title:{display:true,text:"Hours",color:theme.ticks,font:{family:"Inter",weight:900}}
-                }
-              }
-            }
-          });
-        };
-
-        return { buildPareto, buildSectionPie, buildShiftDonut, buildAreaBar, buildDailyTrend };
-      })();
-
-      /* =========================================================
-         MODULE: TOGGLE (Executive View)
-         ========================================================= */
-      const initExecToggle = () => {
-        const btn = document.getElementById("execToggle");
-        const apply = (on) => {
-          btn.dataset.on = on ? "true" : "false";
-          document.body.classList.toggle("execMode", !!on);
-        };
-        btn.addEventListener("click", () => apply(btn.dataset.on !== "true"));
-        apply(false);
-      };
-
-      /* =========================================================
-         MODULE: VALIDATION (integrity checks)
-         ========================================================= */
-      const validate = () => {
-        const totals = {
-          machines: UTIL.sum(DATA.machines),
-          areas: UTIL.sum(DATA.areas),
-          shifts: UTIL.sum(DATA.shifts),
-          sections: UTIL.sum(DATA.sections)
-        };
-        const ok = Object.values(totals).every(v => v === DATA.totalHours);
-        if (!ok){
-          document.getElementById("metaTotal").textContent =
-            `Total Breakdown Hours: ${UTIL.fmtNum(DATA.totalHours)} hrs • Data check: ` +
-            `Machine ${totals.machines} • Area ${totals.areas} • Shift ${totals.shifts} • Section ${totals.sections}`;
-        }
-      };
-
-      /* =========================================================
-         BOOTSTRAP
-         ========================================================= */
-      initExecToggle();
-
-      UI.renderMeta();
-      UI.renderKpis();
-      UI.animateCounters();
-      UI.renderNarratives();
-      UI.renderTopMachinesTable();
-      UI.renderInsightsAndRecommendations();
-
-      CHARTS.buildPareto();
-      CHARTS.buildSectionPie();
-      CHARTS.buildShiftDonut();
-      CHARTS.buildAreaBar();
-      CHARTS.buildDailyTrend();
-
-      validate();
-    })();
-  </script>
+</div>
+
+<div class="footer">
+  <div>© 2026 • Drinkable Section • Maintenance KPI System</div>
+  <div>Data source: Breakdown & Spare Usage Logs</div>
+</div>
+
+</div>
+
+<script>
+/* ================= DATA ================= */
+const machines = {
+  "M15":151,"M14":143,"M6":127,"M7":127,"M2":99,"M4":93,"Crates Area":89,
+  "M8":86,"M1":74,"M3":73,"M16":70,"M18":63,"M17":56,"M13":55,"M12":31,"M5":3,"M9":5
+};
+const sections = {
+  "Filling & Capping":681,
+  "Downline":447,
+  "Upstream":128,
+  "Crates Area":89
+};
+const shifts = {Day:642,Night:703};
+const total = 1347;
+
+/* ================= CHARTS ================= */
+const mLabels = Object.keys(machines);
+const mVals = Object.values(machines);
+let cum=0;
+const cumPct = mVals.map(v => (cum+=v)/total*100);
+
+new Chart(document.getElementById("paretoChart"),{
+  data:{
+    labels:mLabels,
+    datasets:[
+      {type:"bar",label:"Hours",data:mVals,backgroundColor:"rgba(96,165,250,.45)"},
+      {type:"line",label:"Cumulative %",data:cumPct,yAxisID:"y1",borderColor:"#22c55e",fill:false}
+    ]
+  },
+  options:{
+    responsive:true,
+    scales:{
+      y:{beginAtZero:true,title:{display:true,text:"Hours"}},
+      y1:{beginAtZero:true,max:100,position:"right",title:{display:true,text:"%"}}
+    }
+  }
+});
+
+new Chart(document.getElementById("sectionPie"),{
+  type:"pie",
+  data:{labels:Object.keys(sections),datasets:[{data:Object.values(sections)}]},
+  options:{responsive:true}
+});
+
+new Chart(document.getElementById("shiftDonut"),{
+  type:"doughnut",
+  data:{labels:Object.keys(shifts),datasets:[{data:Object.values(shifts)}]},
+  options:{responsive:true,cutout:"60%"}
+});
+</script>
 </body>
 </html>
